@@ -1,7 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.*;
 import java.awt.geom.Line2D.*;
 import java.util.*;
 
@@ -15,7 +14,7 @@ public class Viewport2D extends JPanel implements MouseListener, MouseMotionList
    private Main main;
    private Graphics2D g2; // so paintComponent() doesn't have to create it each time
    private Edge dragEdge;
-   private Vertex hoverVertex;
+   private CoordStore.Vertex hoverVertex;
 
    Viewport2D(Main main) {
       this.main = main;
@@ -39,15 +38,15 @@ public class Viewport2D extends JPanel implements MouseListener, MouseMotionList
       
    }
 
-   private Vertex screenToWorldCoords(Point screen) {
-      return new Vertex(screen.x, screen.y, 0);
+   private CoordStore.Vertex screenToWorldCoords(Point screen) {
+      return main.coordStore.new Vertex(screen.x, screen.y, 0);
    }
 
    /* returns the first vertex that the point lies within, or null if none */
-   private Vertex hoverVertex(Point p) {
-      ListIterator<Vertex> iterator = main.coordStore.getVerticesIterator();
+   private CoordStore.Vertex hoverVertex(Point p) {
+      ListIterator<CoordStore.Vertex> iterator = main.coordStore.getVerticesIterator();
       while (iterator.hasNext()) {
-         Vertex v = iterator.next();
+         CoordStore.Vertex v = iterator.next();
          if (v.topDownView().contains(p)) return v;
       }
       return null;
@@ -73,7 +72,7 @@ public class Viewport2D extends JPanel implements MouseListener, MouseMotionList
    /** Invoked when a mouse button has been pressed on a component. */
    public void mousePressed(MouseEvent e) {
       if (e.getButton() == MouseEvent.BUTTON1) {
-//hoverVertex(e.getPoint())
+         //hoverVertex(e.getPoint())
          if (main.designButtons.isLineTool()) {
             lineDragStarted(e.getPoint());
             setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -133,9 +132,9 @@ public class Viewport2D extends JPanel implements MouseListener, MouseMotionList
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
          RenderingHints.VALUE_ANTIALIAS_ON);
 
-      ListIterator<Vertex> ite = main.coordStore.getVerticesIterator();
+      ListIterator<CoordStore.Vertex> ite = main.coordStore.getVerticesIterator();
       while (ite.hasNext()) {
-         Vertex v = ite.next();
+         CoordStore.Vertex v = ite.next();
 
          ListIterator vi = v.getUsesIterator();
          while (vi.hasNext()) {

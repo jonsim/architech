@@ -7,24 +7,26 @@ import java.awt.geom.Line2D.*;
  * @author James
  */
 class Edge {
-   private static Edge thisClass = new Edge();
-   private Vertex v1;
-   private Vertex v2;
+   private static Edge thisClass = new Edge(new CoordStore());
+   private CoordStore.Vertex v1;
+   private CoordStore.Vertex v2;
 
    /** Creates a new edge from the given vertices and adds it to the coordStore.
     *  If null is given for a vertex then that vertex will be made at 0,0,0 */
-   Edge(Vertex v1, Vertex v2, CoordStore coordStore) {
-      if (v1 == null) v1 = new Vertex();
-      if (v2 == null) v2 = new Vertex();
+   Edge(CoordStore.Vertex v1, CoordStore.Vertex v2, CoordStore coordStore) {
+      if (v1 == null) v1 = coordStore.new Vertex();
+      if (v2 == null) v2 = coordStore.new Vertex();
 
       this.v1 = coordStore.addVertex(v1.getX(), v1.getY(), v1.getZ(), this);
       this.v2 = coordStore.addVertex(v2.getX(), v2.getY(), v2.getZ(), this);
    }
 
    /** Creates a new blank edge and doesn't add it to the coordStore */
-   Edge() {
-      v1 = new Vertex();
-      v2 = new Vertex();
+   Edge(CoordStore coordStore) {
+      if (coordStore == null) coordStore = new CoordStore();
+      
+      v1 = coordStore.new Vertex();
+      v2 = coordStore.new Vertex();
    }
 
    /** Returns the line that represents the top down (2D) view of this line */
@@ -46,7 +48,7 @@ class Edge {
     *  the end of this line, to essentially unsnap (split) from that other
     *  object's vertex */
    public void vertexMoveOrSplit(CoordStore coordStore, boolean isV1, float x, float y, float z) {
-      Vertex toMove = (isV1 ? v1 : v2);
+      CoordStore.Vertex toMove = (isV1 ? v1 : v2);
       if (toMove.equals(x, y, z)) return;
 
       if (toMove.isUsed()) {
