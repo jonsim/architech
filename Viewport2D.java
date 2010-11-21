@@ -14,7 +14,7 @@ public class Viewport2D extends JPanel implements MouseListener, MouseMotionList
    private Main main;
    private Graphics2D g2; // so paintComponent() doesn't have to create it each time
    private Edge dragEdge;
-   private CoordStore.Vertex hoverVertex;
+   private Coords.Vertex hoverVertex;
 
    Viewport2D(Main main) {
       this.main = main;
@@ -38,15 +38,15 @@ public class Viewport2D extends JPanel implements MouseListener, MouseMotionList
       
    }
 
-   private CoordStore.Vertex screenToWorldCoords(Point screen) {
+   private Coords.Vertex screenToWorldCoords(Point screen) {
       return main.coordStore.new Vertex(screen.x, screen.y, 0);
    }
 
    /* returns the first vertex that the point lies within, or null if none */
-   private CoordStore.Vertex hoverVertex(Point p) {
-      ListIterator<CoordStore.Vertex> iterator = main.coordStore.getVerticesIterator();
+   private Coords.Vertex hoverVertex(Point p) {
+      ListIterator<Coords.Vertex> iterator = main.coordStore.getVerticesIterator();
       while (iterator.hasNext()) {
-         CoordStore.Vertex v = iterator.next();
+         Coords.Vertex v = iterator.next();
          if (v.topDownView().contains(p)) return v;
       }
       return null;
@@ -54,7 +54,7 @@ public class Viewport2D extends JPanel implements MouseListener, MouseMotionList
 
    private void lineDragStarted(Point p) {
       if (p == null) p = new Point(0,0);
-      dragEdge = new Edge(screenToWorldCoords(p), screenToWorldCoords(p), main.coordStore);
+      dragEdge = new Edge(main.coordStore, screenToWorldCoords(p), screenToWorldCoords(p));
    }
 
    /** No reason other than stopping erroneous  */
@@ -132,9 +132,9 @@ public class Viewport2D extends JPanel implements MouseListener, MouseMotionList
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
          RenderingHints.VALUE_ANTIALIAS_ON);
 
-      ListIterator<CoordStore.Vertex> ite = main.coordStore.getVerticesIterator();
+      ListIterator<Coords.Vertex> ite = main.coordStore.getVerticesIterator();
       while (ite.hasNext()) {
-         CoordStore.Vertex v = ite.next();
+         Coords.Vertex v = ite.next();
 
          ListIterator vi = v.getUsesIterator();
          while (vi.hasNext()) {

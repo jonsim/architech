@@ -5,13 +5,13 @@ import java.awt.*;
 public class Main {
 
    public FrontEnd frontEnd;
-   public CoordStore coordStore;
+   public Coords coordStore;
    public DesignButtons designButtons;
    public ObjectButtons objectButtons;
 
    /** Does the business making other classes and remembering their pointers */
    Main() {
-      coordStore = new CoordStore();
+      coordStore = new Coords();
       designButtons = new DesignButtons(this);
       objectButtons = new ObjectButtons(this);
       frontEnd = new FrontEnd(this);

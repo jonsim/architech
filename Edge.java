@@ -7,26 +7,18 @@ import java.awt.geom.Line2D.*;
  * @author James
  */
 class Edge {
-   private static Edge thisClass = new Edge(new CoordStore());
-   private CoordStore.Vertex v1;
-   private CoordStore.Vertex v2;
+   private static final Edge thisClass = new Edge(new Coords(), null, null);
+   private Coords.Vertex v1;
+   private Coords.Vertex v2;
 
    /** Creates a new edge from the given vertices and adds it to the coordStore.
     *  If null is given for a vertex then that vertex will be made at 0,0,0 */
-   Edge(CoordStore.Vertex v1, CoordStore.Vertex v2, CoordStore coordStore) {
+   Edge(Coords coordStore, Coords.Vertex v1, Coords.Vertex v2) {
       if (v1 == null) v1 = coordStore.new Vertex();
       if (v2 == null) v2 = coordStore.new Vertex();
 
       this.v1 = coordStore.addVertex(v1.getX(), v1.getY(), v1.getZ(), this);
       this.v2 = coordStore.addVertex(v2.getX(), v2.getY(), v2.getZ(), this);
-   }
-
-   /** Creates a new blank edge and doesn't add it to the coordStore */
-   Edge(CoordStore coordStore) {
-      if (coordStore == null) coordStore = new CoordStore();
-      
-      v1 = coordStore.new Vertex();
-      v2 = coordStore.new Vertex();
    }
 
    /** Returns the line that represents the top down (2D) view of this line */
@@ -47,8 +39,8 @@ class Edge {
     *  line is snapped to the other object) then it will create a new vertex for
     *  the end of this line, to essentially unsnap (split) from that other
     *  object's vertex */
-   public void vertexMoveOrSplit(CoordStore coordStore, boolean isV1, float x, float y, float z) {
-      CoordStore.Vertex toMove = (isV1 ? v1 : v2);
+   public void vertexMoveOrSplit(Coords coordStore, boolean isV1, float x, float y, float z) {
+      Coords.Vertex toMove = (isV1 ? v1 : v2);
       if (toMove.equals(x, y, z)) return;
 
       if (toMove.isUsed()) {
@@ -63,7 +55,8 @@ class Edge {
 
       } else {
          // update coordinates, no other components are joined to this vertex
-         coordStore.set(toMove, x, y, z);
+         if (isV1) v1 = coordStore.set(toMove, x, y, z);
+         else v2 = coordStore.set(toMove, x, y, z);
       }
    }
 
