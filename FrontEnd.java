@@ -5,7 +5,7 @@ import java.awt.event.*;
 import java.util.*;
 
 public class FrontEnd implements WindowListener {
-   public static final String  ICON_LOCATION = "archiTECH.png";
+   public static final String  ICON_LOCATION = "icon.png";
    public static final String  WINDOW_TITLE = "ArchiTECH";
 
    private final JMenuBar menuBar = new JMenuBar();
