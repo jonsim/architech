@@ -129,7 +129,7 @@ public class FrontEnd implements WindowListener {
       pane.setLayout(new GridBagLayout());
       GridBagConstraints c;
 
-      viewport2D.setPreferredSize(new Dimension(400,180));
+      viewport2D.getScrollPane().setPreferredSize(new Dimension(400,180));
       viewport3D.getPane().setPreferredSize(new Dimension(400,180));
       objectBrowser.getPane().setPreferredSize(new Dimension(160,180));
 
@@ -141,7 +141,7 @@ public class FrontEnd implements WindowListener {
 
       c = buildGBC(0, 1, 1.0, 1.0, leftAnchor, top_left_right);
       c.fill = GridBagConstraints.BOTH;
-      pane.add(viewport2D, c);
+      pane.add(viewport2D.getScrollPane(), c); // viewport2D
 
       c = buildGBC(1, 1, 0.18, 0.0, topLeftAnchor, top_bottom_right);
       c.gridheight = 2;
