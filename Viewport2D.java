@@ -16,6 +16,7 @@ public class Viewport2D extends JPanel implements Scrollable, MouseListener, Mou
    private Edge dragEdge;
    private Coords.Vertex hoverVertex;
    private JScrollPane scrollPane;
+   private boolean gridOn = true;
 
    Viewport2D(Main main) {
       this.main = main;
@@ -53,6 +54,18 @@ public class Viewport2D extends JPanel implements Scrollable, MouseListener, Mou
       super.paintComponent(g2); // clear screen
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
          RenderingHints.VALUE_ANTIALIAS_ON);
+
+	   if(gridOn) {
+		   g2.setColor(Color.lightGray);
+		   
+		   for( int i = 0; i < 2000; i += 60 )
+			   g2.drawLine(i,0,i,1000);
+		   
+		   for( int i = 0; i < 1000; i += 60 )
+			   g2.drawLine(0,i,2000,i);
+		   
+		   g2.setColor(Color.black);
+	   }
 
       ListIterator<Coords.Vertex> ite = main.coordStore.getVerticesIterator();
       while (ite.hasNext()) {
