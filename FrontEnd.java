@@ -4,6 +4,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 
+/** Creates and displays the whole main window and adds the various different
+ *  JPanels to it.
+ *  
+ */
 public class FrontEnd implements WindowListener {
    public static final String  ICON_LOCATION = "icon.png";
    public static final String  WINDOW_TITLE = "ArchiTECH";
@@ -11,21 +15,12 @@ public class FrontEnd implements WindowListener {
    private final JMenuBar menuBar = new JMenuBar();
    private final JFrame window = new JFrame(WINDOW_TITLE);
 
-   private Main          main;
-   private Viewport2D    viewport2D;
-   private Viewport3D    viewport3D;
-   private ObjectBrowser objectBrowser;
+   private Main main;
 
    /** holds the displayable window and shows or hides sub windows
     * displays dialogs on request by other classes (i.e. crash dialog) */
    FrontEnd(Main main) {
       this.main = main;
-
-      viewport2D = new Viewport2D(main);
-      viewport2D.addMouseListener(viewport2D);
-      viewport2D.addMouseMotionListener(viewport2D);
-      viewport3D = new Viewport3D(main);
-      objectBrowser = new ObjectBrowser(main);
 
       menuInit();
       windowInit();
@@ -89,7 +84,7 @@ public class FrontEnd implements WindowListener {
    public void display() {
       window.setLocationRelativeTo(null);
       window.setVisible(true);
-      viewport2D.repaint();
+      main.viewport2D.repaint();
    }
 
    /** Returns an image for use as the icon or null if it failed somehow */
@@ -101,7 +96,7 @@ public class FrontEnd implements WindowListener {
       return icon;
    }
 
-   private GridBagConstraints buildGBC(int x, int y,
+   public static GridBagConstraints buildGBC(int x, int y,
          double weightx, double weighty, int anchor, Insets i) {
       GridBagConstraints c = new GridBagConstraints();
       c.gridx = x;
@@ -129,9 +124,9 @@ public class FrontEnd implements WindowListener {
       pane.setLayout(new GridBagLayout());
       GridBagConstraints c;
 
-      viewport2D.setPreferredSize(new Dimension(400,180));
-      viewport3D.getPane().setPreferredSize(new Dimension(400,180));
-      objectBrowser.getPane().setPreferredSize(new Dimension(160,180));
+      main.viewport2D.getScrollPane().setPreferredSize(new Dimension(400,180));
+      main.viewport3D.getPane().setPreferredSize(new Dimension(400,180));
+      main.objectBrowser.getPane().setPreferredSize(new Dimension(160,180));
 
       c = buildGBC(0, 0, 0.5, 0.0, topCenterAnchor, top_left_right);
       pane.add(main.designButtons.getPane(), c);
@@ -141,21 +136,21 @@ public class FrontEnd implements WindowListener {
 
       c = buildGBC(0, 1, 1.0, 1.0, leftAnchor, top_left_right);
       c.fill = GridBagConstraints.BOTH;
-      pane.add(viewport2D, c);
+      pane.add(main.viewport2D.getScrollPane(), c); // viewport2D
 
       c = buildGBC(1, 1, 0.18, 0.0, topLeftAnchor, top_bottom_right);
       c.gridheight = 2;
       c.fill = GridBagConstraints.BOTH;
-      pane.add(objectBrowser.getPane(), c);
+      pane.add(main.objectBrowser.getPane(), c);
 
       c = buildGBC(0, 2, 1.0, 1.0, leftAnchor, top_left_bottom_right);
       c.fill = GridBagConstraints.BOTH;
-      pane.add(viewport3D.getPane(), c);
+      pane.add(main.viewport3D.getPane(), c);
       
    }
 
    private boolean saveRequired() {
-      return true;
+      return false;
    }
 
    private void save() {
@@ -185,41 +180,27 @@ public class FrontEnd implements WindowListener {
       }
    }
 
+   /** Sets the cursor across the whole JPanel */
    public void setWindowCursor(Cursor cursor) {
       window.setCursor(cursor);
    }
-   
-   public ObjectBrowser getObjectBrowser() {
-      return objectBrowser;
-   }
 
 //! WINDOWLISTENER
-   /** Invoked when the Window is set to be the active Window. */
-   public void windowActivated(WindowEvent e) {
-   }
-
-   /** Invoked when a window has been closed as the result of calling dispose on the window. */
-   public void windowClosed(WindowEvent e) {
-   }
-
    /** Invoked when the user attempts to close the window from the window's system menu. */
    public void windowClosing(WindowEvent e) {
       if (quit()) window.dispose();
    }
 
+   /** Invoked when the Window is set to be the active Window. */
+   public void windowActivated(WindowEvent e) {}
    /** Invoked when a Window is no longer the active Window. */
-   public void windowDeactivated(WindowEvent e) {
-   }
-
+   public void windowDeactivated(WindowEvent e) {}
    /** Invoked when a window is changed from a minimised to a normal state. */
-   public void windowDeiconified(WindowEvent e) {
-   }
-
+   public void windowDeiconified(WindowEvent e) {}
    /** Invoked when a window is changed from a normal to a minimised state. */
-   public void windowIconified(WindowEvent e) {
-   }
-
+   public void windowIconified(WindowEvent e) {}
+   /** Invoked when a window has been closed as the result of calling dispose on the window. */
+   public void windowClosed(WindowEvent e) {}
    /** Invoked the first time a window is made visible. */
-   public void windowOpened(WindowEvent e) {
-   }
+   public void windowOpened(WindowEvent e) {}
 }

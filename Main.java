@@ -1,3 +1,4 @@
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -5,23 +6,30 @@ import java.awt.*;
 public class Main {
 
    public FrontEnd frontEnd;
+   public Viewport2D viewport2D;
+   public Viewport3D viewport3D;
+   public ObjectBrowser objectBrowser;
    public Coords coordStore;
    public DesignButtons designButtons;
    public ObjectButtons objectButtons;
 
-   /** Does the business making other classes and remembering their pointers */
+   /** Does the business making other classes and remembering their pointers. Be
+    *  careful editing the order things are created here, to avoid race conditions */
    Main() {
       coordStore = new Coords();
       designButtons = new DesignButtons(this);
       objectButtons = new ObjectButtons(this);
+
+      viewport2D = new Viewport2D(this);
+      viewport3D = new Viewport3D(this);
+      objectBrowser = new ObjectBrowser(this);
+
       frontEnd = new FrontEnd(this);
    }
 
    /** Starts everything in the program running */
    private void run() {
       frontEnd.display();
-
-
    }
 
    /** Sets the default look and feel. (must be done before anything else)

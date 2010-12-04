@@ -14,16 +14,13 @@ import java.util.*;
  *  etc. for one "design". If there are two designs loaded, i.e. in tabs, just
  *  make a new CoordStore() with the relevant vertices for the second design;
  *  
- *
- * @author James
  */
 public class Coords {
 
    /** This is inside the CoordStore as it needs access to some methods that
     *  should really be private to the Vertex. This way is a bit odd but much
     *  better in the long run prevention of bugs wise!
-    *
-    * @author James
+    *  
     */
    public class Vertex {
       public static final int diameter = 10;
@@ -93,7 +90,7 @@ public class Coords {
 
       /** Returns the list iterator of this vertex's uses. It can be used to
        *  iterate through all the objects using it, i.e. edges or curves */
-      public ListIterator getUsesIterator() {
+      private ListIterator getUsesIterator() {
          return uses.listIterator();
       }
 
@@ -111,7 +108,7 @@ public class Coords {
       }
    }
 
-   /*!------------------------------------------------------------------------*/
+   /*!-START OF COORDS--------------------------------------------------------*/
    
    private LinkedList<Vertex> vertices = new LinkedList<Vertex>();
 
@@ -242,13 +239,63 @@ public class Coords {
       new Edge(this,new Vertex(302.0,122.0,0.0), new Vertex(326.0,122.0,0.0));
    }
 
-   public Coords.Vertex set(Vertex v, float x, float y, float z) {
+   /** returns the vertex that the Point p lies within, or null if none */
+   public Vertex vertexAt(Point p) {
+      ListIterator<Vertex> iterator = vertices.listIterator();
+
+      while (iterator.hasNext()) {
+
+         Coords.Vertex v = iterator.next();
+         if (v.topDownView().contains(p)) return v;
+      }
+      
+      return null;
+   }
+
+   /** Draws things like lines and curves etc. on the given Graphics canvas */
+   public void drawObjects(Graphics2D g2) {
+      g2.setColor(Color.BLACK);
+
+      ListIterator<Vertex> ite = vertices.listIterator();
+      while (ite.hasNext()) {
+         Vertex v = ite.next();
+         ListIterator vi = v.getUsesIterator();
+
+         while (vi.hasNext()) {
+            Object use = vi.next();
+
+            if (Edge.isEdge(use)) {
+               g2.draw(((Edge) use).topDownView());
+
+            } else {
+               // Shapes other than edges are not visualised at the moment.
+            }
+         }
+      }
+   }
+
+   /** Draws the small vertex circles on the given Graphics canvas */
+   public void drawVertices(Graphics2D g2) {
+      g2.setColor(Color.BLACK);
+
+      ListIterator<Vertex> ite = vertices.listIterator();
+      while (ite.hasNext()) {
+         g2.fill(ite.next().topDownView());
+      }
+   }
+
+   /** Updates the given vertex's coordinates to the given ones and returns the
+    *  new vertex that should be used now. It may return the same vertex or a
+    *  new one if you try to set the coordinates to a vertex that already exists,
+    *  it will merge the two to avoid duplicate entries. This is essentially
+    *  snapping, but to a very precise level!! */
+   public Vertex set(Vertex v, float x, float y, float z) {
       if (v == null) return null;
 
       Vertex vAlt = vertexInUse(x, y, z);
 
       if (vAlt != null && vAlt != v) {
-         // there is already a vertex with these coordinates
+         // there is already a vertex with these coordinates, and its not itself!
          ListIterator<Object> oldVertexUses = v.getUsesIterator();
          while (oldVertexUses.hasNext()) {
             vAlt.setUse(oldVertexUses.next());
@@ -264,6 +311,8 @@ public class Coords {
       }
    }
 
+   /** Updates the given vertex so that it no longer remembers Object o as something
+    *  that uses it. If the vertex no longer has any uses then it gets deleted! */
    public void removeUse(Vertex v, Object o) {
       if (v == null) return;
 
@@ -271,12 +320,7 @@ public class Coords {
       if (!v.isUsed()) vertices.remove(v);
    }
 
-   /** You can use the returned ListIterator to iterate through all the vertices */
-   public ListIterator<Vertex> getVerticesIterator() {
-      return vertices.listIterator();
-   }
-
-   /** If there is already a vertex with the given coords that vertex is
+   /** If there is already a vertex with the given coords then that vertex is
     *  returned otherwise null is returned */
    private Vertex vertexInUse(float x, float y, float z) {
       ListIterator<Vertex> ite = vertices.listIterator();

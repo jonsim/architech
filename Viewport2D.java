@@ -1,13 +1,17 @@
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Line2D.*;
 import java.util.*;
 
-/** BUG: If we add a curve on drag tool to a different mouse button than the line
- *       drag tool then you can draw both at once.
+/** This class holds the panel for the 2D view, it extends JPanel so has repaint()
+ *  and all the other methods to do with JPanel. It draws the vertices and edges
+ *  from the coordinate system as required and responds to button pressed from
+ *  the DesignButtons class.
  *
- * @author James
+ *  Future bug to watch out for: If we add a curve on drag tool to a different
+ *  mouse button than the line drag tool then you can draw both at once.
  */
 public class Viewport2D extends JPanel implements Scrollable, MouseListener, MouseMotionListener {
 
@@ -16,108 +20,93 @@ public class Viewport2D extends JPanel implements Scrollable, MouseListener, Mou
    private Edge dragEdge;
    private Coords.Vertex hoverVertex;
    private JScrollPane scrollPane;
-   private boolean gridOn = true;
 
+   /** Initialises the 2D pane and makes it scrollable too */
    Viewport2D(Main main) {
       this.main = main;
       initPane();
       scrollPane = new JScrollPane(this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+      addMouseListener(this);
+      addMouseMotionListener(this);
    }
 
+   /** Does little at the moment */
    private void initPane() {
       setBackground(Color.WHITE);
-      //setBorder(BorderFactory.createLineBorder(Color.GRAY));
-      setPreferredSize(new Dimension(2000,1000));
+      setPreferredSize(new Dimension(2000, 1000));
    }
 
-   /** UNUSED */
-   private void graphicsInit(Graphics2D g2) {
-      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-         RenderingHints.VALUE_ANTIALIAS_ON);
-      
-      int thickness = 1;
-      BasicStroke stroke = new BasicStroke(thickness, BasicStroke.CAP_ROUND,
-         BasicStroke.JOIN_ROUND);
-      g2.setStroke(stroke);
-      
-   }
-
+   /** Returns the scrollable version of this class. */
    public JScrollPane getScrollPane() {
       return scrollPane;
    }
 
-   /** Currently draws lines twice, as vertices at each end are traversed.
-    *  Its not a performance issue at the moment */
+   /** Draws the grid on the given Graphics canvas */
+   private void drawGrid(Graphics2D g2) {
+      if (!main.designButtons.isGridOn()) return;
+
+      g2.setColor(Color.LIGHT_GRAY);
+
+      int cellWidth = 60;
+
+      for (int i = cellWidth; i < getWidth(); i += cellWidth) {
+         g2.drawLine(i, 0, i, getHeight());
+      }
+
+      for (int i = cellWidth; i < getHeight(); i += cellWidth) {
+         g2.drawLine(0, i, getWidth(), i);
+      }
+   }
+
+   /** Draws grid, objects and vertices, highlights currently aimed at vertex */
    @Override
    public void paintComponent(Graphics g) {
       g2 = (Graphics2D) g;
       super.paintComponent(g2); // clear screen
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-         RenderingHints.VALUE_ANTIALIAS_ON);
+              RenderingHints.VALUE_ANTIALIAS_ON);
 
-	   if(gridOn) {
-		   g2.setColor(Color.lightGray);
-		   
-		   for( int i = 0; i < 2000; i += 60 )
-			   g2.drawLine(i,0,i,1000);
-		   
-		   for( int i = 0; i < 1000; i += 60 )
-			   g2.drawLine(0,i,2000,i);
-		   
-		   g2.setColor(Color.black);
-	   }
+      drawGrid(g2);
+      
+      main.coordStore.drawObjects(g2);
+      main.coordStore.drawVertices(g2);
 
-      ListIterator<Coords.Vertex> ite = main.coordStore.getVerticesIterator();
-      while (ite.hasNext()) {
-         Coords.Vertex v = ite.next();
-
-         ListIterator vi = v.getUsesIterator();
-         while (vi.hasNext()) {
-            Object use = vi.next();
-            if (Edge.isEdge(use)) {
-               g2.draw(((Edge) use).topDownView());
-
-            } else {
-               // Shapes other than edges are not visualised at the moment.
-            }
-         }
-         if (v == hoverVertex) {
-            g2.setColor(Color.red);
-            g2.fill(v.topDownView());
-            g2.setColor(Color.black);
-         } else g2.fill(v.topDownView());
+      if (hoverVertex != null) {
+         g2.setColor(Color.red);
+         g2.fill(hoverVertex.topDownView());
       }
    }
-   
+
+   /** I don't like this method :) but anyway is converts from screen coordinates
+    *  i.e. 0 to panelWidth into the full on coordinate system values between
+    *  -inf and +inf. This method is currently just hard wired so it doesn't
+    *  really do anything useful yet */
    private Coords.Vertex screenToWorldCoords(Point screen) {
       return main.coordStore.new Vertex(screen.x, screen.y, 0);
    }
 
-   /* returns the first vertex that the point lies within, or null if none */
-   private Coords.Vertex hoverVertex(Point p) {
-      ListIterator<Coords.Vertex> iterator = main.coordStore.getVerticesIterator();
-      while (iterator.hasNext()) {
-         Coords.Vertex v = iterator.next();
-         if (v.topDownView().contains(p)) return v;
-      }
-      return null;
-   }
-
+   /** if the user clicks and drags with the line tool on, call this, it will
+    *  make the new edge so that they can see it as they drag! */
    private void lineDragStarted(Point p) {
-      if (p == null) p = new Point(0,0);
+      if (p == null) {
+         p = new Point(0, 0);
+      }
       dragEdge = new Edge(main.coordStore, screenToWorldCoords(p), screenToWorldCoords(p));
    }
 
    /** No reason other than stopping erroneous  */
    private void lineDragFinished() {
       dragEdge = null;
-      setPreferredSize(new Dimension(200,200));
+      setPreferredSize(new Dimension(200, 200));
    }
 
    /** edge might be null if the user started a drag with a different mouse
-       button than BUTTON1 and then while dragging changed to the line tool */
+    *  button than BUTTON1 and then while dragging changed to the line tool. This
+    *  updates the edge to a new position, that the user has just dragged it to */
    private void lineDragEvent(Point draggedTo) {
-      if (dragEdge != null) dragEdge.vertexMoveOrSplit(main.coordStore, false, draggedTo.x, draggedTo.y, 0);
+      if (dragEdge != null) {
+         dragEdge.vertexMoveOrSplit(main.coordStore, false, draggedTo.x, draggedTo.y, 0);
+      }
    }
 
    /**! START MOUSELISTENER */
@@ -141,36 +130,31 @@ public class Viewport2D extends JPanel implements Scrollable, MouseListener, Mou
          lineDragFinished();
 
          setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-         
+
          // other tools go here
       }
    }
 
    /** Invoked when the mouse button has been clicked (pressed and released) on a component. */
-   public void mouseClicked(MouseEvent e) {
-   }
-
+   public void mouseClicked(MouseEvent e) {}
    /** Invoked when the mouse enters a component. */
-   public void mouseEntered(MouseEvent e) {
-
-   }
-
+   public void mouseEntered(MouseEvent e) {}
    /** Invoked when the mouse exits a component. */
-   public void mouseExited(MouseEvent e) {
-
-   }
+   public void mouseExited(MouseEvent e) {}
    /**! END MOUSELISTENER */
 
    /**! START MOUSEMOTIONLISTENER */
    /** Invoked when a mouse button is pressed on a component and then dragged. */
    public void mouseDragged(MouseEvent e) {
-      if (main.designButtons.isLineTool()) lineDragEvent(e.getPoint());
+      if (main.designButtons.isLineTool()) {
+         lineDragEvent(e.getPoint());
+      }
       repaint();
    }
 
    /** Invoked when the mouse cursor has been moved onto a component but no buttons have been pushed. */
    public void mouseMoved(MouseEvent e) {
-      hoverVertex = hoverVertex(e.getPoint());
+      hoverVertex = main.coordStore.vertexAt(e.getPoint());
       repaint();
    }
    /**! END MOUSEMOTIONLISTENER */
@@ -185,7 +169,7 @@ public class Viewport2D extends JPanel implements Scrollable, MouseListener, Mou
    public Dimension getPreferredScrollableViewportSize() {
       int width = 1;//400;
       int height = 1;//180;
-      
+
 
       return new Dimension(width, height);
       //return getSize();

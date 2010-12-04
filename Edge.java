@@ -2,12 +2,16 @@ import java.util.*;
 import java.awt.geom.*;
 import java.awt.geom.Line2D.*;
 
-/**
- *
- * @author James
+/** Holds an edge. When you make a new Edge() it gets automatically added to the
+ *  internal coordinate system. This class remembers the two vertices at either
+ *  end of the edge and each of those 2 vertices remembers that they are
+ *  associated with this edge.
  */
 class Edge {
+   // as this is static it only gets defined once to save space. Its used to
+   // detect if a Object has class type Edge by comparing with this variable.
    private static final Edge thisClass = new Edge(new Coords(), null, null);
+
    private Coords.Vertex v1;
    private Coords.Vertex v2;
 
@@ -60,6 +64,7 @@ class Edge {
       }
    }
 
+   /** Returns some vaguely useful form of string so you can println() an edge */
    @Override
    public String toString() {
       //MANUAL EXPORT - return "new Edge(new Vertex("+v1.x+","+v1.y+","+v1.z+"), new Vertex("+v2.x+","+v2.y+","+v2.z+"), this);";

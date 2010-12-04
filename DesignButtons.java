@@ -1,30 +1,35 @@
-import java.net.URL;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
-import javax.swing.border.Border;
-import javax.swing.border.TitledBorder;
 
-
-/**
- *
- * @author James
+/** Holds the buttons for tools and features related to the 2D pane
  */
 public class DesignButtons implements ActionListener {
 
    private Main main;
    private JPanel pane;
    private JButton selectTool, lineTool, curveTool;
+   private JButton currentTool;
    private Cursor selectCursor, lineCursor, curveCursor;
    private JToggleButton gridTool, snapTool;
 
+   /** Returns true if the line tool is selected */
    public boolean isLineTool() {
-      /* this code will work for now but if the button doesn't disable it will fail */
-      if (!lineTool.isEnabled()) return true;
-      else return false;
+      if (lineTool == currentTool) {
+         return true;
+      } else {
+         return false;
+      }
    }
 
+   /** Returns true if the grid toggle is currently on */
+   public boolean isGridOn() {
+      return gridTool.isSelected();
+   }
+
+   /** Initialises the private variables as usual */
    DesignButtons(Main main) {
       this.main = main;
       initCursors();
@@ -32,28 +37,36 @@ public class DesignButtons implements ActionListener {
       initPane();
    }
 
+   /** Initialises the private cursor variables */
    private void initCursors() {
       selectCursor = new Cursor(Cursor.DEFAULT_CURSOR);
       lineCursor = new Cursor(Cursor.DEFAULT_CURSOR);
       curveCursor = new Cursor(Cursor.DEFAULT_CURSOR);
    }
 
+   /** Initialises the private button variables */
    private void initButtons() {
       selectTool = new JButton("Sel");
-        lineTool = new JButton("Lne");
-       curveTool = new JButton("Crv");
-        gridTool = new JToggleButton("Grd");
-        snapTool = new JToggleButton("Snp");
+      lineTool = new JButton("Lne");
+      curveTool = new JButton("Crv");
+      gridTool = new JToggleButton("Grd");
+      snapTool = new JToggleButton("Snp");
 
       selectTool.addActionListener(this);
-        lineTool.addActionListener(this);
-       curveTool.addActionListener(this);
-        gridTool.addActionListener(this);
-        snapTool.addActionListener(this);
+      lineTool.addActionListener(this);
+      curveTool.addActionListener(this);
+      gridTool.addActionListener(this);
+      snapTool.addActionListener(this);
 
-      selectTool.setEnabled(false);
+
+      gridTool.setSelected(true);
+      snapTool.setSelected(true);
+
+      currentTool = lineTool;
+      reCalcButtonStates();
    }
 
+   /** Initialises the private pane variable, adds the buttons to it */
    private void initPane() {
       int leftAnchor = GridBagConstraints.LINE_START;
       int rightAnchor = GridBagConstraints.LINE_END;
@@ -61,91 +74,79 @@ public class DesignButtons implements ActionListener {
       int topLeftAnchor = GridBagConstraints.NORTHWEST;
       int topRightAnchor = GridBagConstraints.NORTHEAST;
 
-      Insets top_left_right = new Insets(10,10,0,10);
-      Insets top_left_bottom_right = new Insets(10,10,10,10);
-      Insets top_right = new Insets(10,0,0,10);
-      Insets top_bottom_right = new Insets(10,0,10,10);
-      Insets right = new Insets(0,0,0,10);
-      Insets bottom = new Insets(0,0,5,0);
-      Insets none = new Insets(0,0,0,0);
+      Insets top_left_right = new Insets(10, 10, 0, 10);
+      Insets top_left_bottom_right = new Insets(10, 10, 10, 10);
+      Insets top_right = new Insets(10, 0, 0, 10);
+      Insets top_bottom_right = new Insets(10, 0, 10, 10);
+      Insets right = new Insets(0, 0, 0, 10);
+      Insets bottom = new Insets(0, 0, 5, 0);
+      Insets none = new Insets(0, 0, 0, 0);
 
       pane = new JPanel(new GridBagLayout());
       pane.setBorder(BorderFactory.createTitledBorder("Design Buttons"));
 
       GridBagConstraints c;
 
-      c = buildGridBagConstraints(0, 0, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(0, 0, 0.5, 0.5, centerAnchor, right);
       pane.add(selectTool, c);
 
-      c = buildGridBagConstraints(1, 0, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(1, 0, 0.5, 0.5, centerAnchor, right);
       pane.add(lineTool, c);
 
-      c = buildGridBagConstraints(2, 0, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(2, 0, 0.5, 0.5, centerAnchor, right);
       pane.add(curveTool, c);
 
-      c = buildGridBagConstraints(3, 0, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(3, 0, 0.5, 0.5, centerAnchor, right);
       pane.add(gridTool, c);
 
-      c = buildGridBagConstraints(4, 0, 0.5, centerAnchor, none);
+      c = FrontEnd.buildGBC(4, 0, 0.5, 0.5, centerAnchor, none);
       pane.add(snapTool, c);
 
    }
 
+   /** Returns the pane containing the buttons / GUI stuff */
    public JPanel getPane() {
       return pane;
    }
 
-   private void disableButtonEnableOthers(JButton button) {
-      button.setEnabled(false);
+   /** If currentTool has changed then this will grey out the tool's button.
+    *  Does not change anything to do with the toggle buttons */
+   private void reCalcButtonStates() {
+      selectTool.setEnabled(true);
+      lineTool.setEnabled(true);
+      curveTool.setEnabled(true);
 
-      if (button == selectTool) {
-         lineTool.setEnabled(true);
-         curveTool.setEnabled(true);
-         
-      } else if (button == lineTool) {
-         selectTool.setEnabled(true);
-         curveTool.setEnabled(true);
-
-      } else if (button == curveTool) {
-         selectTool.setEnabled(true);
-         lineTool.setEnabled(true);
-      }
+      currentTool.setEnabled(false);
    }
 
+   /** Whenever a button in this pane is pressed this method is called */
    public void actionPerformed(ActionEvent e) {
       Object source = e.getSource();
 
       if (selectTool == source) {
          main.frontEnd.setWindowCursor(selectCursor);
-         disableButtonEnableOthers(selectTool);
+         currentTool = selectTool;
+         reCalcButtonStates();
 
       } else if (lineTool == source) {
          main.frontEnd.setWindowCursor(lineCursor);
-         disableButtonEnableOthers(lineTool);
+         currentTool = lineTool;
+         reCalcButtonStates();
 
       } else if (curveTool == source) {
          main.frontEnd.setWindowCursor(curveCursor);
-         disableButtonEnableOthers(curveTool);
+         currentTool = curveTool;
+         reCalcButtonStates();
 
       } else if (gridTool == source) {
          // toggle grid showing
-         
+         main.viewport2D.repaint();
+
       } else if (snapTool == source) {
-         // toggle snap showing
-
-      } else Main.showFatalExceptionTraceWindow(
-                new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
+         // toggle snap
+      } else {
+         Main.showFatalExceptionTraceWindow(
+                 new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
+      }
    }
-
-   private GridBagConstraints buildGridBagConstraints(int x, int y,
-         double weightx, int anchor, Insets i) {
-      GridBagConstraints c = new GridBagConstraints();
-      c.gridx = x;
-      c.gridy = y;
-      c.weightx = weightx;
-      c.anchor = anchor;
-      c.insets = i;
-      return c;
-   }
-
 }
