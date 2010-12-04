@@ -96,6 +96,7 @@ public class FrontEnd implements WindowListener {
       return icon;
    }
 
+   /** Creates and returns a GridBagConstraints with the values given */
    public static GridBagConstraints buildGBC(int x, int y,
          double weightx, double weighty, int anchor, Insets i) {
       GridBagConstraints c = new GridBagConstraints();
@@ -149,10 +150,12 @@ public class FrontEnd implements WindowListener {
       
    }
 
+   /** Currently hardwired, should return whether or not the user needs to save */
    private boolean saveRequired() {
       return false;
    }
 
+   /** Should save the stuff to file */
    private void save() {
       // save
 

@@ -3,8 +3,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 /**
- *
- * @author James
+ * 
  */
 public class Viewport3D {
    private JPanel pane;

@@ -1,14 +1,15 @@
+
 import java.awt.*;
 import java.net.URL;
 import javax.swing.ImageIcon;
 
-/**
- *
- * @author James
+/** Used to create custom cursors. It has no use yet but it might be useful later
+ *  
  */
 public class CustomCursor {
    /** used to determine the cursor icon directory, same as this class. */
    CustomCursor() {
+      
    }
 
    /** returns the default cursor */

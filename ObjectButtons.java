@@ -1,3 +1,4 @@
+
 import java.net.URL;
 import javax.swing.*;
 import java.awt.*;
@@ -6,10 +7,8 @@ import java.util.*;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
-
-/**
+/** Stores a JPanel that contains buttons related to the ObjectBrowser window
  *
- * @author James
  */
 public class ObjectButtons implements ActionListener {
 
@@ -25,10 +24,10 @@ public class ObjectButtons implements ActionListener {
    }
 
    private void initButtons() {
-         addObject = new JButton("Add");
-      removeObject = new JButton("Del");
+      addObject = new JButton("Select");
+      removeObject = new JButton("Show Categories");
 
-         addObject.addActionListener(this);
+      addObject.addActionListener(this);
       removeObject.addActionListener(this);
    }
 
@@ -39,13 +38,13 @@ public class ObjectButtons implements ActionListener {
       int topLeftAnchor = GridBagConstraints.NORTHWEST;
       int topRightAnchor = GridBagConstraints.NORTHEAST;
 
-      Insets top_left_right = new Insets(10,10,0,10);
-      Insets top_left_bottom_right = new Insets(10,10,10,10);
-      Insets top_right = new Insets(10,0,0,10);
-      Insets top_bottom_right = new Insets(10,0,10,10);
-      Insets right = new Insets(0,0,0,10);
-      Insets bottom = new Insets(0,0,5,0);
-      Insets none = new Insets(0,0,0,0);
+      Insets top_left_right = new Insets(10, 10, 0, 10);
+      Insets top_left_bottom_right = new Insets(10, 10, 10, 10);
+      Insets top_right = new Insets(10, 0, 0, 10);
+      Insets top_bottom_right = new Insets(10, 0, 10, 10);
+      Insets right = new Insets(0, 0, 0, 10);
+      Insets bottom = new Insets(0, 0, 5, 0);
+      Insets none = new Insets(0, 0, 0, 0);
 
       pane = new JPanel(new GridBagLayout());
       pane.setBorder(BorderFactory.createTitledBorder("Object Buttons"));
@@ -68,15 +67,19 @@ public class ObjectButtons implements ActionListener {
       Object source = e.getSource();
 
       if (addObject == source) {
-		 main.frontEnd.getObjectBrowser().selectCategory();
+         main.objectBrowser.selectCategory();
+
       } else if (removeObject == source) {
-         main.frontEnd.getObjectBrowser().toCategories();
-      } else Main.showFatalExceptionTraceWindow(
-                new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
+         main.objectBrowser.toCategories();
+         
+      } else {
+         Main.showFatalExceptionTraceWindow(
+                 new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
+      }
    }
 
    private GridBagConstraints buildGridBagConstraints(int x, int y,
-         double weightx, int anchor, Insets i) {
+           double weightx, int anchor, Insets i) {
       GridBagConstraints c = new GridBagConstraints();
       c.gridx = x;
       c.gridy = y;
@@ -85,5 +88,4 @@ public class ObjectButtons implements ActionListener {
       c.insets = i;
       return c;
    }
-
 }

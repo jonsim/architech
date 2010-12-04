@@ -17,11 +17,8 @@ public class DesignButtons implements ActionListener {
 
    /** Returns true if the line tool is selected */
    public boolean isLineTool() {
-      if (lineTool == currentTool) {
-         return true;
-      } else {
-         return false;
-      }
+      if (lineTool == currentTool) return true;
+      else return false;
    }
 
    /** Returns true if the grid toggle is currently on */
@@ -144,6 +141,7 @@ public class DesignButtons implements ActionListener {
 
       } else if (snapTool == source) {
          // toggle snap
+         
       } else {
          Main.showFatalExceptionTraceWindow(
                  new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
