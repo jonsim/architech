@@ -68,9 +68,9 @@ public class ObjectButtons implements ActionListener {
       Object source = e.getSource();
 
       if (addObject == source) {
-
+		 main.frontEnd.getObjectBrowser().selectCategory();
       } else if (removeObject == source) {
-         
+         main.frontEnd.getObjectBrowser().toCategories();
       } else Main.showFatalExceptionTraceWindow(
                 new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
    }
