@@ -13,18 +13,20 @@ import java.util.*;
  *  Future bug to watch out for: If we add a curve on drag tool to a different
  *  mouse button than the line drag tool then you can draw both at once.
  */
-public class Viewport2D extends JPanel implements Scrollable, MouseListener, MouseMotionListener {
+public class Viewport2D extends JPanel implements KeyListener, Scrollable, MouseListener, MouseMotionListener {
 
    private Main main;
    private Graphics2D g2; // so paintComponent() doesn't have to create it each time
    private Edge dragEdge;
-   private Coords.Vertex hoverVertex, selectVertex;
+   private Coords.Vertex hoverVertex, selectVertex = null;
    private JScrollPane scrollPane;
 
    /** Initialises the 2D pane and makes it scrollable too */
    Viewport2D(Main main) {
       this.main = main;
       initPane();
+      setFocusable(true);
+      addKeyListener(this);
       scrollPane = new JScrollPane(this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
       addMouseListener(this);
       addMouseMotionListener(this);
@@ -76,7 +78,7 @@ public class Viewport2D extends JPanel implements Scrollable, MouseListener, Mou
          g2.fill(hoverVertex.topDownView());
       }
 
-      if (selectVertex != null) {
+      if (selectVertex != null && main.designButtons.isSelectTool()) {
          g2.setColor(Color.blue);
          g2.fill(selectVertex.topDownView());
       }
@@ -148,6 +150,8 @@ public class Viewport2D extends JPanel implements Scrollable, MouseListener, Mou
               repaint();
           }
       }
+
+			main.viewport2D.requestFocus();
    }
 
    /** Invoked when the mouse enters a component. */
@@ -244,4 +248,20 @@ public class Viewport2D extends JPanel implements Scrollable, MouseListener, Mou
       return 15;
    }
    /**! END SCROLLABLE */
+
+	 	/** Invoked when a key is pressed and released */
+   	public void keyTyped(KeyEvent kevt) {
+        char c = kevt.getKeyChar();
+
+        if ( (c == '\b' || c == '\u007F') && selectVertex != null) {
+            main.coordStore.removeUse(selectVertex, main.coordStore);
+						repaint();
+				}
+    }
+
+		/** Invoked when a key is pressed */
+    public void keyPressed(KeyEvent kevt) {}
+
+		/** Invoked when a key is released */    
+    public void keyReleased(KeyEvent kevt) {}
 }

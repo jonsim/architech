@@ -143,7 +143,6 @@ public class DesignButtons implements ActionListener {
 
       } else if (gridTool == source) {
          // toggle grid showing
-         main.viewport2D.repaint();
 
       } else if (snapTool == source) {
          // toggle snap
@@ -152,5 +151,7 @@ public class DesignButtons implements ActionListener {
          Main.showFatalExceptionTraceWindow(
                  new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
       }
+
+			main.viewport2D.repaint();
    }
 }

@@ -25,6 +25,7 @@ public class Main {
       objectBrowser = new ObjectBrowser(this);
 
       frontEnd = new FrontEnd(this);
+      viewport2D.requestFocus();
    }
 
    /** Starts everything in the program running */
