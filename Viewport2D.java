@@ -18,7 +18,7 @@ public class Viewport2D extends JPanel implements Scrollable, MouseListener, Mou
    private Main main;
    private Graphics2D g2; // so paintComponent() doesn't have to create it each time
    private Edge dragEdge;
-   private Coords.Vertex hoverVertex;
+   private Coords.Vertex hoverVertex, selectVertex;
    private JScrollPane scrollPane;
 
    /** Initialises the 2D pane and makes it scrollable too */
@@ -74,6 +74,11 @@ public class Viewport2D extends JPanel implements Scrollable, MouseListener, Mou
       if (hoverVertex != null) {
          g2.setColor(Color.red);
          g2.fill(hoverVertex.topDownView());
+      }
+
+      if (selectVertex != null) {
+         g2.setColor(Color.blue);
+         g2.fill(selectVertex.topDownView());
       }
    }
 
@@ -136,7 +141,15 @@ public class Viewport2D extends JPanel implements Scrollable, MouseListener, Mou
    }
 
    /** Invoked when the mouse button has been clicked (pressed and released) on a component. */
-   public void mouseClicked(MouseEvent e) {}
+   public void mouseClicked(MouseEvent e) {
+      if (e.getButton() == MouseEvent.BUTTON1) {
+          if (main.designButtons.isSelectTool()) {
+              selectVertex = main.coordStore.vertexAt(e.getPoint());
+              repaint();
+          }
+      }
+   }
+
    /** Invoked when the mouse enters a component. */
    public void mouseEntered(MouseEvent e) {}
    /** Invoked when the mouse exits a component. */

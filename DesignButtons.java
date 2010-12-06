@@ -26,6 +26,12 @@ public class DesignButtons implements ActionListener {
       return gridTool.isSelected();
    }
 
+   /** Returns true if the select tool is selected */
+   public boolean isSelectTool() {
+      if (selectTool == currentTool) return true;
+      else return false;
+   }
+
    /** Initialises the private variables as usual */
    DesignButtons(Main main) {
       this.main = main;
