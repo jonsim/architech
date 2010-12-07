@@ -45,7 +45,9 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable, Mouse
 
    /** Draws the grid on the given Graphics canvas */
    private void drawGrid(Graphics2D g2) {
-      if (!main.designButtons.isGridOn()) return;
+      if (!main.designButtons.isGridOn()) {
+         return;
+      }
 
       g2.setColor(Color.LIGHT_GRAY);
 
@@ -69,7 +71,7 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable, Mouse
               RenderingHints.VALUE_ANTIALIAS_ON);
 
       drawGrid(g2);
-      
+
       main.coordStore.drawObjects(g2);
       main.coordStore.drawVertices(g2);
 
@@ -145,21 +147,24 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable, Mouse
    /** Invoked when the mouse button has been clicked (pressed and released) on a component. */
    public void mouseClicked(MouseEvent e) {
       if (e.getButton() == MouseEvent.BUTTON1) {
-          if (main.designButtons.isSelectTool()) {
-              selectVertex = main.coordStore.vertexAt(e.getPoint());
-              repaint();
-          }
+         if (main.designButtons.isSelectTool()) {
+            selectVertex = main.coordStore.vertexAt(e.getPoint());
+            repaint();
+         }
       }
 
-			main.viewport2D.requestFocus();
+      main.viewport2D.requestFocus();
    }
 
    /** Invoked when the mouse enters a component. */
-   public void mouseEntered(MouseEvent e) {}
-   /** Invoked when the mouse exits a component. */
-   public void mouseExited(MouseEvent e) {}
-   /**! END MOUSELISTENER */
+   public void mouseEntered(MouseEvent e) {
+   }
 
+   /** Invoked when the mouse exits a component. */
+   public void mouseExited(MouseEvent e) {
+   }
+
+   /**! END MOUSELISTENER */
    /**! START MOUSEMOTIONLISTENER */
    /** Invoked when a mouse button is pressed on a component and then dragged. */
    public void mouseDragged(MouseEvent e) {
@@ -174,8 +179,8 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable, Mouse
       hoverVertex = main.coordStore.vertexAt(e.getPoint());
       repaint();
    }
-   /**! END MOUSEMOTIONLISTENER */
 
+   /**! END MOUSEMOTIONLISTENER */
    /**! START SCROLLABLE */
    /** Returns the preferred size of the viewport for a view component. For
     * example the preferredSize of a JList component is the size required to
@@ -247,21 +252,23 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable, Mouse
 
       return 15;
    }
+
    /**! END SCROLLABLE */
+   /** Invoked when a key is pressed and released */
+   public void keyTyped(KeyEvent kevt) {
+      char c = kevt.getKeyChar();
 
-	 	/** Invoked when a key is pressed and released */
-   	public void keyTyped(KeyEvent kevt) {
-        char c = kevt.getKeyChar();
+      if ((c == '\b' || c == '\u007F') && selectVertex != null) {
+         main.coordStore.delete(selectVertex);
+         repaint();
+      }
+   }
 
-        if ( (c == '\b' || c == '\u007F') && selectVertex != null) {
-            main.coordStore.removeUse(selectVertex, main.coordStore);
-						repaint();
-				}
-    }
+   /** Invoked when a key is pressed */
+   public void keyPressed(KeyEvent kevt) {
+   }
 
-		/** Invoked when a key is pressed */
-    public void keyPressed(KeyEvent kevt) {}
-
-		/** Invoked when a key is released */    
-    public void keyReleased(KeyEvent kevt) {}
+   /** Invoked when a key is released */
+   public void keyReleased(KeyEvent kevt) {
+   }
 }

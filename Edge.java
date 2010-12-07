@@ -1,4 +1,3 @@
-import java.util.*;
 import java.awt.geom.*;
 import java.awt.geom.Line2D.*;
 
@@ -23,6 +22,11 @@ class Edge {
 
       this.v1 = coordStore.addVertex(v1.getX(), v1.getY(), v1.getZ(), this);
       this.v2 = coordStore.addVertex(v2.getX(), v2.getY(), v2.getZ(), this);
+   }
+
+   public void delete(Coords coordStore) {
+      coordStore.removeUse(v1, this);
+      coordStore.removeUse(v2, this);
    }
 
    /** Returns the line that represents the top down (2D) view of this line */
