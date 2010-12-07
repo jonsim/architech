@@ -13,7 +13,8 @@ import java.util.*;
  *  Future bug to watch out for: If we add a curve on drag tool to a different
  *  mouse button than the line drag tool then you can draw both at once.
  */
-public class Viewport2D extends JPanel implements KeyListener, Scrollable, MouseListener, MouseMotionListener {
+public class Viewport2D extends JPanel implements KeyListener, Scrollable,
+      MouseListener, MouseMotionListener, ComponentListener {
 
    private Main main;
    private Graphics2D g2; // so paintComponent() doesn't have to create it each time
@@ -271,4 +272,26 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable, Mouse
    /** Invoked when a key is released */
    public void keyReleased(KeyEvent kevt) {
    }
+
+   /**! START COMPONENTLISTENER */
+   /** Invoked when the component has been made invisible. */
+   public void componentHidden(ComponentEvent e) {
+
+   }
+
+   /** Invoked when the component's position changes. */
+   public void componentMoved(ComponentEvent e) {
+
+   }
+
+   /** Invoked when the component's size changes. */
+   public void componentResized(ComponentEvent e) {
+
+   }
+
+   /** Invoked when the component has been made visible. */
+   public void componentShown(ComponentEvent e) {
+      
+   }
+   /**! END COMPONENTLISTENER */
 }
