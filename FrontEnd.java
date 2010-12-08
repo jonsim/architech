@@ -12,7 +12,6 @@ public class FrontEnd implements WindowListener {
    public static final String  ICON_LOCATION = "icon.png";
    public static final String  WINDOW_TITLE = "ArchiTECH";
 
-   private final JMenuBar menuBar = new JMenuBar();
    private final JFrame window = new JFrame(WINDOW_TITLE);
 
    private Main main;
@@ -22,47 +21,11 @@ public class FrontEnd implements WindowListener {
    FrontEnd(Main main) {
       this.main = main;
 
-      menuInit();
       windowInit();
    }
 
-   private void menuInit() {
-      JMenu menu;
-
-      menu = new JMenu("File");
-      menu.setMnemonic(KeyEvent.VK_F);
-      menu.getAccessibleContext().setAccessibleDescription("Main option menu");
-      menuBar.add(menu);
-
-      menu = new JMenu("Edit");
-      menu.setMnemonic(KeyEvent.VK_E);
-      menu.getAccessibleContext().setAccessibleDescription("Main option menu");
-      menuBar.add(menu);
-
-      menu = new JMenu("View");
-      menu.setMnemonic(KeyEvent.VK_V);
-      menu.getAccessibleContext().setAccessibleDescription("Main option menu");
-      menuBar.add(menu);
-
-      menu = new JMenu("Customisation");
-      menu.setMnemonic(KeyEvent.VK_C);
-      menu.getAccessibleContext().setAccessibleDescription("Main option menu");
-      menuBar.add(menu);
-
-      menu = new JMenu("Window");
-      menu.setMnemonic(KeyEvent.VK_W);
-      menu.getAccessibleContext().setAccessibleDescription("Main option menu");
-      menuBar.add(menu);
-
-      menu = new JMenu("Help");
-      menu.setMnemonic(KeyEvent.VK_H);
-      menu.getAccessibleContext().setAccessibleDescription("Main option menu");
-      menuBar.add(menu);
-
-   }
-
    private void windowInit() {
-      window.setJMenuBar(menuBar);
+      window.setJMenuBar(main.frontEndMenu);
 
       window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
       window.addWindowListener(this);
@@ -152,7 +115,7 @@ public class FrontEnd implements WindowListener {
 
    /** Currently hardwired, should return whether or not the user needs to save */
    private boolean saveRequired() {
-      return false;
+      return true;
    }
 
    /** Should save the stuff to file */

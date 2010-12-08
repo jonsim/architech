@@ -105,12 +105,21 @@ public class Coords {
    
    private LinkedList<Vertex> vertices = new LinkedList<Vertex>();
 
-   /** Just for demonstration this makes a few edges  */
+   /** Just for demonstration this makes a few edges in the coordinate system */
    Coords() {
+
+      // RANDOMS :)
       new Edge(this,new Vertex(40.0,71.0,0.0), new Vertex(646.0,71.0,0.0));
       new Edge(this,new Vertex(61.0,77.0,0.0), new Vertex(101.0,81.0,0.0));
       new Edge(this,new Vertex(200.0,200.0,0.0), new Vertex(10.0,10.0,0.0));
       new Edge(this,new Vertex(614.0,107.0,0.0), new Vertex(307.0,313.0,0.0));
+
+      // STAR :)
+      new Edge(this, new Vertex(363.0,165.0,0.0), new Vertex(476.0,291.0,0.0));
+      new Edge(this, new Vertex(476.0,291.0,0.0), new Vertex(498.0,146.0,0.0));
+      new Edge(this, new Vertex(476.0,291.0,0.0), new Vertex(619.0,215.0,0.0));
+      new Edge(this, new Vertex(476.0,291.0,0.0), new Vertex(558.0,356.0,0.0));
+      new Edge(this, new Vertex(476.0,291.0,0.0), new Vertex(377.0,374.0,0.0));
    }
 
    /** returns the vertex that the Point p lies within, or null if none */
@@ -231,14 +240,23 @@ public class Coords {
       }
    }
 
-   public void delete(Vertex v) {
-      ListIterator<Object> vertexUses = v.getUsesIterator();
-      while (vertexUses.hasNext()) {
-         Object o = vertexUses.next();
+   /** Returns true if the given vertex is in the coordStore. If not, it has been
+    *  deleted */
+   public boolean exists(Vertex v) {
+      return vertices.contains(v);
+   }
 
-         if (Edge.isEdge(o)) {
-            ((Edge) o).delete(this);
-            
+   /** Calls delete() on each of the objects attached in some way to the given
+    *  vertex. This means that everything "snapped" to the vertex will be deleted */
+   public void delete(Vertex v) {
+      if (!vertices.contains(v)) return;
+
+      Object[] usesArray = v.uses.toArray();
+
+      for (int i=0; i < usesArray.length; i++) {
+         if (Edge.isEdge(usesArray[i])) {
+            ((Edge) usesArray[i]).delete(this);
+
          } else {
             Main.showFatalExceptionTraceWindow(new Exception("BUG: Additi"
                + "onal Shapes have been added, code is designed for Edge "
@@ -248,5 +266,24 @@ public class Coords {
 
       // if this doesn't completely remove the vertex then there is a bug
       // somewhere else!!!!
+
+
+      // THE FOLLOWING CODE CAUSES A CONCURRENT MODIFICATION EXCEPTION BECAUSE:
+      // WHILST THE FOLLOWING ITERATOR IS RUNNING, EDGE.DELETE() CALLS
+      // COORDS.REMOVEUSE WHICH IN TURN CALLS V.REMOVEUSE AND TRAVERSES THE LIST
+      // AGAIN AT THE SAME TIME WHICH ISN'T ALLOWED :)
+//      ListIterator<Object> vertexUses = v.getUsesIterator();
+//      while (vertexUses.hasNext()) {
+//         Object o = vertexUses.next();
+//
+//         if (Edge.isEdge(o)) {
+//            ((Edge) o).delete(this);
+//
+//         } else {
+//            Main.showFatalExceptionTraceWindow(new Exception("BUG: Additi"
+//               + "onal Shapes have been added, code is designed for Edge "
+//               + "class only!"));
+//         }
+//      }
    }
 }

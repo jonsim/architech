@@ -2,10 +2,11 @@
 import javax.swing.*;
 import java.awt.*;
 
-/** Starts the program running and catches any uncaught exceptions gracefully */
+/** Starts the program running and catches "few!" uncaught exceptions gracefully */
 public class Main {
 
    public FrontEnd frontEnd;
+   public FrontEndMenu frontEndMenu;
    public Viewport2D viewport2D;
    public Viewport3D viewport3D;
    public ObjectBrowser objectBrowser;
@@ -24,13 +25,14 @@ public class Main {
       viewport3D = new Viewport3D(this);
       objectBrowser = new ObjectBrowser(this);
 
+      frontEndMenu = new FrontEndMenu(this);
       frontEnd = new FrontEnd(this);
-      viewport2D.requestFocus();
    }
 
    /** Starts everything in the program running */
    private void run() {
       frontEnd.display();
+      viewport2D.getScrollPane().setPreferredSize(new Dimension(2000,1000));
    }
 
    /** Sets the default look and feel. (must be done before anything else)
@@ -119,6 +121,17 @@ public class Main {
       } catch (InstantiationException e) {
          /* Who cares? */
       } catch (IllegalAccessException e) {
+         /* Who cares? */
+      }
+      
+      try {
+         System.setProperty("apple.laf.useScreenMenuBar", "true");
+         System.setProperty("com.apple.mrj.application.apple.menu.about.name", FrontEnd.WINDOW_TITLE);
+      } catch (SecurityException e) {
+         /* Who cares? */
+      } catch (NullPointerException e) {
+         /* Who cares? */
+      } catch (IllegalArgumentException e) {
          /* Who cares? */
       }
    }

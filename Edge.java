@@ -24,6 +24,7 @@ class Edge {
       this.v2 = coordStore.addVertex(v2.getX(), v2.getY(), v2.getZ(), this);
    }
 
+   /** Tells the two vertices at either end of the edge that is is no longer needed */
    public void delete(Coords coordStore) {
       coordStore.removeUse(v1, this);
       coordStore.removeUse(v2, this);
@@ -72,6 +73,7 @@ class Edge {
    @Override
    public String toString() {
       //MANUAL EXPORT - return "new Edge(new Vertex("+v1.x+","+v1.y+","+v1.z+"), new Vertex("+v2.x+","+v2.y+","+v2.z+"), this);";
-      return "v1:(" + v1.getX() + ", " + v1.getY() + ", " + v1.getZ() + ") v2:(" + v2.getX() + ", " + v2.getY() + ", " + v2.getZ() + ")";
+      return "new Edge(new Vertex("+v1.getX()+","+v1.getY()+","+v1.getZ()+"), new Vertex("+v2.getX()+","+v2.getY()+","+v2.getZ()+"), this);";
+      //return "v1:(" + v1.getX() + ", " + v1.getY() + ", " + v1.getZ() + ") v2:(" + v2.getX() + ", " + v2.getY() + ", " + v2.getZ() + ")";
    }
 }

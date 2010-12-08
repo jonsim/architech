@@ -17,8 +17,7 @@ public class DesignButtons implements ActionListener {
 
    /** Returns true if the line tool is selected */
    public boolean isLineTool() {
-      if (lineTool == currentTool) return true;
-      else return false;
+      return lineTool == currentTool;
    }
 
    /** Returns true if the grid toggle is currently on */
@@ -28,8 +27,7 @@ public class DesignButtons implements ActionListener {
 
    /** Returns true if the select tool is selected */
    public boolean isSelectTool() {
-      if (selectTool == currentTool) return true;
-      else return false;
+      return selectTool == currentTool;
    }
 
    /** Initialises the private variables as usual */
@@ -152,6 +150,7 @@ public class DesignButtons implements ActionListener {
                  new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
       }
 
-			main.viewport2D.repaint();
+      main.viewport2D.requestFocus();
+      main.viewport2D.repaint();
    }
 }

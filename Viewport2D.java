@@ -14,7 +14,7 @@ import java.util.*;
  *  mouse button than the line drag tool then you can draw both at once.
  */
 public class Viewport2D extends JPanel implements KeyListener, Scrollable,
-      MouseListener, MouseMotionListener, ComponentListener {
+      MouseListener, MouseMotionListener {
 
    private Main main;
    private Graphics2D g2; // so paintComponent() doesn't have to create it each time
@@ -25,18 +25,16 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
    /** Initialises the 2D pane and makes it scrollable too */
    Viewport2D(Main main) {
       this.main = main;
-      initPane();
-      setFocusable(true);
-      addKeyListener(this);
-      scrollPane = new JScrollPane(this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-      addMouseListener(this);
-      addMouseMotionListener(this);
-   }
 
-   /** Does little at the moment */
-   private void initPane() {
       setBackground(Color.WHITE);
       setPreferredSize(new Dimension(2000, 1000));
+      setFocusable(true);
+
+      scrollPane = new JScrollPane(this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+
+      addKeyListener(this);
+      addMouseListener(this);
+      addMouseMotionListener(this);
    }
 
    /** Returns the scrollable version of this class. */
@@ -87,27 +85,20 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
       }
    }
 
-   /** I don't like this method :) but anyway is converts from screen coordinates
-    *  i.e. 0 to panelWidth into the full on coordinate system values between
-    *  -inf and +inf. This method is currently just hard wired so it doesn't
-    *  really do anything useful yet */
-   private Coords.Vertex screenToWorldCoords(Point screen) {
-      return main.coordStore.new Vertex(screen.x, screen.y, 0);
-   }
-
    /** if the user clicks and drags with the line tool on, call this, it will
     *  make the new edge so that they can see it as they drag! */
    private void lineDragStarted(Point p) {
       if (p == null) {
          p = new Point(0, 0);
       }
-      dragEdge = new Edge(main.coordStore, screenToWorldCoords(p), screenToWorldCoords(p));
+
+      Coords.Vertex v = main.coordStore.new Vertex(p.x, p.y, 0);
+      dragEdge = new Edge(main.coordStore, v, v);
    }
 
    /** No reason other than stopping erroneous  */
    private void lineDragFinished() {
       dragEdge = null;
-      setPreferredSize(new Dimension(200, 200));
    }
 
    /** edge might be null if the user started a drag with a different mouse
@@ -123,10 +114,15 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
    /** Invoked when a mouse button has been pressed on a component. */
    public void mousePressed(MouseEvent e) {
       if (e.getButton() == MouseEvent.BUTTON1) {
-         //hoverVertex(e.getPoint())
+
          if (main.designButtons.isLineTool()) {
             lineDragStarted(e.getPoint());
             setCursor(new Cursor(Cursor.HAND_CURSOR));
+            repaint();
+
+         } else if (main.designButtons.isSelectTool()) {
+            selectVertex = main.coordStore.vertexAt(e.getPoint());
+            main.viewport2D.requestFocus();
             repaint();
          }
 
@@ -140,21 +136,11 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
          lineDragFinished();
 
          setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-
-         // other tools go here
       }
    }
 
    /** Invoked when the mouse button has been clicked (pressed and released) on a component. */
    public void mouseClicked(MouseEvent e) {
-      if (e.getButton() == MouseEvent.BUTTON1) {
-         if (main.designButtons.isSelectTool()) {
-            selectVertex = main.coordStore.vertexAt(e.getPoint());
-            repaint();
-         }
-      }
-
-      main.viewport2D.requestFocus();
    }
 
    /** Invoked when the mouse enters a component. */
@@ -255,43 +241,31 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
    }
 
    /**! END SCROLLABLE */
+   /**! START KEYLISTENER */
    /** Invoked when a key is pressed and released */
    public void keyTyped(KeyEvent kevt) {
-      char c = kevt.getKeyChar();
-
-      if ((c == '\b' || c == '\u007F') && selectVertex != null) {
-         main.coordStore.delete(selectVertex);
-         repaint();
-      }
    }
 
    /** Invoked when a key is pressed */
    public void keyPressed(KeyEvent kevt) {
+      int c = kevt.getKeyCode();
+
+      if ((c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE)
+            && main.designButtons.isSelectTool() && selectVertex != null) {
+         main.coordStore.delete(selectVertex);
+
+         // the vertex currently being hovered over will only update if the person
+         // moves the mouse. If they don't move the mouse and the vertex has been
+         // deleted, then it will stay behind in red unless this is done!
+         if (!main.coordStore.exists(hoverVertex)) hoverVertex = null;
+
+         selectVertex = null;
+         repaint();
+      }
    }
 
    /** Invoked when a key is released */
    public void keyReleased(KeyEvent kevt) {
    }
-
-   /**! START COMPONENTLISTENER */
-   /** Invoked when the component has been made invisible. */
-   public void componentHidden(ComponentEvent e) {
-
-   }
-
-   /** Invoked when the component's position changes. */
-   public void componentMoved(ComponentEvent e) {
-
-   }
-
-   /** Invoked when the component's size changes. */
-   public void componentResized(ComponentEvent e) {
-
-   }
-
-   /** Invoked when the component has been made visible. */
-   public void componentShown(ComponentEvent e) {
-      
-   }
-   /**! END COMPONENTLISTENER */
+   /**! END KEYLISTENER */
 }
