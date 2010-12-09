@@ -7,17 +7,22 @@ public class Main {
 
    public FrontEnd frontEnd;
    public FrontEndMenu frontEndMenu;
-   public Viewport2D viewport2D;
-   public Viewport3D viewport3D;
+
    public ObjectBrowser objectBrowser;
-   public Coords coordStore;
-   public DesignButtons designButtons;
    public ObjectButtons objectButtons;
+
+   public DesignButtons designButtons;
+   public Viewport2D viewport2D;
+   
+   public Viewport3D viewport3D;
+
+   public Coords coordStore;
 
    /** Does the business making other classes and remembering their pointers. Be
     *  careful editing the order things are created here, to avoid race conditions */
    Main() {
       coordStore = new Coords();
+
       designButtons = new DesignButtons(this);
       objectButtons = new ObjectButtons(this);
 

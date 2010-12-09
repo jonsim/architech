@@ -113,28 +113,16 @@ public class FrontEnd implements WindowListener {
       
    }
 
-   /** Currently hardwired, should return whether or not the user needs to save */
-   private boolean saveRequired() {
-      return true;
-   }
-
-   /** Should save the stuff to file */
-   private void save() {
-      // save
-
-      // if unable to save, ask if the user wants to save somewhere else
-   }
-
    /** If a save is needed, asks the user to confirm */
    private boolean quit() {
-      if (!saveRequired()) return true;
+      if (!main.coordStore.saveRequired()) return true;
 
       int choice = JOptionPane.showConfirmDialog(window,
          "Save file \"C:\\Something\\Something.obj\" \u003F", "Save",
          JOptionPane.YES_NO_CANCEL_OPTION);
 
       if (choice == JOptionPane.YES_OPTION) {
-         save();
+         main.coordStore.save();
          return true;
 
       } else if (choice == JOptionPane.NO_OPTION) {

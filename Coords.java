@@ -2,6 +2,7 @@ import java.awt.*;
 import javax.vecmath.Point3f;
 import java.awt.geom.Ellipse2D;
 import java.util.*;
+import java.io.*;
 
 /** This is the class that holds all the coordinates, vertices, edges, planes
  *  etc. for one "design". If there are two designs loaded, i.e. in tabs, just
@@ -104,6 +105,7 @@ public class Coords {
    /*!-START OF COORDS--------------------------------------------------------*/
    
    private LinkedList<Vertex> vertices = new LinkedList<Vertex>();
+   private LinkedList<Object> objects = new LinkedList<Object>();
 
    /** Just for demonstration this makes a few edges in the coordinate system */
    Coords() {
@@ -285,5 +287,21 @@ public class Coords {
 //               + "class only!"));
 //         }
 //      }
+   }
+
+   /** Currently hardwired, should return whether or not the user needs to save */
+   public boolean saveRequired() {
+      return true;
+   }
+
+   /** Should save the stuff to file */
+   public void save() {
+      FileManager fileManager = new FileManager(new File("testSave.atech"));
+
+      try {
+         fileManager.write(vertices.toArray(new Vertex[0]), objects.toArray());
+      } catch (IOException e) {
+         Main.showFatalExceptionTraceWindow(new Exception("Failed to save"));
+      }
    }
 }

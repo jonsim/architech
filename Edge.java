@@ -24,6 +24,14 @@ class Edge {
       this.v2 = coordStore.addVertex(v2.getX(), v2.getY(), v2.getZ(), this);
    }
 
+   public Coords.Vertex getV1() {
+      return v1;
+   }
+
+   public Coords.Vertex getV2() {
+      return v2;
+   }
+
    /** Tells the two vertices at either end of the edge that is is no longer needed */
    public void delete(Coords coordStore) {
       coordStore.removeUse(v1, this);
