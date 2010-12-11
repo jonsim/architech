@@ -1,0 +1,1 @@
+Need the req folder in the /bin directory of the eclipse project. This req folder needs all the necessary assets in, else the program will compile okay but crash with a nullpointerexception when run.
