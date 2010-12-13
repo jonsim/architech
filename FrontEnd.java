@@ -3,6 +3,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import java.io.*;
 
 /** Creates and displays the whole main window and adds the various different
  *  JPanels to it.
@@ -113,16 +114,32 @@ public class FrontEnd implements WindowListener {
       
    }
 
-   /** If a save is needed, asks the user to confirm */
+   /** If a save is needed, asks the user to confirm. returns true if the program
+    *  should exit */
    private boolean quit() {
       if (!main.coordStore.saveRequired()) return true;
+      
+      File saveFile = new File("testSave.atech");
+      String fileLoc = "Unknown file path";
+      try {
+         fileLoc = saveFile.getCanonicalPath();
+      } catch (IOException e) {
+         // If an I/O error occurs, which is possible because the construction of the canonical pathname may require filesystem queries
+      } catch (SecurityException e) {
+         // If a required system property value cannot be accessed.
+      }
 
       int choice = JOptionPane.showConfirmDialog(window,
-         "Save file \"C:\\Something\\Something.obj\" \u003F", "Save",
+         "Save file \"" + fileLoc + "\" \u003F", "Save",
          JOptionPane.YES_NO_CANCEL_OPTION);
 
       if (choice == JOptionPane.YES_OPTION) {
-         main.coordStore.save();
+         try {
+            main.coordStore.save(saveFile);
+         } catch (IOException e) {
+            Main.showFatalExceptionTraceWindow(new Exception("Failed to save"));
+         }
+
          return true;
 
       } else if (choice == JOptionPane.NO_OPTION) {

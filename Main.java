@@ -1,6 +1,7 @@
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 
 /** Starts the program running and catches "few!" uncaught exceptions gracefully */
 public class Main {
@@ -21,7 +22,11 @@ public class Main {
    /** Does the business making other classes and remembering their pointers. Be
     *  careful editing the order things are created here, to avoid race conditions */
    Main() {
-      coordStore = new Coords();
+      try {
+         coordStore = FileManager.load(new File("testSave.atech"));
+      } catch (Exception e) {
+         Main.showFatalExceptionTraceWindow(e);
+      }
 
       designButtons = new DesignButtons(this);
       objectButtons = new ObjectButtons(this);

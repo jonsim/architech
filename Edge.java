@@ -24,6 +24,14 @@ class Edge {
       this.v2 = coordStore.addVertex(v2.getX(), v2.getY(), v2.getZ(), this);
    }
 
+   /** Creates an edge with the given endpoints, does not set uses or add it to
+    *  the coordStore. Only for use by the Coords class */
+   Edge(Coords.Vertex v1, Coords.Vertex v2) {
+      if (v1 == null || v2 == null) throw new IllegalArgumentException("null argument");
+      this.v1 = v1;
+      this.v2 = v2;
+   }
+
    public Coords.Vertex getV1() {
       return v1;
    }
@@ -81,7 +89,7 @@ class Edge {
    @Override
    public String toString() {
       //MANUAL EXPORT - return "new Edge(new Vertex("+v1.x+","+v1.y+","+v1.z+"), new Vertex("+v2.x+","+v2.y+","+v2.z+"), this);";
-      return "new Edge(new Vertex("+v1.getX()+","+v1.getY()+","+v1.getZ()+"), new Vertex("+v2.getX()+","+v2.getY()+","+v2.getZ()+"), this);";
-      //return "v1:(" + v1.getX() + ", " + v1.getY() + ", " + v1.getZ() + ") v2:(" + v2.getX() + ", " + v2.getY() + ", " + v2.getZ() + ")";
+      //return "new Edge(new Vertex("+v1.getX()+","+v1.getY()+","+v1.getZ()+"), new Vertex("+v2.getX()+","+v2.getY()+","+v2.getZ()+"), this);";
+      return "v1:(" + v1.getX() + ", " + v1.getY() + ", " + v1.getZ() + ") v2:(" + v2.getX() + ", " + v2.getY() + ", " + v2.getZ() + ")";
    }
 }

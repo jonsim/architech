@@ -105,23 +105,45 @@ public class Coords {
    /*!-START OF COORDS--------------------------------------------------------*/
    
    private LinkedList<Vertex> vertices = new LinkedList<Vertex>();
-   private LinkedList<Object> objects = new LinkedList<Object>();
+   //private LinkedList<Object> objects = new LinkedList<Object>();
 
-   /** Just for demonstration this makes a few edges in the coordinate system */
+   /** Makes a blank coordinate system */
    Coords() {
+   }
 
-      // RANDOMS :)
-      new Edge(this,new Vertex(40.0,71.0,0.0), new Vertex(646.0,71.0,0.0));
-      new Edge(this,new Vertex(61.0,77.0,0.0), new Vertex(101.0,81.0,0.0));
-      new Edge(this,new Vertex(200.0,200.0,0.0), new Vertex(10.0,10.0,0.0));
-      new Edge(this,new Vertex(614.0,107.0,0.0), new Vertex(307.0,313.0,0.0));
+   /** Might look out of bounds, need to fix this later */
+   Coords(float[][] vertices, int[][] edges) {
+      if (vertices == null || edges == null) throw new IllegalArgumentException("Null argument");
 
-      // STAR :)
-      new Edge(this, new Vertex(363.0,165.0,0.0), new Vertex(476.0,291.0,0.0));
-      new Edge(this, new Vertex(476.0,291.0,0.0), new Vertex(498.0,146.0,0.0));
-      new Edge(this, new Vertex(476.0,291.0,0.0), new Vertex(619.0,215.0,0.0));
-      new Edge(this, new Vertex(476.0,291.0,0.0), new Vertex(558.0,356.0,0.0));
-      new Edge(this, new Vertex(476.0,291.0,0.0), new Vertex(377.0,374.0,0.0));
+      Vertex[] vertexA = new Vertex[vertices.length];
+      for (int i=0; i < vertices.length; i++) {
+         if (vertices[i].length != 3) {
+            throw new IllegalArgumentException("Vertices array needs to be of size n by 3");
+         }
+
+         vertexA[i] = new Vertex(vertices[i][0],vertices[i][1],vertices[i][2]);
+         this.vertices.add(vertexA[i]);
+      }
+
+      for (int i=0; i < edges.length; i++) {
+         if (edges[i].length != 2) {
+            throw new IllegalArgumentException("Edges array needs to be of size m by 2");
+         }
+
+         int v1Index = edges[i][0];
+         int v2Index = edges[i][1];
+         
+         if (v1Index < 0 || v1Index >= vertexA.length || v2Index < 0 || v2Index >= vertexA.length) {
+            throw new IllegalArgumentException("A given edge indexes a vertex that doesn't exist (OOB)");
+         }
+
+         Vertex v1 = vertexA[v1Index];
+         Vertex v2 = vertexA[v2Index];
+
+         Edge e = new Edge(v1, v2);
+         v1.setUse(e);
+         v2.setUse(e);
+      }
    }
 
    /** returns the vertex that the Point p lies within, or null if none */
@@ -295,13 +317,44 @@ public class Coords {
    }
 
    /** Should save the stuff to file */
-   public void save() {
-      FileManager fileManager = new FileManager(new File("testSave.atech"));
+   public void save(File saveAs) throws IOException {
 
-      try {
-         fileManager.write(vertices.toArray(new Vertex[0]), objects.toArray());
-      } catch (IOException e) {
-         Main.showFatalExceptionTraceWindow(new Exception("Failed to save"));
+      // make the list of vertices that will be saved
+      Vertex[] vArray = vertices.toArray(new Vertex[0]);
+      float[][] saveVerts = new float[vArray.length][3];
+      for (int i=0; i < vArray.length; i++) {
+         saveVerts[i][0] = vArray[i].getX();
+         saveVerts[i][1] = vArray[i].getY();
+         saveVerts[i][2] = vArray[i].getZ();
       }
+
+      // make the list of edges that will be saved
+      LinkedList allEdges = new LinkedList();
+      for (int i=0; i < vArray.length; i++) {
+         Vertex v = vArray[i];
+         Object[] uses = v.uses.toArray();
+         for (int j=0; j < uses.length; j++) {
+            if (!allEdges.contains(uses[j]) && Edge.isEdge(uses[j])) {
+               allEdges.add(uses[j]);
+            }
+         }
+      }
+
+      int[][] saveEdges = new int[allEdges.size()][2];
+      ListIterator li = allEdges.listIterator();
+      while (li.hasNext()) {
+         Edge e = (Edge) li.next();
+         // find the index in vArray that the two endpoint vertices are
+         int v1 = -1;
+         int v2 = -1;
+         for (int i=0; i < vArray.length; i++) {
+            if (vArray[i] == e.getV1()) v1 = i;
+            if (vArray[i] == e.getV2()) v2 = i;
+         }
+         saveEdges[li.previousIndex()][0] = v1;
+         saveEdges[li.previousIndex()][1] = v2;
+      }
+
+      FileManager.save(saveAs, saveVerts, saveEdges);
    }
 }
