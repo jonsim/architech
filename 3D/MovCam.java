@@ -32,7 +32,6 @@ public class MovCam implements AnalogListener, ActionListener {
  * and also so that the movement is more natural (wasd, travel where the mouse is looking)
  */
     
-    
     public MovCam(Camera cam){
         this.cam = cam;
         initialUpVec = cam.getUp().clone();
@@ -157,7 +156,7 @@ public class MovCam implements AnalogListener, ActionListener {
     protected void riseCamera(float value){
         Vector3f vel = new Vector3f(0, value * moveSpeed, 0);
         Vector3f pos = cam.getLocation().clone();
-        //Injected Code to get movement bounds
+        /*//Injected Code to get movement bounds
         if(pos.y>-97 && pos.y<97)
         {
         	pos.addLocal(vel);
@@ -166,7 +165,9 @@ public class MovCam implements AnalogListener, ActionListener {
         	if(vel.y > 0 && pos.y<0) pos.addLocal(vel); 
         	if(vel.y < 0 && pos.y>0) pos.addLocal(vel); 
         }
-        //end
+        //end*/
+        vel = new Vector3f(0,vel.y,0);
+        pos.addLocal(vel);
         cam.setLocation(pos);       
     }
     
@@ -177,7 +178,7 @@ public class MovCam implements AnalogListener, ActionListener {
         cam.getDirection(vel);
         
         //Injected Code to get movement bounds
-        if(value>0){
+        /*if(value>0){
         	des = new Vector3f(vel.x,0,vel.z); }
         else{
             des = new Vector3f(-vel.x,0,-vel.z); }
@@ -198,9 +199,11 @@ public class MovCam implements AnalogListener, ActionListener {
         	if(des.z>=0 && pos.z<387) {mov = new Vector3f(0,0,des.z);pos.addLocal(mov);}
         	if(des.z<=0 && pos.z>387) {mov = new Vector3f(0,0,des.z);pos.addLocal(mov);}        	
         }
-        //end
-        
+        //end*/
+        vel = new Vector3f(vel.x,0,vel.z);
+        pos.addLocal(vel);
         cam.setLocation(pos);
+        System.out.println(pos.x+ " "+pos.y+ " "+pos.z);
     }
 
     protected void sideCamera(float value, boolean sideways){
@@ -215,7 +218,7 @@ public class MovCam implements AnalogListener, ActionListener {
         vel.multLocal(value * moveSpeed * 2);
         
         //Injected Code to get movement bounds
-        
+        /*
         if(value>0){
         	des = new Vector3f(vel.x,0,vel.z); }
         else{
@@ -237,9 +240,10 @@ public class MovCam implements AnalogListener, ActionListener {
         	if(des.z>=0 && pos.z<387) {mov = new Vector3f(0,0,des.z);pos.addLocal(mov);}
         	if(des.z<=0 && pos.z>387) {mov = new Vector3f(0,0,des.z);pos.addLocal(mov);}        	
         }
-        
+        */
         //end
-        
+        vel = new Vector3f(vel.x,0,vel.z);
+        pos.addLocal(vel);
         cam.setLocation(pos);
     }
 

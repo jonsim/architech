@@ -112,8 +112,10 @@ public abstract class ArchApp extends Application {
     public void initCamera(){
         cam = new Camera(settings.getWidth(), settings.getHeight());
         cam.setFrustumPerspective(45f, (float)cam.getWidth() / cam.getHeight(), 1f, 10000f);
-        cam.setLocation(new Vector3f(-340.92062f, 22.140797f, 240.82248f));
-        cam.lookAt(new Vector3f(0f, 0f, 200f), Vector3f.UNIT_Y);
+        //cam.setLocation(new Vector3f(-340.92062f, 22.140797f, 240.82248f));
+        //cam.lookAt(new Vector3f(0f, 0f, 200f), Vector3f.UNIT_Y);
+        cam.setLocation(new Vector3f(559.42f, 729.21277f, 308.6828f));
+        cam.lookAt(new Vector3f(600f, 0f, 100f), Vector3f.UNIT_Y);
         renderManager = new RenderManager(renderer);
         //Remy - 09/14/2010 setted the timer in the renderManager
         renderManager.setTimer(timer);
