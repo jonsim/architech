@@ -1,5 +1,5 @@
 import java.awt.*;
-import javax.vecmath.Point3f;
+//import javax.vecmath.Point3f;
 import java.awt.geom.Ellipse2D;
 import java.util.*;
 import java.io.*;
@@ -19,7 +19,7 @@ public class Coords {
    public class Vertex {
       public static final int diameter = 10;
 
-      private Point3f p;
+      private Loc3f p;
       private LinkedList uses = new LinkedList();
 
       /** Convenience: Creates a blank, unused vertex at 0,0,0 */
@@ -34,7 +34,7 @@ public class Coords {
 
       /** Creates and initialises an unused vertex at the given coordinates */
       Vertex(float x, float y, float z) {
-         p = new Point3f(x, y, z);
+         p = new Loc3f(x, y, z);
       }
 
       /** Sets this vertex's points to the new ones */
@@ -63,23 +63,23 @@ public class Coords {
 
       /** Get the X component */
       public float getX() {
-         return p.x;
+         return p.x();
       }
 
       /** Get the Y component */
       public float getY() {
-         return p.y;
+         return p.y();
       }
 
       /** Get the Z component */
       public float getZ() {
-         return p.z;
+         return p.z();
       }
 
       /** Returns the top down (2D) representation of this vertex, i.e. a circle.
        *  This class can decide how big a circle representation it wants to give */
       public Ellipse2D.Float topDownView() {
-         return new Ellipse2D.Float(p.x - diameter / 2, p.y - diameter / 2, diameter, diameter);
+         return new Ellipse2D.Float(p.x() - diameter / 2, p.y() - diameter / 2, diameter, diameter);
       }
 
       /** Returns the list iterator of this vertex's uses. It can be used to
@@ -92,12 +92,12 @@ public class Coords {
        *  vertex's coords */
       public boolean equals(Vertex v) {
          if (v == null) return false;
-         return equals(v.p.x, v.p.y, v.p.z);
+         return equals(v.p.x(), v.p.y(), v.p.z());
       }
 
       /** Returns true iff the x,y,z coords of v match the parameters */
       public boolean equals(float x, float y, float z) {
-         if (p.x == x && p.y == y && p.z == z) return true;
+         if (p.x() == x && p.y() == y && p.z() == z) return true;
          else return false;
       }
    }
