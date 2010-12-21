@@ -71,7 +71,7 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
 
       drawGrid(g2);
 
-      main.coordStore.drawObjects(g2);
+      main.coordStore.drawEdges(g2);
       main.coordStore.drawVertices(g2);
 
       if (hoverVertex != null) {

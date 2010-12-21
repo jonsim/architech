@@ -33,7 +33,7 @@ public class FileManager {
       bw.flush();
    }
 
-   /* Returns null if there is a problem reading */
+   /** Returns a coords or throws an exception if there is a problem reading */
    public static Coords load(File saveAs) throws IOException, Exception {
       if (saveAs == null) throw new IllegalArgumentException("SaveAs is null");
       FileReader fileR = new FileReader(saveAs);
@@ -79,7 +79,7 @@ public class FileManager {
       bw.newLine();
 
       for (int i = 0; i < vertices.length; i++) {
-         if (vertices[i].length != 3) {
+         if (vertices[i] == null || vertices[i].length != 3) {
             throw new IllegalArgumentException("Vertices array needs to be of size n by 3");
          }
 
@@ -98,7 +98,7 @@ public class FileManager {
       bw.newLine();
 
       for (int i = 0; i < edges.length; i++) {
-         if (edges[i].length != 2) {
+         if (edges[i] == null || edges[i].length != 2) {
             throw new IllegalArgumentException("Edges array needs to be of size m by 2");
          }
 

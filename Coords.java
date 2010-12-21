@@ -1,5 +1,4 @@
 import java.awt.*;
-//import javax.vecmath.Point3f;
 import java.awt.geom.Ellipse2D;
 import java.util.*;
 import java.io.*;
@@ -20,7 +19,13 @@ public class Coords {
       public static final int diameter = 10;
 
       private Loc3f p;
-      private LinkedList uses = new LinkedList();
+      private LinkedList<Edge> edgeUses = new LinkedList<Edge>();
+
+      /** Each Vertex remembers the Coords class that it was created with. This
+       *  method returns that Coords instance */
+      public Coords getOuterInstance() {
+         return Coords.this;
+      }
 
       /** Convenience: Creates a blank, unused vertex at 0,0,0 */
       Vertex() {
@@ -43,21 +48,21 @@ public class Coords {
       }
 
       /** Adds the given object to the list of objects using this vertex */
-      private void setUse(Object o) {
-         if (o == null) return;
-         if (uses.contains(o)) return; // already used by that object
-         uses.add(o);
+      private void setUse(Edge e) {
+         if (e == null) return;
+         if (edgeUses.contains(e)) return; // already used by that object
+         edgeUses.add(e);
       }
 
       /** Removes the given object from the list of objects using this vertex */
-      private void removeUse(Object o) {
-         if (o == null) return;
-         uses.remove(o);
+      private void forgetAbout(Edge e) {
+         if (e == null) return;
+         edgeUses.remove(e);
       }
 
       /** Returns true if the list of objects using this vertex is not empty */
       public boolean isUsed() {
-         if (uses.size() > 0) return true;
+         if (edgeUses.size() > 0) return true;
          else return false;
       }
 
@@ -82,10 +87,14 @@ public class Coords {
          return new Ellipse2D.Float(p.x() - diameter / 2, p.y() - diameter / 2, diameter, diameter);
       }
 
-      /** Returns the list iterator of this vertex's uses. It can be used to
-       *  iterate through all the objects using it, i.e. edges or curves */
-      private ListIterator getUsesIterator() {
-         return uses.listIterator();
+      /** Takes all the edges that are "in use" by the given vertex and adds
+       *  them to the current vertex (if not already added) */
+      private void addUsesCopiedFrom(Vertex v) {
+         ListIterator<Edge> vIte = v.edgeUses.listIterator();
+         while (vIte.hasNext()) {
+            Edge e = vIte.next();
+            this.setUse(e);
+         }
       }
 
       /** Returns true iff the x,y,z coords of the given vertex match this
@@ -105,19 +114,20 @@ public class Coords {
    /*!-START OF COORDS--------------------------------------------------------*/
    
    private LinkedList<Vertex> vertices = new LinkedList<Vertex>();
-   //private LinkedList<Object> objects = new LinkedList<Object>();
+   private LinkedList<Edge> edges = new LinkedList<Edge>();
 
    /** Makes a blank coordinate system */
    Coords() {
    }
 
-   /** Might look out of bounds, need to fix this later */
-   Coords(float[][] vertices, int[][] edges) {
+   /** Blindly makes vertices and edges, there might be orphaned/dup vertices */
+   Coords(float[][] vertices, int[][] edges) throws IllegalArgumentException {
       if (vertices == null || edges == null) throw new IllegalArgumentException("Null argument");
 
       Vertex[] vertexA = new Vertex[vertices.length];
+
       for (int i=0; i < vertices.length; i++) {
-         if (vertices[i].length != 3) {
+         if (vertices[i] == null || vertices[i].length != 3) {
             throw new IllegalArgumentException("Vertices array needs to be of size n by 3");
          }
 
@@ -126,7 +136,7 @@ public class Coords {
       }
 
       for (int i=0; i < edges.length; i++) {
-         if (edges[i].length != 2) {
+         if (edges[i] == null || edges[i].length != 2) {
             throw new IllegalArgumentException("Edges array needs to be of size m by 2");
          }
 
@@ -143,7 +153,13 @@ public class Coords {
          Edge e = new Edge(v1, v2);
          v1.setUse(e);
          v2.setUse(e);
+         this.edges.add(e);
       }
+   }
+
+   /** returns an array containing all the Edges in the current design */
+   public Edge[] getEdges() {
+      return edges.toArray(new Edge[0]);
    }
 
    /** returns the vertex that the Point p lies within, or null if none */
@@ -151,8 +167,7 @@ public class Coords {
       ListIterator<Vertex> ite = vertices.listIterator();
 
       while (ite.hasNext()) {
-
-         Coords.Vertex v = ite.next();
+         Vertex v = ite.next();
          if (v.topDownView().contains(p)) return v;
       }
       
@@ -165,8 +180,7 @@ public class Coords {
       ListIterator<Vertex> ite = vertices.listIterator();
       
       while (ite.hasNext()) {
-
-         Coords.Vertex v = ite.next();
+         Vertex v = ite.next();
          if (v.equals(x, y, z)) return v;
       }
       
@@ -174,26 +188,13 @@ public class Coords {
    }
    
    /** Draws things like lines and curves etc. on the given Graphics canvas */
-   public void drawObjects(Graphics2D g2) {
+   public void drawEdges(Graphics2D g2) {
       g2.setColor(Color.BLACK);
 
-      ListIterator<Vertex> ite = vertices.listIterator();
+      ListIterator<Edge> ite = edges.listIterator();
       while (ite.hasNext()) {
-         Vertex v = ite.next();
-         ListIterator vi = v.getUsesIterator();
-
-         while (vi.hasNext()) {
-            Object use = vi.next();
-
-            if (Edge.isEdge(use)) {
-               g2.draw(((Edge) use).topDownView());
-
-            } else {
-               Main.showFatalExceptionTraceWindow(new Exception("BUG: Additi"
-                  + "onal Shapes have been added, code is designed for Edge "
-                  + "class only!"));
-            }
-         }
+         Edge e = ite.next();
+         g2.draw(e.topDownView());
       }
    }
 
@@ -203,51 +204,51 @@ public class Coords {
 
       ListIterator<Vertex> ite = vertices.listIterator();
       while (ite.hasNext()) {
-         g2.fill(ite.next().topDownView());
+         Vertex v = ite.next();
+         g2.fill(v.topDownView());
       }
    }
 
-   /** Updates the given vertex's coordinates to the given ones and returns the
+   /** Updates the given vertices coordinates to the given ones and returns the
     *  new vertex that should be used now. It may return the same vertex or a
     *  new one if you try to set the coordinates to a vertex that already exists,
     *  it will merge the two to avoid duplicate entries. This is essentially
-    *  snapping, but to a very precise level!! */
-   public Vertex set(Vertex v, float x, float y, float z) {
+    *  snapping, but to a very precise level!! Ignoring the return value of this
+    *  result will lead to difficult to fix bugs! */
+   public Vertex setxxx(Vertex v, float x, float y, float z) {
       if (v == null) return null;
 
       Vertex vAlt = vertexInUse(x, y, z);
 
+      // if there is already a vertex with these coordinates, and its not itself!
       if (vAlt != null && vAlt != v) {
-         // there is already a vertex with these coordinates, and its not itself!
-         ListIterator<Object> oldVertexUses = v.getUsesIterator();
-         while (oldVertexUses.hasNext()) {
-            vAlt.setUse(oldVertexUses.next());
-         }
-
+         vAlt.addUsesCopiedFrom(v);
          vertices.remove(v);
-
-         return vAlt;
 
       } else {
          v.set(x, y, z);
-         return v;
+         vAlt = v;
       }
+
+      return vAlt;
    }
 
    /** Updates the given vertex so that it no longer remembers Object o as something
     *  that uses it. If the vertex no longer has any uses then it gets deleted! */
-   public void removeUse(Vertex v, Object o) {
+   public void removeUsexxx(Vertex v, Edge e) {
       if (v == null) return;
 
-      v.removeUse(o);
+      v.forgetAbout(e);
       if (!v.isUsed()) vertices.remove(v);
    }
 
    /** If the vertex exists already it prevents duplicate entries.
     *  usefor is the object that will be added to the (perhaps new) vertex's
     *  list of objects that are using it */
-   public Vertex addVertex(float x, float y, float z, Object useFor) {
+   public Vertex addVertex(float x, float y, float z, Edge useFor) {
       if (useFor == null) return null;
+
+      if (!edges.contains(useFor)) edges.add(useFor);
 
       Vertex inUse = vertexInUse(x, y, z);
       if (inUse != null) {
@@ -264,51 +265,37 @@ public class Coords {
       }
    }
 
-   /** Returns true if the given vertex is in the coordStore. If not, it has been
-    *  deleted */
-   public boolean exists(Vertex v) {
+   /** Returns true if the given vertex is in the coordStore. */
+   public boolean exists(Coords.Vertex v) {
       return vertices.contains(v);
    }
 
-   /** Calls delete() on each of the objects attached in some way to the given
-    *  vertex. This means that everything "snapped" to the vertex will be deleted */
-   public void delete(Vertex v) {
-      if (!vertices.contains(v)) return;
+   /** Looks at each of the objects attached in some way to the given
+    *  vertex. This means that everything "snapped" to the vertex will be deleted. */
+   public void delete(Coords.Vertex v) {
+      if (v == null || !vertices.contains(v)) return;
 
-      Object[] usesArray = v.uses.toArray();
-
-      for (int i=0; i < usesArray.length; i++) {
-         if (Edge.isEdge(usesArray[i])) {
-            ((Edge) usesArray[i]).delete(this);
-
-         } else {
-            Main.showFatalExceptionTraceWindow(new Exception("BUG: Additi"
-               + "onal Shapes have been added, code is designed for Edge "
-               + "class only!"));
-         }
+      // delete edges. This is not a listIterator to stop concurrent exceptions!
+      Edge[] edgeUsesArray = v.edgeUses.toArray(new Edge[0]);
+      for (int i=0; i < edgeUsesArray.length; i++) {
+         Edge e = edgeUsesArray[i];
+         delete(e);
       }
 
-      // if this doesn't completely remove the vertex then there is a bug
-      // somewhere else!!!!
+      //if this doesn't remove the vertex, then there is a bug elsewhere
+   }
 
+   /** Deletes the given edge from its two endpoint vertices and the edges list */
+   public void delete(Edge e) {
+      if (e == null) return;
 
-      // THE FOLLOWING CODE CAUSES A CONCURRENT MODIFICATION EXCEPTION BECAUSE:
-      // WHILST THE FOLLOWING ITERATOR IS RUNNING, EDGE.DELETE() CALLS
-      // COORDS.REMOVEUSE WHICH IN TURN CALLS V.REMOVEUSE AND TRAVERSES THE LIST
-      // AGAIN AT THE SAME TIME WHICH ISN'T ALLOWED :)
-//      ListIterator<Object> vertexUses = v.getUsesIterator();
-//      while (vertexUses.hasNext()) {
-//         Object o = vertexUses.next();
-//
-//         if (Edge.isEdge(o)) {
-//            ((Edge) o).delete(this);
-//
-//         } else {
-//            Main.showFatalExceptionTraceWindow(new Exception("BUG: Additi"
-//               + "onal Shapes have been added, code is designed for Edge "
-//               + "class only!"));
-//         }
-//      }
+      Coords.Vertex v1 = e.getV1(), v2 = e.getV2();
+      if (v1 == null || v2 == null) return;
+      
+      removeUsexxx(v1, e);
+      removeUsexxx(v2, e);
+
+      edges.remove(e);
    }
 
    /** Currently hardwired, should return whether or not the user needs to save */
@@ -316,9 +303,8 @@ public class Coords {
       return true;
    }
 
-   /** Should save the stuff to file */
+   /** save the stuff to the given file */
    public void save(File saveAs) throws IOException {
-
       // make the list of vertices that will be saved
       Vertex[] vArray = vertices.toArray(new Vertex[0]);
       float[][] saveVerts = new float[vArray.length][3];
@@ -329,32 +315,24 @@ public class Coords {
       }
 
       // make the list of edges that will be saved
-      LinkedList allEdges = new LinkedList();
-      for (int i=0; i < vArray.length; i++) {
-         Vertex v = vArray[i];
-         Object[] uses = v.uses.toArray();
-         for (int j=0; j < uses.length; j++) {
-            if (!allEdges.contains(uses[j]) && Edge.isEdge(uses[j])) {
-               allEdges.add(uses[j]);
-            }
-         }
-      }
-
-      int[][] saveEdges = new int[allEdges.size()][2];
-      ListIterator li = allEdges.listIterator();
-      while (li.hasNext()) {
-         Edge e = (Edge) li.next();
-         // find the index in vArray that the two endpoint vertices are
-         int v1 = -1;
-         int v2 = -1;
-         for (int i=0; i < vArray.length; i++) {
-            if (vArray[i] == e.getV1()) v1 = i;
-            if (vArray[i] == e.getV2()) v2 = i;
-         }
-         saveEdges[li.previousIndex()][0] = v1;
-         saveEdges[li.previousIndex()][1] = v2;
+      Edge[] eArray = edges.toArray(new Edge[0]);
+      int[][] saveEdges = new int[eArray.length][2];
+      for (int i=0; i < eArray.length; i++) {
+         // find the index of the two endpoint vertices. If there is an error
+         // finding v1 or v2, the save file will be corrupt, but it might be
+         // recoverable, so continue anyway!
+         saveEdges[i][0] = saveIndexIn(vArray, eArray[i].getV1());
+         saveEdges[i][1] = saveIndexIn(vArray, eArray[i].getV2());
       }
 
       FileManager.save(saveAs, saveVerts, saveEdges);
+   }
+
+   /** Returns the index in vArray that v is at, or -1 if it is not found */
+   private int saveIndexIn(Vertex[] vArray, Vertex v) {
+      for (int i=0; i < vArray.length; i++) {
+         if (vArray[i] == v) return i;
+      }
+      return -1;
    }
 }

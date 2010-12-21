@@ -6,11 +6,7 @@ import java.awt.geom.Line2D.*;
  *  end of the edge and each of those 2 vertices remembers that they are
  *  associated with this edge.
  */
-class Edge {
-   // as this is static it only gets defined once to save space. Its used to
-   // detect if a Object has class type Edge by comparing with this variable.
-   private static final Edge thisClass = new Edge(new Coords(), null, null);
-
+public class Edge {
    private Coords.Vertex v1;
    private Coords.Vertex v2;
 
@@ -40,23 +36,9 @@ class Edge {
       return v2;
    }
 
-   /** Tells the two vertices at either end of the edge that is is no longer needed */
-   public void delete(Coords coordStore) {
-      coordStore.removeUse(v1, this);
-      coordStore.removeUse(v2, this);
-   }
-
    /** Returns the line that represents the top down (2D) view of this line */
    public Line2D.Float topDownView() {
       return new Line2D.Float(v1.getX(), v1.getY(), v2.getX(), v2.getY());
-   }
-
-   /** Returns true if the given object is the same class type as this (Edge) */
-   public static boolean isEdge(Object o) {
-      if (o == null) return false;
-
-      if (o.getClass().equals(thisClass.getClass())) return true;
-      else return false;
    }
 
    /** Moves one end of this line to the new coordinates given. If the vertex
@@ -66,23 +48,24 @@ class Edge {
     *  object's vertex */
    public void vertexMoveOrSplit(Coords coordStore, boolean isV1, float x, float y, float z) {
       Coords.Vertex toMove = (isV1 ? v1 : v2);
-      if (toMove.equals(x, y, z)) return;
+      Coords.Vertex newV;
 
       if (toMove.isUsed()) {
          // tell vertex its no longer used by this edge. if v1 == v2 then we
          // certainly don't want to remove the only vertex thats in use!
-         if (v1 != v2) coordStore.removeUse(toMove, this);
+         if (v1 != v2) coordStore.removeUsexxx(toMove, this);
 
          // make a new vertex & add new vertex to CoordStore if not already exists
          // set additional vertex use as this & replace edge vertex holder with new version
-         if (isV1) v1 = coordStore.addVertex(x, y, z, this);
-         else v2 = coordStore.addVertex(x, y, z, this);
+         newV = coordStore.addVertex(x, y, z, this);
 
       } else {
          // update coordinates, no other components are joined to this vertex
-         if (isV1) v1 = coordStore.set(toMove, x, y, z);
-         else v2 = coordStore.set(toMove, x, y, z);
+         newV = coordStore.setxxx(toMove, x, y, z);
       }
+
+      if (isV1) v1 = newV;
+      else v2 = newV;
    }
 
    /** Returns some vaguely useful form of string so you can println() an edge */
