@@ -90,6 +90,8 @@ public class Coords {
       /** Takes all the edges that are "in use" by the given vertex and adds
        *  them to the current vertex (if not already added) */
       private void addUsesCopiedFrom(Vertex v) {
+         if (this == v) return;
+
          ListIterator<Edge> vIte = v.edgeUses.listIterator();
          while (vIte.hasNext()) {
             Edge e = vIte.next();
