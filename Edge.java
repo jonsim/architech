@@ -1,5 +1,6 @@
 import java.awt.geom.*;
 import java.awt.geom.Line2D.*;
+import java.awt.*;
 
 /** Holds an edge. When you make a new Edge() it gets automatically added to the
  *  internal coordinate system. This class remembers the two vertices at either
@@ -66,6 +67,21 @@ public class Edge {
 
       if (isV1) v1 = newV;
       else v2 = newV;
+   }
+
+   public void paintLengthText(Graphics2D g2) {
+      int x = Math.round((v1.getX() + v2.getX()) / 2);
+      int y = Math.round((v1.getY() + v2.getY()) / 2);
+
+      Font sanSerifFont = new Font("SanSerif", Font.PLAIN, 12);
+      g2.setFont(sanSerifFont);
+      g2.drawString(java.lang.Float.toString(length()), x, y);
+   }
+
+   public float length() {
+      float a = Math.abs(v1.getX() - v2.getX());
+      float b = Math.abs(v1.getY() - v2.getY());
+      return (float) Math.sqrt(a*a + b*b);
    }
 
    /** Returns some vaguely useful form of string so you can println() an edge */

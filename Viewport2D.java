@@ -74,6 +74,10 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
       main.coordStore.drawEdges(g2);
       main.coordStore.drawVertices(g2);
 
+      if (dragEdge != null) {
+         dragEdge.paintLengthText(g2);
+      }
+
       if (hoverVertex != null) {
          g2.setColor(Color.red);
          g2.fill(hoverVertex.topDownView());
@@ -99,14 +103,34 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
    /** No reason other than stopping erroneous  */
    private void lineDragFinished() {
       dragEdge = null;
+      repaint(); // gets rid of the line length text drawn on screen
    }
 
    /** edge might be null if the user started a drag with a different mouse
     *  button than BUTTON1 and then while dragging changed to the line tool. This
     *  updates the edge to a new position, that the user has just dragged it to */
-   private void lineDragEvent(Point draggedTo) {
+   private void lineDragEvent(Point draggedTo, boolean isShiftDown) {
       if (dragEdge != null) {
-         dragEdge.vertexMoveOrSplit(main.coordStore, false, draggedTo.x, draggedTo.y, 0);
+         if (!isShiftDown) {
+            dragEdge.vertexMoveOrSplit(main.coordStore, false, draggedTo.x, draggedTo.y, 0);
+
+         } else {
+            Coords.Vertex origin = dragEdge.getV1();
+
+            float newX = draggedTo.x;
+            float newY = draggedTo.y;
+
+            float hrizDifference = Math.abs(origin.getX() - newX);
+            float vertDifference = Math.abs(origin.getY() - newY);
+
+            if (hrizDifference > vertDifference) {
+               newY = origin.getY();
+            } else {
+               newX = origin.getX();
+            }
+
+            dragEdge.vertexMoveOrSplit(main.coordStore, false, newX, newY, 0);
+         }
       }
    }
 
@@ -156,7 +180,7 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
    /** Invoked when a mouse button is pressed on a component and then dragged. */
    public void mouseDragged(MouseEvent e) {
       if (main.designButtons.isLineTool()) {
-         lineDragEvent(e.getPoint());
+         lineDragEvent(e.getPoint(), e.isShiftDown());
       }
       repaint();
    }
