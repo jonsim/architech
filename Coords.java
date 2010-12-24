@@ -118,6 +118,8 @@ public class Coords {
    private LinkedList<Vertex> vertices = new LinkedList<Vertex>();
    private LinkedList<Edge> edges = new LinkedList<Edge>();
 
+   private int gridWidth = 60; // 0,60,120,...
+
    /** Makes a blank coordinate system */
    Coords() {
    }
@@ -244,13 +246,33 @@ public class Coords {
       if (!v.isUsed()) vertices.remove(v);
    }
 
+   private float snapToGrid(float coord) {
+      float distIntoCell = coord % gridWidth;
+
+      if (Math.abs(distIntoCell) < 0.5 * gridWidth) {
+         coord -= distIntoCell;
+      } else if (coord < 0) {
+         coord -= gridWidth + (coord % gridWidth);
+      } else { // x >= 0
+         coord += gridWidth - (coord % gridWidth);
+      }
+
+      return coord;
+   }
+
    /** If the vertex exists already it prevents duplicate entries.
     *  usefor is the object that will be added to the (perhaps new) vertex's
     *  list of objects that are using it */
-   public Vertex addVertex(float x, float y, float z, Edge useFor) {
+   public Vertex addVertex(float x, float y, float z, Edge useFor, boolean snapToGrid) {
       if (useFor == null) return null;
 
       if (!edges.contains(useFor)) edges.add(useFor);
+
+      if (snapToGrid) {
+         x = snapToGrid(x);
+         y = snapToGrid(y);
+         z = snapToGrid(z);
+      }
 
       Vertex inUse = vertexInUse(x, y, z);
       if (inUse != null) {
@@ -298,6 +320,19 @@ public class Coords {
       removeUsexxx(v2, e);
 
       edges.remove(e);
+   }
+
+   /** Draws the grid on the given Graphics canvas, from 0,0 to width,height */
+   public void drawGrid(Graphics2D g2, int width, int height) {
+      g2.setColor(Color.LIGHT_GRAY);
+
+      for (int i = gridWidth; i < width; i += gridWidth) {
+         g2.drawLine(i, 0, i, height);
+      }
+
+      for (int i = gridWidth; i < height; i += gridWidth) {
+         g2.drawLine(0, i, width, i);
+      }
    }
 
    /** Currently hardwired, should return whether or not the user needs to save */

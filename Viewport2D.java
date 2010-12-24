@@ -42,25 +42,6 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
       return scrollPane;
    }
 
-   /** Draws the grid on the given Graphics canvas */
-   private void drawGrid(Graphics2D g2) {
-      if (!main.designButtons.isGridOn()) {
-         return;
-      }
-
-      g2.setColor(Color.LIGHT_GRAY);
-
-      int cellWidth = 60;
-
-      for (int i = cellWidth; i < getWidth(); i += cellWidth) {
-         g2.drawLine(i, 0, i, getHeight());
-      }
-
-      for (int i = cellWidth; i < getHeight(); i += cellWidth) {
-         g2.drawLine(0, i, getWidth(), i);
-      }
-   }
-
    /** Draws grid, objects and vertices, highlights currently aimed at vertex */
    @Override
    public void paintComponent(Graphics g) {
@@ -69,14 +50,12 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
               RenderingHints.VALUE_ANTIALIAS_ON);
 
-      drawGrid(g2);
+      if (main.designButtons.isGridOn()) main.coordStore.drawGrid(g2, getWidth(), getHeight());
 
       main.coordStore.drawEdges(g2);
       main.coordStore.drawVertices(g2);
 
-      if (dragEdge != null) {
-         dragEdge.paintLengthText(g2);
-      }
+      if (dragEdge != null) dragEdge.paintLengthText(g2);
 
       if (hoverVertex != null) {
          g2.setColor(Color.red);
@@ -97,7 +76,7 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
       }
 
       Coords.Vertex v = main.coordStore.new Vertex(p.x, p.y, 0);
-      dragEdge = new Edge(main.coordStore, v, v);
+      dragEdge = new Edge(main.coordStore, v, v, main.designButtons.isGridOn());
    }
 
    /** No reason other than stopping erroneous  */
@@ -110,28 +89,25 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
     *  button than BUTTON1 and then while dragging changed to the line tool. This
     *  updates the edge to a new position, that the user has just dragged it to */
    private void lineDragEvent(Point draggedTo, boolean isShiftDown) {
-      if (dragEdge != null) {
-         if (!isShiftDown) {
-            dragEdge.vertexMoveOrSplit(main.coordStore, false, draggedTo.x, draggedTo.y, 0);
+      if (dragEdge == null) return;
 
+      float newX = draggedTo.x;
+      float newY = draggedTo.y;
+
+      if (isShiftDown) {
+         Coords.Vertex origin = dragEdge.getV1();
+
+         float hrizDifference = Math.abs(origin.getX() - newX);
+         float vertDifference = Math.abs(origin.getY() - newY);
+
+         if (hrizDifference > vertDifference) {
+            newY = origin.getY();
          } else {
-            Coords.Vertex origin = dragEdge.getV1();
-
-            float newX = draggedTo.x;
-            float newY = draggedTo.y;
-
-            float hrizDifference = Math.abs(origin.getX() - newX);
-            float vertDifference = Math.abs(origin.getY() - newY);
-
-            if (hrizDifference > vertDifference) {
-               newY = origin.getY();
-            } else {
-               newX = origin.getX();
-            }
-
-            dragEdge.vertexMoveOrSplit(main.coordStore, false, newX, newY, 0);
+            newX = origin.getX();
          }
       }
+
+      dragEdge.vertexMoveOrSplit(main.coordStore, false, newX, newY, 0, main.designButtons.isGridOn());
    }
 
    /**! START MOUSELISTENER */
