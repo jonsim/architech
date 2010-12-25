@@ -16,16 +16,11 @@ public class Coords {
     *  
     */
    public class Vertex {
-      public static final int diameter = 10;
+      private int diameter = 10;
 
-      private Loc3f p;
-      private LinkedList<Edge> edgeUses = new LinkedList<Edge>();
-
-      /** Each Vertex remembers the Coords class that it was created with. This
-       *  method returns that Coords instance */
-      public Coords getOuterInstance() {
-         return Coords.this;
-      }
+      private final Loc3f p = new Loc3f(0,0,0);
+      private final LinkedList<Edge> edgeUses = new LinkedList<Edge>();
+      private final Ellipse2D.Float topDownView = new Ellipse2D.Float();
 
       /** Convenience: Creates a blank, unused vertex at 0,0,0 */
       Vertex() {
@@ -39,12 +34,19 @@ public class Coords {
 
       /** Creates and initialises an unused vertex at the given coordinates */
       Vertex(float x, float y, float z) {
-         p = new Loc3f(x, y, z);
+         set(x, y, z);
       }
 
-      /** Sets this vertex's points to the new ones */
+      /** Sets this vertex's points to the new ones and update anything connected */
       private void set(float x, float y, float z) {
          p.set(x, y, z);
+         recalcTopDownView();
+
+         // update all the edges, simply calling the set() method will update them
+         ListIterator<Edge> ite = edgeUses.listIterator();
+         while (ite.hasNext()) {
+            ite.next().recalcTopDownView();
+         }
       }
 
       /** Adds the given object to the list of objects using this vertex */
@@ -52,12 +54,6 @@ public class Coords {
          if (e == null) return;
          if (edgeUses.contains(e)) return; // already used by that object
          edgeUses.add(e);
-      }
-
-      /** Removes the given object from the list of objects using this vertex */
-      private void forgetAbout(Edge e) {
-         if (e == null) return;
-         edgeUses.remove(e);
       }
 
       /** Returns true if the list of objects using this vertex is not empty */
@@ -81,22 +77,48 @@ public class Coords {
          return p.z();
       }
 
-      /** Returns the top down (2D) representation of this vertex, i.e. a circle.
-       *  This class can decide how big a circle representation it wants to give */
-      public Ellipse2D.Float topDownView() {
-         return new Ellipse2D.Float(p.x() - diameter / 2, p.y() - diameter / 2, diameter, diameter);
+      /** Recalculates the size and location of the topDownView representation */
+      private void recalcTopDownView() {
+         topDownView.setFrame(p.x() - diameter / 2, p.y() - diameter / 2, diameter, diameter);
+      }
+
+      /** Returns true if the vertex at its current diameter contains the point */
+      public boolean contains(Point p) {
+         return topDownView.contains(p);
+      }
+
+      /** Draws the vertex at its current diameter, and the current graphics colour */
+      public void paint(Graphics2D g2) {
+         g2.fill(topDownView);
       }
 
       /** Takes all the edges that are "in use" by the given vertex and adds
-       *  them to the current vertex (if not already added) */
-      private void addUsesCopiedFrom(Vertex v) {
-         if (this == v) return;
+       *  them to the current vertex (if not already added). It updates the
+       *  vertex(s) remember by edges/objects etc. to this (the new) vertex */
+      private void addUsesCutFrom(Vertex v) {
+         if (v == null || this == v) return;
 
          ListIterator<Edge> vIte = v.edgeUses.listIterator();
          while (vIte.hasNext()) {
             Edge e = vIte.next();
+
+            if (e.getV1() == v) {
+               e.setV1(this);
+            } else if (e.getV2() == v) {
+               e.setV2(this);
+            } else Main.showFatalExceptionTraceWindow(new Exception("Never Happen Case"));
+
             this.setUse(e);
          }
+
+         v.edgeUses.clear();
+         vertices.remove(v);
+      }
+
+      /** Each Vertex remembers the Coords class that it was created with. This
+       *  method returns that Coords instance */
+      public Coords getOuterInstance() {
+         return Coords.this;
       }
 
       /** Returns true iff the x,y,z coords of the given vertex match this
@@ -115,14 +137,13 @@ public class Coords {
 
    /*!-START OF COORDS--------------------------------------------------------*/
    
-   private LinkedList<Vertex> vertices = new LinkedList<Vertex>();
-   private LinkedList<Edge> edges = new LinkedList<Edge>();
+   private final LinkedList<Vertex> vertices = new LinkedList<Vertex>();
+   private final LinkedList<Edge> edges = new LinkedList<Edge>();
 
-   private int gridWidth = 60; // 0,60,120,...
+   private int gridWidth = 60; // makes grid lines at 0,60,120,...
 
-   /** Makes a blank coordinate system */
-   Coords() {
-   }
+   /** Creates a blank coordinate system */
+   Coords() {}
 
    /** Blindly makes vertices and edges, there might be orphaned/dup vertices */
    Coords(float[][] vertices, int[][] edges) throws IllegalArgumentException {
@@ -154,11 +175,23 @@ public class Coords {
          Vertex v1 = vertexA[v1Index];
          Vertex v2 = vertexA[v2Index];
 
-         Edge e = new Edge(v1, v2);
+         Edge e = new Edge(this, v1, v2);
          v1.setUse(e);
          v2.setUse(e);
          this.edges.add(e);
       }
+   }
+
+   /** Returns a new edge object, already added to the coordStore */
+   public Edge newEdge(Vertex v1, Vertex v2, boolean snapToGrid) {
+      Edge e = new Edge(this, null, null);
+
+      e.setV1(addVertex(v1.getX(), v1.getY(), v1.getZ(), e, snapToGrid));
+      e.setV2(addVertex(v2.getX(), v2.getY(), v2.getZ(), e, snapToGrid));
+
+      edges.add(e);
+
+      return e;
    }
 
    /** returns an array containing all the Edges in the current design */
@@ -172,9 +205,20 @@ public class Coords {
 
       while (ite.hasNext()) {
          Vertex v = ite.next();
-         if (v.topDownView().contains(p)) return v;
+         if (v.contains(p)) return v;
       }
       
+      return null;
+   }
+
+   public Edge edgeAt(Point p) {
+      ListIterator<Edge> ite = edges.listIterator();
+
+      while (ite.hasNext()) {
+         Edge e = ite.next();
+         if (e.contains(p, 10)) return e;
+      }
+
       return null;
    }
 
@@ -192,24 +236,22 @@ public class Coords {
    }
    
    /** Draws things like lines and curves etc. on the given Graphics canvas */
-   public void drawEdges(Graphics2D g2) {
+   public void paintEdges(Graphics2D g2) {
       g2.setColor(Color.BLACK);
 
       ListIterator<Edge> ite = edges.listIterator();
       while (ite.hasNext()) {
-         Edge e = ite.next();
-         g2.draw(e.topDownView());
+         ite.next().paint(g2);
       }
    }
 
    /** Draws the small vertex circles on the given Graphics canvas */
-   public void drawVertices(Graphics2D g2) {
+   public void paintVertices(Graphics2D g2) {
       g2.setColor(Color.BLACK);
 
       ListIterator<Vertex> ite = vertices.listIterator();
       while (ite.hasNext()) {
-         Vertex v = ite.next();
-         g2.fill(v.topDownView());
+         ite.next().paint(g2);
       }
    }
 
@@ -218,34 +260,36 @@ public class Coords {
     *  new one if you try to set the coordinates to a vertex that already exists,
     *  it will merge the two to avoid duplicate entries. This is essentially
     *  snapping, but to a very precise level!! Ignoring the return value of this
-    *  result will lead to difficult to fix bugs! */
-   public Vertex setxxx(Vertex v, float x, float y, float z) {
-      if (v == null) return null;
+    *  result will lead to difficult to fix bugs! (though coordStore will be ok) */
+   public void set(Vertex v, float x, float y, float z, boolean snapToGrid) {
+      if (v == null || !vertices.contains(v)) return;
+
+      if (snapToGrid) {
+         x = snapToGrid(x);
+         y = snapToGrid(y);
+         z = snapToGrid(z);
+      }
 
       Vertex vAlt = vertexInUse(x, y, z);
 
-      // if there is already a vertex with these coordinates, and its not itself!
       if (vAlt != null && vAlt != v) {
-         vAlt.addUsesCopiedFrom(v);
-         vertices.remove(v);
-
-      } else {
-         v.set(x, y, z);
-         vAlt = v;
+         v.addUsesCutFrom(vAlt);
       }
 
-      return vAlt;
+      v.set(x, y, z);
    }
 
    /** Updates the given vertex so that it no longer remembers Object o as something
     *  that uses it. If the vertex no longer has any uses then it gets deleted! */
-   public void removeUsexxx(Vertex v, Edge e) {
+   private void removeUse(Vertex v, Edge e) {
       if (v == null) return;
 
-      v.forgetAbout(e);
+      v.edgeUses.remove(e);
+
       if (!v.isUsed()) vertices.remove(v);
    }
 
+   /** Returns the snapped to grid version of the given coord part (x,y,z) */
    private float snapToGrid(float coord) {
       float distIntoCell = coord % gridWidth;
 
@@ -263,10 +307,8 @@ public class Coords {
    /** If the vertex exists already it prevents duplicate entries.
     *  usefor is the object that will be added to the (perhaps new) vertex's
     *  list of objects that are using it */
-   public Vertex addVertex(float x, float y, float z, Edge useFor, boolean snapToGrid) {
+   private Vertex addVertex(float x, float y, float z, Edge useFor, boolean snapToGrid) {
       if (useFor == null) return null;
-
-      if (!edges.contains(useFor)) edges.add(useFor);
 
       if (snapToGrid) {
          x = snapToGrid(x);
@@ -287,6 +329,25 @@ public class Coords {
          vertices.add(newV);
          return newV;
       }
+   }
+
+   /** Moves one end of this line to the new coordinates given. If the vertex
+    *  end being moved is used by a different object too (i.e. the end of this
+    *  line is snapped to the other object) then it will create a new vertex for
+    *  the end of this line, to essentially unsnap (split) from that other
+    *  object's vertex */
+   public void vertexMoveOrSplit(Edge e, boolean isV1, float x, float y, float z, boolean snapToGrid) {
+      Vertex toMove = (isV1 ? e.getV1() : e.getV2());
+      Vertex newV;
+
+      // tell vertex its no longer used by this edge. if v1 == v2 then we
+      // certainly don't want to remove the only vertex thats in use!
+      if (e.getV1() != e.getV2()) removeUse(toMove, e);
+      
+      newV = addVertex(x, y, z, e, snapToGrid);
+
+      if (isV1) e.setV1(newV);
+      else e.setV2(newV);
    }
 
    /** Returns true if the given vertex is in the coordStore. */
@@ -311,13 +372,13 @@ public class Coords {
 
    /** Deletes the given edge from its two endpoint vertices and the edges list */
    public void delete(Edge e) {
-      if (e == null) return;
+      if (e == null || !edges.contains(e)) return;
 
       Coords.Vertex v1 = e.getV1(), v2 = e.getV2();
       if (v1 == null || v2 == null) return;
-      
-      removeUsexxx(v1, e);
-      removeUsexxx(v2, e);
+
+      removeUse(v1, e);
+      removeUse(v2, e);
 
       edges.remove(e);
    }

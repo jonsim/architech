@@ -8,15 +8,11 @@ public class Main {
 
    public FrontEnd frontEnd;
    public FrontEndMenu frontEndMenu;
-
    public ObjectBrowser objectBrowser;
    public ObjectButtons objectButtons;
-
    public DesignButtons designButtons;
    public Viewport2D viewport2D;
-   
    public Viewport3D viewport3D;
-
    public Coords coordStore;
 
    /** Does the business making other classes and remembering their pointers. Be
@@ -42,7 +38,10 @@ public class Main {
    /** Starts everything in the program running */
    private void run() {
       frontEnd.display();
+
+      viewport2D.activateListeners();
       viewport2D.getScrollPane().setPreferredSize(new Dimension(2000,1000));
+      viewport2D.repaint();
    }
 
    /** Sets the default look and feel. (must be done before anything else)

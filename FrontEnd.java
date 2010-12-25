@@ -48,7 +48,6 @@ public class FrontEnd implements WindowListener {
    public void display() {
       window.setLocationRelativeTo(null);
       window.setVisible(true);
-      main.viewport2D.repaint();
    }
 
    /** Returns an image for use as the icon or null if it failed somehow */

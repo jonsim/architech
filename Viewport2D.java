@@ -18,8 +18,8 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
 
    private Main main;
    private Graphics2D g2; // so paintComponent() doesn't have to create it each time
-   private Edge dragEdge;
-   private Coords.Vertex hoverVertex, selectVertex = null;
+   private Edge dragEdge, selectEdge;
+   private Coords.Vertex hoverVertex, selectVertex;
    private JScrollPane scrollPane;
 
    /** Initialises the 2D pane and makes it scrollable too */
@@ -31,12 +31,22 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
       setFocusable(true);
 
       scrollPane = new JScrollPane(this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+   }
 
+   /** Adds itself as a listener for keys, mouse and mouseMotion */
+   public void activateListeners() {
       addKeyListener(this);
       addMouseListener(this);
       addMouseMotionListener(this);
    }
 
+   /** Removes all the listeners from this component */
+   public void disableListeners() {
+      this.removeKeyListener(this);
+      this.removeMouseListener(this);
+      this.removeMouseMotionListener(this);
+   }
+   
    /** Returns the scrollable version of this class. */
    public JScrollPane getScrollPane() {
       return scrollPane;
@@ -49,34 +59,38 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
       super.paintComponent(g2); // clear screen
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
               RenderingHints.VALUE_ANTIALIAS_ON);
+      Coords coordStore = main.coordStore;
 
-      if (main.designButtons.isGridOn()) main.coordStore.drawGrid(g2, getWidth(), getHeight());
+      if (main.designButtons.isGridOn()) coordStore.drawGrid(g2, getWidth(), getHeight());
 
-      main.coordStore.drawEdges(g2);
-      main.coordStore.drawVertices(g2);
+      coordStore.paintEdges(g2);
+      coordStore.paintVertices(g2);
 
       if (dragEdge != null) dragEdge.paintLengthText(g2);
+      
+      if (selectEdge != null && main.designButtons.isSelectTool()) {
+         g2.setColor(Color.blue);
+         selectEdge.paint(g2);
+      }
 
       if (hoverVertex != null) {
          g2.setColor(Color.red);
-         g2.fill(hoverVertex.topDownView());
+         hoverVertex.paint(g2);
       }
 
       if (selectVertex != null && main.designButtons.isSelectTool()) {
          g2.setColor(Color.blue);
-         g2.fill(selectVertex.topDownView());
+         selectVertex.paint(g2);
       }
    }
 
    /** if the user clicks and drags with the line tool on, call this, it will
     *  make the new edge so that they can see it as they drag! */
-   private void lineDragStarted(Point p) {
-      if (p == null) {
-         p = new Point(0, 0);
-      }
+   private void lineDragStarted(Coords coordStore, Point p, boolean snapToGrid) {
+      if (p == null) return;
 
-      Coords.Vertex v = main.coordStore.new Vertex(p.x, p.y, 0);
-      dragEdge = new Edge(main.coordStore, v, v, main.designButtons.isGridOn());
+      Coords.Vertex v = coordStore.new Vertex(p.x, p.y, 0);
+      dragEdge = coordStore.newEdge(v, v, snapToGrid);
    }
 
    /** No reason other than stopping erroneous  */
@@ -88,13 +102,14 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
    /** edge might be null if the user started a drag with a different mouse
     *  button than BUTTON1 and then while dragging changed to the line tool. This
     *  updates the edge to a new position, that the user has just dragged it to */
-   private void lineDragEvent(Point draggedTo, boolean isShiftDown) {
+   private void lineDragEvent(Coords coordStore, Edge dragEdge, Point draggedTo,
+         boolean snapToAxis, boolean snapToGrid) {
       if (dragEdge == null) return;
 
       float newX = draggedTo.x;
       float newY = draggedTo.y;
 
-      if (isShiftDown) {
+      if (snapToAxis) {
          Coords.Vertex origin = dragEdge.getV1();
 
          float hrizDifference = Math.abs(origin.getX() - newX);
@@ -107,21 +122,32 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
          }
       }
 
-      dragEdge.vertexMoveOrSplit(main.coordStore, false, newX, newY, 0, main.designButtons.isGridOn());
+      coordStore.vertexMoveOrSplit(dragEdge, false, newX, newY, 0, snapToGrid);
    }
 
-   /**! START MOUSELISTENER */
+   private void vertexDragEvent(Coords coordStore, Coords.Vertex selectVertex, Point p, boolean snapToGrid) {
+      // coordStore won't do anything if selectVertex == null
+      coordStore.set(selectVertex, p.x, p.y, 0, snapToGrid);
+   }
+
    /** Invoked when a mouse button has been pressed on a component. */
    public void mousePressed(MouseEvent e) {
       if (e.getButton() == MouseEvent.BUTTON1) {
 
          if (main.designButtons.isLineTool()) {
-            lineDragStarted(e.getPoint());
+            lineDragStarted(main.coordStore, e.getPoint(), main.designButtons.isGridOn());
             setCursor(new Cursor(Cursor.HAND_CURSOR));
             repaint();
 
          } else if (main.designButtons.isSelectTool()) {
             selectVertex = main.coordStore.vertexAt(e.getPoint());
+
+            if (selectVertex == null) {
+               selectEdge = main.coordStore.edgeAt(e.getPoint());
+            } else {
+               selectEdge = null;
+            }
+
             main.viewport2D.requestFocus();
             repaint();
          }
@@ -151,13 +177,14 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
    public void mouseExited(MouseEvent e) {
    }
 
-   /**! END MOUSELISTENER */
-   /**! START MOUSEMOTIONLISTENER */
    /** Invoked when a mouse button is pressed on a component and then dragged. */
    public void mouseDragged(MouseEvent e) {
       if (main.designButtons.isLineTool()) {
-         lineDragEvent(e.getPoint(), e.isShiftDown());
+         lineDragEvent(main.coordStore, dragEdge, e.getPoint(), e.isShiftDown(), main.designButtons.isGridOn());
+      } else if (main.designButtons.isSelectTool()) {
+         vertexDragEvent(main.coordStore, selectVertex, e.getPoint(), main.designButtons.isGridOn());
       }
+
       repaint();
    }
 
@@ -167,8 +194,6 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
       repaint();
    }
 
-   /**! END MOUSEMOTIONLISTENER */
-   /**! START SCROLLABLE */
    /** Returns the preferred size of the viewport for a view component. For
     * example the preferredSize of a JList component is the size required to
     * accommodate all of the cells in its list however the value of
@@ -240,8 +265,6 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
       return 15;
    }
 
-   /**! END SCROLLABLE */
-   /**! START KEYLISTENER */
    /** Invoked when a key is pressed and released */
    public void keyTyped(KeyEvent kevt) {
    }
@@ -251,8 +274,9 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
       int c = kevt.getKeyCode();
 
       if ((c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE)
-            && main.designButtons.isSelectTool() && selectVertex != null) {
+            && main.designButtons.isSelectTool() && (selectVertex != null || selectEdge != null)) {
          main.coordStore.delete(selectVertex);
+         main.coordStore.delete(selectEdge);
 
          // the vertex currently being hovered over will only update if the person
          // moves the mouse. If they don't move the mouse and the vertex has been
@@ -260,6 +284,7 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
          if (!main.coordStore.exists(hoverVertex)) hoverVertex = null;
 
          selectVertex = null;
+         selectEdge = null;
          repaint();
       }
    }
@@ -267,5 +292,4 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
    /** Invoked when a key is released */
    public void keyReleased(KeyEvent kevt) {
    }
-   /**! END KEYLISTENER */
 }
