@@ -21,7 +21,8 @@ public class Edge {
       this.v1 = v1;
       this.v2 = v2;
 
-      recalcTopDownView();
+      //recalcTopDownView();
+      topDownView.setLine(v1.getX(), v1.getY(), v2.getX(), v2.getY());
    }
 
    /** Returns the vertex at one end of this line */
