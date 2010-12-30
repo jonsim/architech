@@ -51,7 +51,7 @@ public class FrontEnd implements WindowListener {
    }
 
    /** Returns an image for use as the icon or null if it failed somehow */
-   private Image getIcon(String location) {
+   public Image getIcon(String location) {
       URL iconResource = this.getClass().getResource(location);
       if (iconResource == null) return null;
 

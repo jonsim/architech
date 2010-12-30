@@ -1,25 +1,49 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.*;
+import java.awt.dnd.*;
 
-/**
- * 
- */
-public class Viewport3D {
-   private JPanel pane;
+/**  */
+public class Viewport3D extends JPanel {
+
+   private DragSource dragSource;
+   private DragGestureListener dgListener;
 
    private Main main;
 
    Viewport3D(Main main) {
+      super(new GridBagLayout());
+      this.setBackground(Color.WHITE);
+      this.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+
       this.main = main;
 
-      initPane();
+      dragSource = DragSource.getDefaultDragSource();
+      dgListener = new SQLDragListener();
+
+      // component, action, listener
+      dragSource.createDefaultDragGestureRecognizer(this, SQLDragListener.dragAction, dgListener);
+
+
+
+      //initPane();
+   }
+
+   @Override
+   public void paintComponent(Graphics g) {
+      Graphics2D g2 = (Graphics2D) g;
+
+      g2.drawImage(main.frontEnd.getIcon(main.frontEnd.ICON_LOCATION), new AffineTransform(), null);
+
    }
 
    private void initPane() {
-      pane = new JPanel(new GridBagLayout());
-      pane.setBackground(Color.WHITE);
-      pane.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+
+
+      //pane = new JPanel(new GridBagLayout());
+      //pane.setBackground(Color.WHITE);
+      //pane.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
       /*
       GridBagConstraints c;
@@ -42,6 +66,6 @@ public class Viewport3D {
    }
 
    public JPanel getPane() {
-      return pane;
+      return this;
    }
 }

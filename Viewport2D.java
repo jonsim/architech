@@ -3,7 +3,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Line2D.*;
-import java.util.*;
+import java.awt.dnd.*;
 
 /** This class holds the panel for the 2D view, it extends JPanel so has repaint()
  *  and all the other methods to do with JPanel. It draws the vertices and edges
@@ -22,6 +22,9 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
    private Coords.Vertex hoverVertex, selectVertex;
    private JScrollPane scrollPane;
 
+   private Viewport2DDropListener viewport2DDropListener;
+   private DropTarget dropTarget;
+
    /** Initialises the 2D pane and makes it scrollable too */
    Viewport2D(Main main) {
       this.main = main;
@@ -31,6 +34,10 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
       setFocusable(true);
 
       scrollPane = new JScrollPane(this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+
+
+      viewport2DDropListener = new Viewport2DDropListener(main);
+      dropTarget = new DropTarget(this, Viewport2DDropListener.acceptableActions, viewport2DDropListener, false);
    }
 
    /** Adds itself as a listener for keys, mouse and mouseMotion */
@@ -38,6 +45,7 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
       addKeyListener(this);
       addMouseListener(this);
       addMouseMotionListener(this);
+      dropTarget.setActive(true);
    }
 
    /** Removes all the listeners from this component */
@@ -45,6 +53,7 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
       this.removeKeyListener(this);
       this.removeMouseListener(this);
       this.removeMouseMotionListener(this);
+      dropTarget.setActive(false);
    }
    
    /** Returns the scrollable version of this class. */
