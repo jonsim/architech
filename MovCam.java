@@ -1,5 +1,3 @@
-package exp;
-
 import com.jme3.input.InputManager;
 import com.jme3.input.JoyInput;
 import com.jme3.input.Joystick;

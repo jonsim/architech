@@ -1,5 +1,3 @@
-package exp;
-
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
