@@ -15,6 +15,8 @@ public class DesignButtons implements ActionListener {
    private Cursor selectCursor, lineCursor, curveCursor;
    private JToggleButton gridTool, snapTool;
 
+   public JButton update3D; // temporary until we can get 3d automatically updating
+
    /** Returns true if the line tool is selected */
    public boolean isLineTool() {
       return lineTool == currentTool;
@@ -47,6 +49,10 @@ public class DesignButtons implements ActionListener {
 
    /** Initialises the private button variables */
    private void initButtons() {
+
+      update3D = new JButton("Update");
+      update3D.setActionCommand("update");
+
       selectTool = new JButton("Sel");
       lineTool = new JButton("Lne");
       curveTool = new JButton("Crv");
@@ -89,18 +95,21 @@ public class DesignButtons implements ActionListener {
       GridBagConstraints c;
 
       c = FrontEnd.buildGBC(0, 0, 0.5, 0.5, centerAnchor, right);
-      pane.add(selectTool, c);
+      pane.add(update3D, c);
 
       c = FrontEnd.buildGBC(1, 0, 0.5, 0.5, centerAnchor, right);
-      pane.add(lineTool, c);
+      pane.add(selectTool, c);
 
       c = FrontEnd.buildGBC(2, 0, 0.5, 0.5, centerAnchor, right);
-      pane.add(curveTool, c);
+      pane.add(lineTool, c);
 
       c = FrontEnd.buildGBC(3, 0, 0.5, 0.5, centerAnchor, right);
+      pane.add(curveTool, c);
+
+      c = FrontEnd.buildGBC(4, 0, 0.5, 0.5, centerAnchor, right);
       pane.add(gridTool, c);
 
-      c = FrontEnd.buildGBC(4, 0, 0.5, 0.5, centerAnchor, none);
+      c = FrontEnd.buildGBC(5, 0, 0.5, 0.5, centerAnchor, none);
       pane.add(snapTool, c);
 
    }

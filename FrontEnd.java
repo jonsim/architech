@@ -89,7 +89,7 @@ public class FrontEnd implements WindowListener {
       GridBagConstraints c;
 
       main.viewport2D.getScrollPane().setPreferredSize(new Dimension(400,180));
-      main.viewport3D.getPane().setPreferredSize(new Dimension(400,180));
+      main.viewport3D.getCanvas().setPreferredSize(new Dimension(400,180));
       main.objectBrowser.getPane().setPreferredSize(new Dimension(160,180));
 
       c = buildGBC(0, 0, 0.5, 0.0, topCenterAnchor, top_left_right);
@@ -109,8 +109,7 @@ public class FrontEnd implements WindowListener {
 
       c = buildGBC(0, 2, 1.0, 1.0, leftAnchor, top_left_bottom_right);
       c.fill = GridBagConstraints.BOTH;
-      pane.add(main.viewport3D.getPane(), c);
-      
+      pane.add(main.viewport3D.getCanvas(), c);
    }
 
    /** If a save is needed, asks the user to confirm. returns true if the program
@@ -158,7 +157,11 @@ public class FrontEnd implements WindowListener {
 //! WINDOWLISTENER
    /** Invoked when the user attempts to close the window from the window's system menu. */
    public void windowClosing(WindowEvent e) {
-      if (quit()) window.dispose();
+      if (quit()) {
+         window.dispose();
+         main.viewport3D.shutdown3D();
+         //System.exit(0); // if JME thread is still running, (for now) this stops it
+      }
    }
 
    /** Invoked when the Window is set to be the active Window. */

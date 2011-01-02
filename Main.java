@@ -29,6 +29,8 @@ public class Main {
 
       viewport2D = new Viewport2D(this);
       viewport3D = new Viewport3D(this);
+      designButtons.update3D.addActionListener(viewport3D); // temporary until 3d updates automatically
+
       objectBrowser = new ObjectBrowser(this);
 
       frontEndMenu = new FrontEndMenu(this);

@@ -1,31 +1,18 @@
-
-import javax.swing.*;
-
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeCanvasContext;
 
 import java.awt.*;
-import java.awt.dnd.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.AffineTransform;
 
-/**  */
-public class Viewport3D extends JPanel implements ActionListener {
+/** Provides a canvas (with getCanvas()) containing the 3d window */
+public class Viewport3D implements ActionListener {
 
-   private DragSource dragSource;
-   private DragGestureListener dgListener;
    private ThreeD canvasApplication;
-   private JFrame tdwind;
    private Main main;
 
    Viewport3D(Main main) {
-      super(new GridBagLayout());
-      this.setBackground(Color.WHITE);
-      this.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-
       this.main = main;
-
 
 //add clumsy 3D Window
       // create new JME appsettings
@@ -36,41 +23,35 @@ public class Viewport3D extends JPanel implements ActionListener {
       canvasApplication = new ThreeD();
       canvasApplication.setSettings(settings);
       canvasApplication.createCanvas(); // create canvas!
+
+      // Fill Swing window with canvas and swing components
       JmeCanvasContext ctx = (JmeCanvasContext) canvasApplication.getContext();
       ctx.setSystemListener(canvasApplication);
-      Dimension dim = new Dimension(640, 480);
-      ctx.getCanvas().setPreferredSize(dim);
-      
-      // Create Swing window
-      tdwind = new JFrame("3D Window");
-      tdwind.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      // Fill Swing window with canvas and swing components
-      JPanel panel = new JPanel(new FlowLayout()); // a panel
-      panel.add(ctx.getCanvas());                  // add JME canvas
-      //add update button
-      JButton b3;
-      b3 = new JButton("Update");
-      b3.addActionListener(this);
-      b3.setActionCommand("update");
-      panel.add(b3);
-      tdwind.add(panel);
-      tdwind.pack();
-      // Display 3D preview window including JME canvas
-      tdwind.setVisible(true);
+      ctx.getCanvas().setPreferredSize(new Dimension(640, 480));
+
+      // add JME canvas
+      //panel.add(ctx.getCanvas());
+
+      //add update button is done in DesignButtons (couldn't cleanly/easily get
+      //3d to resize properly if the button was in the same area..)
+
       canvasApplication.startCanvas();
+
+      // By now FrontEnd has displayed 3D preview window including JME canvas
    }
 
-   /** These three lines control the SQL end of drag and drop furniture */
-   private void SQLDragNDropFurnitureDemo() {
-      //dragSource = DragSource.getDefaultDragSource();
-      //dgListener = new SQLDragListener();
-      //dragSource.createDefaultDragGestureRecognizer(this, SQLDragListener.dragAction, dgListener);
+   /** Doesn't quite do it yet, perhaps the ThreeD class has a method to stop? */
+   public void shutdown3D() {
+      canvasApplication.stop();
    }
 
-   public JPanel getPane() {
-      return this;
+   /** FrontEnd will put this in the main window */
+   public Canvas getCanvas() {
+      JmeCanvasContext ctx = (JmeCanvasContext) canvasApplication.getContext();
+      return ctx.getCanvas();
    }
 
+   /** Called by the update button, which is in DesignButtons.java */
    @Override
    public void actionPerformed(ActionEvent e) {
       // TODO Auto-generated method stub
