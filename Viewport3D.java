@@ -29,8 +29,7 @@ public class Viewport3D implements ActionListener {
       ctx.setSystemListener(canvasApplication);
       ctx.getCanvas().setPreferredSize(new Dimension(640, 480));
 
-      // add JME canvas
-      //panel.add(ctx.getCanvas());
+      // add JME canvas - FrontEnd will call getCanvas() and put it in the window
 
       //add update button is done in DesignButtons (couldn't cleanly/easily get
       //3d to resize properly if the button was in the same area..)
@@ -40,7 +39,7 @@ public class Viewport3D implements ActionListener {
       // By now FrontEnd has displayed 3D preview window including JME canvas
    }
 
-   /** Doesn't quite do it yet, perhaps the ThreeD class has a method to stop? */
+   /** Nicely disposes of the 3D stuff so that everything can close without exit(0) */
    public void shutdown3D() {
       canvasApplication.stop();
    }

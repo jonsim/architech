@@ -14,13 +14,20 @@ public class FrontEnd implements WindowListener {
    public static final String  WINDOW_TITLE = "ArchiTECH";
 
    private final JFrame window = new JFrame(WINDOW_TITLE);
-
+   private final JSplitPane TwoDandThreeD = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
    private Main main;
 
    /** holds the displayable window and shows or hides sub windows
     * displays dialogs on request by other classes (i.e. crash dialog) */
    FrontEnd(Main main) {
       this.main = main;
+
+      TwoDandThreeD.setTopComponent(main.viewport2D.getScrollPane());
+      TwoDandThreeD.setBottomComponent(main.viewport3D.getCanvas());
+      TwoDandThreeD.setOneTouchExpandable(true);
+      TwoDandThreeD.setDividerSize(11);
+      TwoDandThreeD.setBorder(null);
+      TwoDandThreeD.setResizeWeight(0.45);
 
       windowInit();
    }
@@ -43,6 +50,9 @@ public class FrontEnd implements WindowListener {
       // set minimum size to initialised size, before maximisation
       window.setMinimumSize(window.getSize());
       window.setExtendedState(JFrame.MAXIMIZED_BOTH);
+
+      // allow the 3d to be resizable and center the divider
+      main.viewport3D.getCanvas().setMinimumSize(new Dimension(0,0));
    }
 
    public void display() {
@@ -98,18 +108,13 @@ public class FrontEnd implements WindowListener {
       c = buildGBC(1, 0, 0.0, 0.0, topCenterAnchor, top_right);
       pane.add(main.objectButtons.getPane(), c);
 
-      c = buildGBC(0, 1, 1.0, 1.0, leftAnchor, top_left_right);
+      c = buildGBC(0, 1, 0.5, 0.5, leftAnchor, top_left_bottom_right);
       c.fill = GridBagConstraints.BOTH;
-      pane.add(main.viewport2D.getScrollPane(), c); // viewport2D
+      pane.add(TwoDandThreeD, c);
 
-      c = buildGBC(1, 1, 0.18, 0.0, topLeftAnchor, top_bottom_right);
-      c.gridheight = 2;
+      c = buildGBC(1, 1, 0.07, 0.5, topLeftAnchor, top_bottom_right);
       c.fill = GridBagConstraints.BOTH;
       pane.add(main.objectBrowser.getPane(), c);
-
-      c = buildGBC(0, 2, 1.0, 1.0, leftAnchor, top_left_bottom_right);
-      c.fill = GridBagConstraints.BOTH;
-      pane.add(main.viewport3D.getCanvas(), c);
    }
 
    /** If a save is needed, asks the user to confirm. returns true if the program

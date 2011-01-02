@@ -50,7 +50,7 @@ public class DesignButtons implements ActionListener {
    /** Initialises the private button variables */
    private void initButtons() {
 
-      update3D = new JButton("Update");
+      update3D = new JButton("Update 3D");
       update3D.setActionCommand("update");
 
       selectTool = new JButton("Sel");
