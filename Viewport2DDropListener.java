@@ -113,7 +113,9 @@ public class Viewport2DDropListener implements DropTargetListener {
 
       FurnitureSQLData dropped = (FurnitureSQLData) data;
       Point droppedAt = e.getLocation();
-      System.out.println("Dropped Furniture " + dropped + " at point " + droppedAt);
+
+      main.coordStore.addFurniture(new Furniture(dropped, droppedAt));
+      main.viewport2D.repaint();
 
       e.dropComplete(true);
       // main.viewport2D.repaint() - clear lingering gfx

@@ -16,7 +16,7 @@ public class SQLDragListener implements DragGestureListener, DragSourceListener 
 
       // get the label's text and put it inside a Transferable
       // Transferable transferable = new StringSelection( DragLabel.this.getText() );
-      Transferable transferData = new TransferData(new FurnitureSQLData(7, 12));
+      Transferable transferData = new TransferData(new FurnitureSQLData(0, 20, 10));
 
       try {
          // initial cursor, transferrable, dsource listener

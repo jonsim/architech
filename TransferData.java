@@ -7,7 +7,7 @@ import java.util.*;
 import java.util.List;
 
 /** TransferData */
-public class TransferData implements Transferable, ClipboardOwner {
+public class TransferData implements Transferable {
 
    // if we support string the furnitureData will be droppable outside the window
    public static final DataFlavor furniture = new DataFlavor(FurnitureSQLData.class, "Furniture Lookup Data");
@@ -44,10 +44,9 @@ public class TransferData implements Transferable, ClipboardOwner {
       else throw new UnsupportedFlavorException(flavor);
    }
 
-
-
-   public void lostOwnership(Clipboard clipboard, Transferable contents) {
-      System.out.println("TransferData lost ownership of:  Clipboard="
-         + clipboard.getName() + "  Contents=" + contents);
-   }
+   // implements ClipboardOwner {
+   //public void lostOwnership(Clipboard clipboard, Transferable contents) {
+   //   System.out.println("TransferData lost ownership of:  Clipboard="
+   //      + clipboard.getName() + "  Contents=" + contents);
+   //}
 }

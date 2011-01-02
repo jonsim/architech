@@ -139,7 +139,7 @@ public class Coords {
    
    private final LinkedList<Vertex> vertices = new LinkedList<Vertex>();
    private final LinkedList<Edge> edges = new LinkedList<Edge>();
-
+   private final LinkedList<Furniture> furniture = new LinkedList<Furniture>();
    private int gridWidth = 60; // makes grid lines at 0,60,120,...
 
    /** Creates a blank coordinate system */
@@ -180,6 +180,10 @@ public class Coords {
          v2.setUse(e);
          this.edges.add(e);
       }
+   }
+
+   public void addFurniture(Furniture f) {
+      furniture.add(f);
    }
 
    /** Returns a new edge object, already added to the coordStore */
@@ -250,6 +254,16 @@ public class Coords {
       g2.setColor(Color.BLACK);
 
       ListIterator<Vertex> ite = vertices.listIterator();
+      while (ite.hasNext()) {
+         ite.next().paint(g2);
+      }
+   }
+
+   /** Draws all the furniture objects, highlights collisions with walls */
+   public void paintFurniture(Graphics2D g2) {
+      g2.setColor(Color.BLUE);
+
+      ListIterator<Furniture> ite = furniture.listIterator();
       while (ite.hasNext()) {
          ite.next().paint(g2);
       }

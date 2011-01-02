@@ -1,14 +1,17 @@
 public class FurnitureSQLData {
    public int furnitureID = -1;
-   public int initialScale = -1;
+   public float width = 20;
+   public float height = 10;
 
-   FurnitureSQLData(int furnitureID, int initialScale) {
+   /** Furniture is represented as a rectangle with width and height */
+   FurnitureSQLData(int furnitureID, float width, float height) {
       this.furnitureID = furnitureID;
-      this.initialScale = initialScale;
+      this.width = width;
+      this.height = height;
    }
 
    @Override
    public String toString() {
-      return "FurnitureID=" + furnitureID + ", InitialScale=" + initialScale;
+      return "FurnitureID=" + furnitureID + ", Width=" + width + ", Height=" + height;
    }
 }

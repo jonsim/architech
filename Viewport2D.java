@@ -35,7 +35,6 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
 
       scrollPane = new JScrollPane(this, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 
-
       viewport2DDropListener = new Viewport2DDropListener(main);
       dropTarget = new DropTarget(this, Viewport2DDropListener.acceptableActions, viewport2DDropListener, false);
    }
@@ -74,6 +73,7 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
 
       coordStore.paintEdges(g2);
       coordStore.paintVertices(g2);
+      coordStore.paintFurniture(g2);
 
       if (dragEdge != null) dragEdge.paintLengthText(g2);
       
