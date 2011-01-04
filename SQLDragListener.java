@@ -1,13 +1,19 @@
-import java.awt.*;
-import java.awt.event.*;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
-import javax.swing.*;
 
 /** DSListener. a listener that will track the state of the DnD operation */
 public class SQLDragListener implements DragGestureListener, DragSourceListener {
 
    public static final int dragAction = DnDConstants.ACTION_COPY;
+   private FurnitureSQLData dataToBeTransferred;
+
+   SQLDragListener(FurnitureSQLData dataToBeTransferred) {
+      if (dataToBeTransferred == null) {
+         throw new IllegalArgumentException("dataToBeTransferred is null");
+      }
+      
+      this.dataToBeTransferred = dataToBeTransferred;
+   }
 
    /** Start the drag if the operation is ok. uses java.awt.datatransfer.StringSelection
     *  to transfer the label's data */
@@ -16,7 +22,7 @@ public class SQLDragListener implements DragGestureListener, DragSourceListener 
 
       // get the label's text and put it inside a Transferable
       // Transferable transferable = new StringSelection( DragLabel.this.getText() );
-      Transferable transferData = new TransferData(new FurnitureSQLData(0, 20, 10));
+      Transferable transferData = new TransferData(dataToBeTransferred);
 
       try {
          // initial cursor, transferrable, dsource listener
