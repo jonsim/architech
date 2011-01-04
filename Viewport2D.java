@@ -14,7 +14,7 @@ import java.awt.dnd.*;
  *  mouse button than the line drag tool then you can draw both at once.
  */
 public class Viewport2D extends JPanel implements KeyListener, Scrollable,
-      MouseListener, MouseMotionListener {
+      MouseListener, MouseMotionListener, CoordsChangeListener {
 
    private Main main;
    private Graphics2D g2; // so paintComponent() doesn't have to create it each time
@@ -41,6 +41,7 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
 
    /** Adds itself as a listener for keys, mouse and mouseMotion */
    public void activateListeners() {
+      main.coordStore.addCoordsChangeListener(this);
       addKeyListener(this);
       addMouseListener(this);
       addMouseMotionListener(this);
@@ -49,12 +50,17 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
 
    /** Removes all the listeners from this component */
    public void disableListeners() {
+      main.coordStore.removeCoordsChangeListener(this);
       this.removeKeyListener(this);
       this.removeMouseListener(this);
       this.removeMouseMotionListener(this);
       dropTarget.setActive(false);
    }
-   
+
+   public void CoordsChangeOccurred(CoordsChangeEvent e) {
+      System.out.println("Coords Change Event: " + e);
+   }
+
    /** Returns the scrollable version of this class. */
    public JScrollPane getScrollPane() {
       return scrollPane;

@@ -179,11 +179,15 @@ public class Coords {
          v1.setUse(e);
          v2.setUse(e);
          this.edges.add(e);
+
+         fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_ADDED, e));
       }
    }
 
    public void addFurniture(Furniture f) {
       furniture.add(f);
+
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_ADDED, f));
    }
 
    /** Returns a new edge object, already added to the coordStore */
@@ -194,6 +198,8 @@ public class Coords {
       e.setV2(addVertex(v2.getX(), v2.getY(), v2.getZ(), e, snapToGrid));
 
       edges.add(e);
+
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_ADDED, e));
 
       return e;
    }
@@ -273,8 +279,7 @@ public class Coords {
     *  new vertex that should be used now. It may return the same vertex or a
     *  new one if you try to set the coordinates to a vertex that already exists,
     *  it will merge the two to avoid duplicate entries. This is essentially
-    *  snapping, but to a very precise level!! Ignoring the return value of this
-    *  result will lead to difficult to fix bugs! (though coordStore will be ok) */
+    *  snapping, but to a very precise level!! */
    public void set(Vertex v, float x, float y, float z, boolean snapToGrid) {
       if (v == null || !vertices.contains(v)) return;
 
@@ -286,11 +291,18 @@ public class Coords {
 
       Vertex vAlt = vertexInUse(x, y, z);
 
-      if (vAlt != null && vAlt != v) {
-         v.addUsesCutFrom(vAlt);
-      }
+      if (vAlt != null && vAlt != v) v.addUsesCutFrom(vAlt);
 
-      v.set(x, y, z);
+      // if the vertex is currently snapped, it might not be changing position, don't fire events
+      if (!(v.p.x()==x && v.p.y()==y && v.p.z()==z)) {
+         v.set(x, y, z);
+
+         // fire a shit load of events
+         Edge[] affectedEdges = v.edgeUses.toArray(new Edge[0]);
+         for (Edge e : affectedEdges) {
+            fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
+         }
+      }
    }
 
    /** Updates the given vertex so that it no longer remembers Object o as something
@@ -362,6 +374,8 @@ public class Coords {
 
       if (isV1) e.setV1(newV);
       else e.setV2(newV);
+
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
    }
 
    /** Returns true if the given vertex is in the coordStore. */
@@ -395,6 +409,8 @@ public class Coords {
       removeUse(v2, e);
 
       edges.remove(e);
+
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_REMOVED, e));
    }
 
    /** Draws the grid on the given Graphics canvas, from 0,0 to width,height */
@@ -407,6 +423,20 @@ public class Coords {
 
       for (int i = gridWidth; i < height; i += gridWidth) {
          g2.drawLine(0, i, width, i);
+      }
+   }
+
+   private javax.swing.event.EventListenerList listenerList = new javax.swing.event.EventListenerList();
+   void addCoordsChangeListener(CoordsChangeListener listener) {
+      listenerList.add(CoordsChangeListener.class, listener);
+   }
+   void removeCoordsChangeListener(CoordsChangeListener listener) {
+      listenerList.remove(CoordsChangeListener.class, listener);
+   }
+   private void fireCoordsChangeEvent(CoordsChangeEvent event) {
+      CoordsChangeListener[] listeners = listenerList.getListeners(CoordsChangeListener.class);
+      for (CoordsChangeListener listener : listeners) {
+         listener.CoordsChangeOccurred(event);
       }
    }
 
