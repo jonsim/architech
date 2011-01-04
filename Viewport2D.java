@@ -59,6 +59,7 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
 
    public void CoordsChangeOccurred(CoordsChangeEvent e) {
       System.out.println("Coords Change Event: " + e);
+      repaint();
    }
 
    /** Returns the scrollable version of this class. */
@@ -141,7 +142,8 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
    }
 
    private void vertexDragEvent(Coords coordStore, Coords.Vertex selectVertex, Point p, boolean snapToGrid) {
-      // coordStore won't do anything if selectVertex == null
+      if (selectVertex == null) return; // coordStore won't do anything if selectVertex == null
+
       coordStore.set(selectVertex, p.x, p.y, 0, snapToGrid);
    }
 
@@ -152,7 +154,7 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
          if (main.designButtons.isLineTool()) {
             lineDragStarted(main.coordStore, e.getPoint(), main.designButtons.isGridOn());
             setCursor(new Cursor(Cursor.HAND_CURSOR));
-            repaint();
+            // repaint(); - done by the coordStore change listener if anything changes
 
          } else if (main.designButtons.isSelectTool()) {
             selectVertex = main.coordStore.vertexAt(e.getPoint());
@@ -162,9 +164,10 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
             } else {
                selectEdge = null;
             }
+            
+            repaint(); // gets rid of the blue selected vertex or edge
 
             main.viewport2D.requestFocus();
-            repaint();
          }
 
          // other tools go here
@@ -200,13 +203,14 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
          vertexDragEvent(main.coordStore, selectVertex, e.getPoint(), main.designButtons.isGridOn());
       }
 
-      repaint();
+      // repaint(); - done by the coordStore change listener if anything changes
    }
 
    /** Invoked when the mouse cursor has been moved onto a component but no buttons have been pushed. */
    public void mouseMoved(MouseEvent e) {
+      Coords.Vertex before = hoverVertex;
       hoverVertex = main.coordStore.vertexAt(e.getPoint());
-      repaint();
+      if (before != hoverVertex) repaint();
    }
 
    /** Returns the preferred size of the viewport for a view component. For
@@ -288,8 +292,7 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
    public void keyPressed(KeyEvent kevt) {
       int c = kevt.getKeyCode();
 
-      if ((c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE)
-            && main.designButtons.isSelectTool() && (selectVertex != null || selectEdge != null)) {
+      if ((c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE) && main.designButtons.isSelectTool()) {
          main.coordStore.delete(selectVertex);
          main.coordStore.delete(selectEdge);
 
@@ -300,7 +303,7 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
 
          selectVertex = null;
          selectEdge = null;
-         repaint();
+         repaint(); // removes the blue selected vertex and edge colour
       }
    }
 
