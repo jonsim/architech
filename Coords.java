@@ -364,18 +364,23 @@ public class Coords {
     *  object's vertex */
    public void vertexMoveOrSplit(Edge e, boolean isV1, float x, float y, float z, boolean snapToGrid) {
       Vertex toMove = (isV1 ? e.getV1() : e.getV2());
-      Vertex newV;
 
       // tell vertex its no longer used by this edge. if v1 == v2 then we
       // certainly don't want to remove the only vertex thats in use!
       if (e.getV1() != e.getV2()) removeUse(toMove, e);
       
-      newV = addVertex(x, y, z, e, snapToGrid);
+      Vertex newV = addVertex(x, y, z, e, snapToGrid);
+      boolean fireChangeEventNecessary = !toMove.equals(newV);
 
-      if (isV1) e.setV1(newV);
-      else e.setV2(newV);
+      if (isV1) {
+         e.setV1(newV);
+      } else {
+         e.setV2(newV);
+      }
 
-      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
+      if (fireChangeEventNecessary) {
+         fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
+      }
    }
 
    /** Returns true if the given vertex is in the coordStore. */
