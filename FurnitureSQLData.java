@@ -1,10 +1,10 @@
 public class FurnitureSQLData {
-   public int furnitureID = -1;
+   public String furnitureID;
    public float width = 20;
    public float height = 10;
 
    /** Furniture is represented as a rectangle with width and height */
-   FurnitureSQLData(int furnitureID, float width, float height) {
+   FurnitureSQLData(String furnitureID, float width, float height) {
       this.furnitureID = furnitureID;
       this.width = width;
       this.height = height;

@@ -1,10 +1,4 @@
-
-import javax.swing.*;
-import java.awt.*;
 import java.awt.datatransfer.*;
-import java.io.*;
-import java.util.*;
-import java.util.List;
 
 /** TransferData */
 public class TransferData implements Transferable {
@@ -25,8 +19,6 @@ public class TransferData implements Transferable {
       return "Furniture Lookup Data";
    }
 
-
-
    /** Returns an array of DataFlavor objects indicating the flavors the data can be provided in. */
    public DataFlavor[] getTransferDataFlavors() {
       return flavors;
@@ -43,10 +35,4 @@ public class TransferData implements Transferable {
       if (flavor.equals(furniture)) return furnitureSQLData;
       else throw new UnsupportedFlavorException(flavor);
    }
-
-   // implements ClipboardOwner {
-   //public void lostOwnership(Clipboard clipboard, Transferable contents) {
-   //   System.out.println("TransferData lost ownership of:  Clipboard="
-   //      + clipboard.getName() + "  Contents=" + contents);
-   //}
 }
