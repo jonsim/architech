@@ -30,6 +30,10 @@ public class ObjectBrowser {
       initPane();
    }
 
+   public FurnitureSQLData getSelectedFurnitureOrNull() {
+      return null; // not done yet
+   }
+
    private void initPane() {
       pane = new JPanel(new GridBagLayout());
       pane.setBackground(Color.WHITE);

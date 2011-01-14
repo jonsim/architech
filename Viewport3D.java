@@ -8,7 +8,7 @@ import java.awt.event.ActionListener;
 /** Provides a canvas (with getCanvas()) containing the 3d window */
 public class Viewport3D implements ActionListener {
 
-   private ThreeD canvasApplication;
+   private ArchApp canvasApplication;
    private Main main;
 
    Viewport3D(Main main) {
@@ -20,7 +20,7 @@ public class Viewport3D implements ActionListener {
       settings.setWidth(640);
       settings.setHeight(480);
       // create new canvas application
-      canvasApplication = new ThreeD();
+      canvasApplication = new ArchApp();
       canvasApplication.setSettings(settings);
       canvasApplication.createCanvas(); // create canvas!
 
