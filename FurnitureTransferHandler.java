@@ -4,9 +4,9 @@ import java.awt.datatransfer.*;
 public class FurnitureTransferHandler extends TransferHandler {
    private ObjectBrowser objectBrowser;
 
-   FurnitureTransferHandler(ObjectBrowser objectbrowser) {
+   FurnitureTransferHandler(ObjectBrowser objectBrowser) {
       if (objectBrowser == null) throw new IllegalArgumentException("null argument");
-      this.objectBrowser = objectbrowser;
+      this.objectBrowser = objectBrowser;
    }
 
    @Override
