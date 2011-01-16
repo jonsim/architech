@@ -3,6 +3,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import java.io.*;
 
 /**
  *
@@ -10,12 +11,18 @@ import java.util.*;
 public class FrontEndMenu extends JMenuBar implements ActionListener {
 
    private Main main;
-   private JMenuItem save, saveAs, helpContents, undo, fullScreen, tweaker;
+   private JMenuItem open, save, saveAs, saveCopyAs, helpContents, undo, fullScreen, tweaker;
 
    private void addFileMenu() {
       JMenu menu = new JMenu("File");
       menu.setMnemonic(KeyEvent.VK_F);
       menu.getAccessibleContext().setAccessibleDescription("File option menu");
+
+      open = new JMenuItem("Open", KeyEvent.VK_O);
+      open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+      open.getAccessibleContext().setAccessibleDescription("Open a file");
+      menu.add(open);
+
 
       save = new JMenuItem("Save", KeyEvent.VK_S);
       save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
@@ -26,6 +33,11 @@ public class FrontEndMenu extends JMenuBar implements ActionListener {
       saveAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
       saveAs.getAccessibleContext().setAccessibleDescription("Save as a new file");
       menu.add(saveAs);
+
+      saveCopyAs = new JMenuItem("Save Copy As", KeyEvent.VK_C);
+      saveCopyAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
+      saveCopyAs.getAccessibleContext().setAccessibleDescription("Save a copy of this file");
+      menu.add(saveCopyAs);
 
       this.add(menu);
    }
@@ -94,8 +106,10 @@ public class FrontEndMenu extends JMenuBar implements ActionListener {
       this.main = main;
 
       addFileMenu();
+      open.addActionListener(this);
       save.addActionListener(this);
       saveAs.addActionListener(this);
+      saveCopyAs.addActionListener(this);
 
       addEditMenu();
       undo.addActionListener(this);
@@ -114,12 +128,14 @@ public class FrontEndMenu extends JMenuBar implements ActionListener {
    public void actionPerformed(ActionEvent e) {
       Object source = e.getSource();
 
-      if (source == save) {
-         System.out.println("Save...");
-
+      if (source == open) {
+         main.frontEnd.openNewCoords();
+      } else if (source == save) {
+         main.frontEnd.currentCoordsSave();
       } else if (source == saveAs) {
-         System.out.println("Save As...");
-
+         main.frontEnd.currentCoordsSaveAs();
+      } else if (source == saveCopyAs) {
+         main.frontEnd.currentCoordsSaveCopyAs();
       } else if (source == helpContents) {
          System.out.println("Help Contents...");
 

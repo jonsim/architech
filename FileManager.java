@@ -22,7 +22,8 @@ import java.io.*;
 public class FileManager {
 
    /** Writes the given arrays to file in the expected format */
-   public static void save(File saveAs, float[][] vertices, int[][] edges) throws IOException {
+   public static void save(File saveAs, float[][] vertices, int[][] edges)
+         throws IOException, IllegalArgumentException {
       if (saveAs == null) throw new IllegalArgumentException("SaveAs is null");
       FileWriter fileW = new FileWriter(saveAs);
       BufferedWriter bw = new BufferedWriter(fileW);
@@ -34,9 +35,9 @@ public class FileManager {
    }
 
    /** Returns a coords or throws an exception if there is a problem reading */
-   public static Coords load(File saveAs) throws IOException, Exception {
-      if (saveAs == null) throw new IllegalArgumentException("SaveAs is null");
-      FileReader fileR = new FileReader(saveAs);
+   public static Coords load(File file) throws IOException, Exception, IllegalArgumentException {
+      if (file == null) throw new IllegalArgumentException("SaveAs is null");
+      FileReader fileR = new FileReader(file);
       BufferedReader br = new BufferedReader(fileR);
 
       /* Get number of vertices */
@@ -62,7 +63,7 @@ public class FileManager {
       if (edges == null) throw new Exception("Unable to load all edges");
 
       /* Loading might not reach this stage */
-      return new Coords(vertices, edges);
+      return new Coords(file, vertices, edges);
    }
 
 

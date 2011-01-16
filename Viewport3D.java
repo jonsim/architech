@@ -11,6 +11,10 @@ public class Viewport3D implements ActionListener {
    private ArchApp canvasApplication;
    private Main main;
 
+   /** Used by Viewport3DEmpty to disable 3D */
+   Viewport3D() {
+   }
+
    Viewport3D(Main main) {
       this.main = main;
 

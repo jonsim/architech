@@ -136,6 +136,8 @@ public class Coords {
    }
 
    /*!-START OF COORDS--------------------------------------------------------*/
+   private File associatedSave = null;
+   private boolean saveRequired = false;
    
    private final LinkedList<Vertex> vertices = new LinkedList<Vertex>();
    private final LinkedList<Edge> edges = new LinkedList<Edge>();
@@ -146,8 +148,10 @@ public class Coords {
    Coords() {}
 
    /** Blindly makes vertices and edges, there might be orphaned/dup vertices */
-   Coords(float[][] vertices, int[][] edges) throws IllegalArgumentException {
-      if (vertices == null || edges == null) throw new IllegalArgumentException("Null argument");
+   Coords(File loadedFrom, float[][] vertices, int[][] edges) throws IllegalArgumentException {
+      if (loadedFrom == null || vertices == null || edges == null)
+         throw new IllegalArgumentException("Null argument");
+      this.associatedSave = loadedFrom;
 
       Vertex[] vertexA = new Vertex[vertices.length];
 
@@ -180,7 +184,7 @@ public class Coords {
          v2.setUse(e);
          this.edges.add(e);
 
-         fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_ADDED, e));
+         //no point throwing events as noone can register as a listener, we're still in constructor!
       }
    }
 
@@ -453,19 +457,67 @@ public class Coords {
       listenerList.remove(CoordsChangeListener.class, listener);
    }
    private void fireCoordsChangeEvent(CoordsChangeEvent event) {
+      saveRequired = true;
       CoordsChangeListener[] listeners = listenerList.getListeners(CoordsChangeListener.class);
       for (CoordsChangeListener listener : listeners) {
          listener.CoordsChangeOccurred(event);
       }
    }
 
-   /** Currently hardwired, should return whether or not the user needs to save */
+   /** Returns true if the coords were modified since it was created, or if save
+    *  failed or false if nothing has changed or a save was successful */
    public boolean saveRequired() {
-      return true;
+      return saveRequired;
    }
 
-   /** save the stuff to the given file */
-   public void save(File saveAs) throws IOException {
+   /** Returns the associated save file (which might be null) */
+   public File getAssociatedSaveFile() {
+      return associatedSave;
+   }
+
+   public String getAssociatedSaveFileAsString() {
+      if (associatedSave == null) return "";
+
+      try {
+         return associatedSave.getCanonicalPath();
+
+      } catch (IOException e) {
+         // If an I/O error occurs, which is possible because the construction of the canonical pathname may require filesystem queries
+         return "unable to access file location (IO error)";
+
+      } catch (SecurityException e) {
+         // If a required system property value cannot be accessed.
+         return "unable to access file location (Security Error)";
+      }
+   }
+
+   /** Saves with the currently associated save file. Throws an IOException in the
+    *  case that there is no associated save file yet, in this case you should be
+    *  using saveAs(). It also sets requiredSave=false if everything saved OK */
+   public void save() throws IOException {
+      if (associatedSave == null) {
+         throw new IOException("Save file has not been set, you should use saveAs in this case");
+      }
+      save(associatedSave, true, false);
+   }
+
+   /** Saves as the given file. Updates the associated save file if its different
+    *  and also sets requiredSave=false if everything saved OK */
+   public void saveAs(File saveAs) throws IOException {
+      save(saveAs, true, true);
+   }
+
+   /** Saves as the given file. Does not change the associated save file, it will
+    *  essentially make a copy in the background. Does not set requiredSave=false
+    *  so if the user made changes they will still be required to save them to this
+    *  Coords instance */
+   public void saveCopyAs(File saveAs) throws IOException {
+      save(saveAs, false, false);
+   }
+
+   /** save the stuff to the given file, if you save to a different file than the
+    *  associated one, this coords instance has a new associated file set */
+   private void save(File saveAs, boolean updateSaveRequired, boolean updateAssociatedSave) throws IOException {
       // make the list of vertices that will be saved
       Vertex[] vArray = vertices.toArray(new Vertex[0]);
       float[][] saveVerts = new float[vArray.length][3];
@@ -487,6 +539,9 @@ public class Coords {
       }
 
       FileManager.save(saveAs, saveVerts, saveEdges);
+      // if save() throws an IllegalArgumentException, saveRequired is not reset
+      if (updateSaveRequired) saveRequired = false;
+      if (updateAssociatedSave) associatedSave = saveAs;
    }
 
    /** Returns the index in vArray that v is at, or -1 if it is not found */

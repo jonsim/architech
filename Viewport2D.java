@@ -61,7 +61,7 @@ public class Viewport2D extends JPanel implements KeyListener, Scrollable,
       System.out.println("Coords Change Event: " + e);
       repaint();
    }
-
+   
    /** Returns the scrollable version of this class. */
    public JScrollPane getScrollPane() {
       return scrollPane;

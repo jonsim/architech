@@ -6,6 +6,8 @@ import java.io.File;
 /** Starts the program running and catches "few!" uncaught exceptions gracefully */
 public class Main {
 
+   public static final boolean disable3D = true;
+
    public FrontEnd frontEnd;
    public FrontEndMenu frontEndMenu;
    public ObjectBrowser objectBrowser;
@@ -21,14 +23,14 @@ public class Main {
       try {
          coordStore = FileManager.load(new File("testSave.atech"));
       } catch (Exception e) {
-         Main.showFatalExceptionTraceWindow(e);
+         coordStore = new Coords();
       }
 
       designButtons = new DesignButtons(this);
       objectButtons = new ObjectButtons(this);
 
       viewport2D = new Viewport2D(this);
-      viewport3D = new Viewport3D(this);
+      viewport3D = disable3D ? new Viewport3DEmpty(this) : new Viewport3D(this);
       designButtons.update3D.addActionListener(viewport3D); // temporary until 3d updates automatically
 
       objectBrowser = new ObjectBrowser(this);

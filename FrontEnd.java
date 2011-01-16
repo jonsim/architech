@@ -117,40 +117,104 @@ public class FrontEnd implements WindowListener {
       pane.add(main.objectBrowser.getPane(), c);
    }
 
+   public File userChoiceOfOpenFile() {
+      JFileChooser fc = new JFileChooser();
+      fc.setDialogType(JFileChooser.OPEN_DIALOG);
+      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+      if (fc.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
+         File file = fc.getSelectedFile();
+         if (!file.exists()) {
+            JOptionPane.showMessageDialog(window, "The Selected File Doesn't Ex"
+               + "ist.\n\nPlease Try Again", "Doesn't Exist", JOptionPane.INFORMATION_MESSAGE);
+            return userChoiceOfOpenFile();
+         } else return file;
+
+      } else {
+         return null;
+      }
+   }
+
+   public void openNewCoords() {
+      File toOpen = userChoiceOfOpenFile();
+      try {
+         if (toOpen != null) main.coordStore = FileManager.load(toOpen);
+         main.viewport2D.repaint();
+      } catch (Exception e) {
+         // FAILED TO LOAD, NOTIFY USER
+      }
+   }
+
+   public void currentCoordsSave() {
+
+   }
+
+   public void currentCoordsSaveAs() {
+      
+   }
+
+   public void currentCoordsSaveCopyAs() {
+      File saveFile = userChoiceOfSaveFile();
+      if (saveFile != null) {
+         try {
+            main.coordStore.saveCopyAs(saveFile);
+         } catch (IOException io) {
+            // SAVE FAILED - NOTIFY USER
+         }
+      }
+   }
+
    /** If a save is needed, asks the user to confirm. returns true if the program
     *  should exit */
    private boolean quit() {
       if (!main.coordStore.saveRequired()) return true;
-      
-      File saveFile = new File("testSave.atech");
-      String fileLoc = "Unknown file path";
-      try {
-         fileLoc = saveFile.getCanonicalPath();
-      } catch (IOException e) {
-         // If an I/O error occurs, which is possible because the construction of the canonical pathname may require filesystem queries
-      } catch (SecurityException e) {
-         // If a required system property value cannot be accessed.
-      }
+
+      File saveFile = main.coordStore.getAssociatedSaveFile();
 
       int choice = JOptionPane.showConfirmDialog(window,
-         "Save file \"" + fileLoc + "\" \u003F", "Save",
-         JOptionPane.YES_NO_CANCEL_OPTION);
+         "Save file \"" + main.coordStore.getAssociatedSaveFileAsString()
+         + "\" \u003F", "Save", JOptionPane.YES_NO_CANCEL_OPTION);
 
       if (choice == JOptionPane.YES_OPTION) {
-         try {
-            main.coordStore.save(saveFile);
-         } catch (IOException e) {
-            Main.showFatalExceptionTraceWindow(new Exception("Failed to save"));
+         if (saveFile == null) { // user hasn't saved this coords yet
+            if ((saveFile = userChoiceOfSaveFile()) == null) return false; // user doesn't want to exit
+            try {
+               main.coordStore.saveAs(saveFile);
+            } catch (IOException e) {
+               return false; // UNABLE TO SAVE, ASK THE USER TO TRY AGAIN
+            }
+            return true;
+
+         } else {
+            try {
+               main.coordStore.save();
+            } catch (IOException e) {
+               return false; // UNABLE TO SAVE, ASK THE USER TO TRY AGAIN
+            }
+            return true;
          }
 
-         return true;
+      } else if (choice == JOptionPane.NO_OPTION) return true; // don't save
+      
+      else return false; // user doesn't actually want to exit
+   }
 
-      } else if (choice == JOptionPane.NO_OPTION) {
-         return true; // don't save
+   public File userChoiceOfSaveFile() {
+      JFileChooser fc = new JFileChooser();
+      fc.setDialogType(JFileChooser.SAVE_DIALOG);
+      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      
+      if (fc.showSaveDialog(window) == JFileChooser.APPROVE_OPTION) {
+         File file = fc.getSelectedFile();
+         if (file.exists()) {
+            int choice = JOptionPane.showConfirmDialog(window,
+            "File Already Exists, Overwrite\u003F", "Overwrite\u003F", JOptionPane.YES_NO_OPTION);
+            if (choice == JOptionPane.NO_OPTION) return userChoiceOfSaveFile();
+         }
+         return file;
 
       } else {
-         return false; // user doesn't actually want to exit
-
+         return null;
       }
    }
 
