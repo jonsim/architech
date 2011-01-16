@@ -67,10 +67,8 @@ public class ObjectButtons implements ActionListener {
       Object source = e.getSource();
 
       if (addObject == source) {
-         main.objectBrowser.selectCategory();
 
       } else if (removeObject == source) {
-         main.objectBrowser.toCategories();
          
       } else {
          Main.showFatalExceptionTraceWindow(

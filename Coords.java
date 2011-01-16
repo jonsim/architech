@@ -184,10 +184,25 @@ public class Coords {
       }
    }
 
+   /** Adds the furniture item if it doesn't already exist */
    public void addFurniture(Furniture f) {
+      if (f == null || furniture.contains(f)) return;
       furniture.add(f);
-
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_ADDED, f));
+   }
+
+   /** Moves the furniture item to the new location */
+   public void moveFurniture(Furniture f, Point newCenter) {
+      if (f == null || !furniture.contains(f)) return;
+      f.set(newCenter);
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_CHANGED, f));
+   }
+
+   /** Removes the furniture item */
+   public void delete(Furniture f) {
+      if (f == null || !furniture.contains(f)) return;
+      furniture.remove(f);
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_REMOVED, f));
    }
 
    /** Returns a new edge object, already added to the coordStore */
@@ -198,7 +213,6 @@ public class Coords {
       e.setV2(addVertex(v2.getX(), v2.getY(), v2.getZ(), e, snapToGrid));
 
       edges.add(e);
-
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_ADDED, e));
 
       return e;

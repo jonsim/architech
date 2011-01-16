@@ -1,12 +1,13 @@
-import java.awt.*;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
+import java.io.IOException;
 
 /**  */
 public class Viewport2DDropListener implements DropTargetListener {
 
    public static final int acceptableActions = DnDConstants.ACTION_COPY;
    private Main main;
+   private Furniture inProgress;
 
    Viewport2DDropListener(Main main) {
       this.main = main;
@@ -23,7 +24,14 @@ public class Viewport2DDropListener implements DropTargetListener {
       if (e.isLocalTransfer() && e.isDataFlavorSupported(TransferData.furniture)) {
          return TransferData.furniture;
       } else return null;
+      // return DataFlavor.stringFlavor if supported, etc...
+   }
 
+   /** Called by drop Checks the flavors */
+   private DataFlavor chooseDropFlavor(DropTargetDragEvent e) {
+      if (/*e.isLocalTransfer() &&*/ e.isDataFlavorSupported(TransferData.furniture)) {
+         return TransferData.furniture;
+      } else return null;
       // return DataFlavor.stringFlavor if supported, etc...
    }
 
@@ -33,6 +41,18 @@ public class Viewport2DDropListener implements DropTargetListener {
 
       //BUG: THIS MIGHT NOT BE FUCKING RIGHT
       if ((e.getDropAction() & acceptableActions) == 0) return false;
+      if ((e.getSourceActions() & acceptableActions) == 0) return false;
+
+      return true;
+   }
+
+   /** Checks if the final drop action should be allowed */
+   private boolean isDropOk(DropTargetDropEvent e) {
+      // if (no action match found)
+      if ((e.getDropAction() & acceptableActions) == 0) return false;
+      if ((e.getSourceActions() & acceptableActions) == 0) return false;
+
+      if (chooseDropFlavor(e) == null) return false;
 
       return true;
    }
@@ -40,15 +60,29 @@ public class Viewport2DDropListener implements DropTargetListener {
 
 
 
+
    /** Called while a drag operation is ongoing, when the mouse pointer enters the
     *  operable part of the drop site for the DropTarget registered with this listener. */
    public void dragEnter(DropTargetDragEvent e) {
-      if (!isDragOk(e)) {
+      DataFlavor chosen;
+
+      if (!isDragOk(e) || (chosen = chooseDropFlavor(e)) == null) {
          e.rejectDrag();
-         // main.viewport2D.repaint() - clear lingering gfx
       } else {
-         e.acceptDrag(e.getDropAction());
-         // main.viewport2D.repaint() - display visual feedback/furniture
+         try {
+            Object data = e.getTransferable().getTransferData(chosen);
+            if (data instanceof FurnitureSQLData) {
+               inProgress = new Furniture((FurnitureSQLData) data, e.getLocation());
+               main.coordStore.addFurniture(inProgress);
+               e.acceptDrag(e.getDropAction());
+            }
+         } catch (UnsupportedFlavorException ufe) {
+            /* if the requested data flavor is not supported. */
+         } catch (IOException ioe) {
+            /* if the data is no longer available in the requested flavor. */
+         }
+
+         e.rejectDrag();
       }
    }
 
@@ -56,79 +90,41 @@ public class Viewport2DDropListener implements DropTargetListener {
     *  the operable part of the drop site for the DropTarget registered with this listener. */
    public void dragExit(DropTargetEvent e) {
       // user is no longer dragging over the window, get rid of any redrawn things
-      main.viewport2D.repaint();
+      main.coordStore.delete(inProgress);
+      inProgress = null;
    }
 
    /** Called when a drag operation is ongoing, while the mouse pointer is still over
     * the operable part of the drop site for the DropTarget registered with this listener. */
    public void dragOver(DropTargetDragEvent e) {
-      if (!isDragOk(e)) {
-         e.rejectDrag();
-         // main.viewport2D.repaint() - clear lingering gfx
-      } else {
-         e.acceptDrag(e.getDropAction());
-         // main.viewport2D.repaint() - display visual feedback/furniture
-      }
+      // assumes that dropActionChanged(DropTargetDragEvent e) is called if something
+      // changed about the drag, so it must still be ok since dragEnter()...
+      main.coordStore.moveFurniture(inProgress, e.getLocation());
+      e.acceptDrag(e.getDropAction());
    }
 
    /** Called when the drag operation has terminated with a drop on the operable
     *  part of the drop site for the DropTarget registered with this listener. */
    public void drop(DropTargetDropEvent e) {
-
-      if ((e.getSourceActions() & acceptableActions) == 0) {
-         e.rejectDrop(); // (no action match found)
-         // main.viewport2D.repaint() - clear lingering gfx
-         return;
-      }
-
-      DataFlavor chosen = chooseDropFlavor(e);
-      
-      if (chosen == null) {
+      if (!isDropOk(e)) {
          e.rejectDrop();
-         // main.viewport2D.repaint() - clear lingering gfx
-         return;
+         main.coordStore.delete(inProgress);
+      } else {
+         // if you give ACTION_COPY_OR_MOVE, then source will receive MOVE!
+         e.acceptDrop(acceptableActions);
       }
 
-      // if you give ACTION_COPY_OR_MOVE, then source will receive MOVE!
-      e.acceptDrop(acceptableActions);
-
-      Object data;
-      try {
-         data = e.getTransferable().getTransferData(chosen);
-
-      } catch (Exception err) {
-         System.err.println("Exception whilst dropping drag-n-drop object");
-         err.printStackTrace(System.err);
-         
-         e.dropComplete(false);
-         // main.viewport2D.repaint() - clear lingering gfx
-         return;
-      }
-
-      if (!(data instanceof FurnitureSQLData)) {
-         e.dropComplete(false);
-         // main.viewport2D.repaint() - clear lingering gfx
-         return;
-      }
-
-      FurnitureSQLData dropped = (FurnitureSQLData) data;
-      Point droppedAt = e.getLocation();
-
-      main.coordStore.addFurniture(new Furniture(dropped, droppedAt));
-      main.viewport2D.repaint();
-
+      main.coordStore.moveFurniture(inProgress, e.getLocation());
       e.dropComplete(true);
-      // main.viewport2D.repaint() - clear lingering gfx
    }
 
    /** Called if the user has modified the current drop gesture. */
    public void dropActionChanged(DropTargetDragEvent e) {
       if (!isDragOk(e)) {
+         main.coordStore.delete(inProgress);
          e.rejectDrag();
-         // main.viewport2D.repaint() - clear lingering gfx
       } else {
          e.acceptDrag(e.getDropAction());
-         // main.viewport2D.repaint() - display visual feedback/furniture
       }
    }
 }
