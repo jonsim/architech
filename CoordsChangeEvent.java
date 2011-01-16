@@ -92,7 +92,3 @@ public class CoordsChangeEvent extends EventObject {
       return isFurnitureRelated(changeType);
    }
 }
-
-interface CoordsChangeListener extends EventListener {
-   public void CoordsChangeOccurred(CoordsChangeEvent e);
-}
