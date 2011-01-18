@@ -9,43 +9,28 @@ public class Main {
    public static final boolean disable3D = true;
 
    public FrontEnd frontEnd;
-   public FrontEndMenu frontEndMenu;
    public ObjectBrowser objectBrowser;
    public ObjectButtons objectButtons;
    public DesignButtons designButtons;
-   public Viewport2D viewport2D;
    public Viewport3D viewport3D;
-   public Coords coordStore;
 
    /** Does the business making other classes and remembering their pointers. Be
     *  careful editing the order things are created here, to avoid race conditions */
    Main() {
-      try {
-         coordStore = FileManager.load(new File("testSave.atech"));
-      } catch (Exception e) {
-         coordStore = new Coords();
-      }
-
       designButtons = new DesignButtons(this);
-      objectButtons = new ObjectButtons(this);
-
-      viewport2D = new Viewport2D(this);
+      
       viewport3D = disable3D ? new Viewport3DEmpty(this) : new Viewport3D(this);
       designButtons.update3D.addActionListener(viewport3D); // temporary until 3d updates automatically
 
+      objectButtons = new ObjectButtons(this);
       objectBrowser = new ObjectBrowser(this);
 
-      frontEndMenu = new FrontEndMenu(this);
       frontEnd = new FrontEnd(this);
    }
 
    /** Starts everything in the program running */
    private void run() {
       frontEnd.display();
-
-      viewport2D.activateListeners();
-      viewport2D.getScrollPane().setPreferredSize(new Dimension(2000,1000));
-      viewport2D.repaint();
    }
 
    /** Sets the default look and feel. (must be done before anything else)

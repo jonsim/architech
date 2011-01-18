@@ -15,14 +15,18 @@ public class FrontEnd implements WindowListener {
 
    private final JFrame window = new JFrame(WINDOW_TITLE);
    private final JSplitPane TwoDandThreeD = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
+   private final JTabbedPane tabbedPane = new JTabbedPane();
+   private FrontEndMenu frontEndMenu;
    private Main main;
 
    /** holds the displayable window and shows or hides sub windows
     * displays dialogs on request by other classes (i.e. crash dialog) */
    FrontEnd(Main main) {
       this.main = main;
+      
+      frontEndMenu = new FrontEndMenu(this);
 
-      TwoDandThreeD.setTopComponent(main.viewport2D.getScrollPane());
+      TwoDandThreeD.setTopComponent(tabbedPane);
       TwoDandThreeD.setBottomComponent(main.viewport3D.getCanvas());
       TwoDandThreeD.setOneTouchExpandable(true);
       TwoDandThreeD.setDividerSize(11);
@@ -30,10 +34,31 @@ public class FrontEnd implements WindowListener {
       TwoDandThreeD.setResizeWeight(0.45);
 
       windowInit();
+
+      TwoDScrollPane newTab = new TwoDScrollPane(main.designButtons);
+      tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
+      newTab = new TwoDScrollPane(main.designButtons);
+      tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
+      newTab = new TwoDScrollPane(main.designButtons);
+      tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
+   }
+
+   /** calls requestFocusToCurrentTwoDScrollPane on the open tab if there is one */
+   public void requestFocusToCurrentTwoDScrollPane() {
+      TwoDScrollPane selected = getCurrentTab();
+      if (selected != null) selected.requestFocusToCurrentTwoDScrollPane();
+   }
+
+   /** Gets the current tab or null if there are no tabs */
+   public TwoDScrollPane getCurrentTab() {
+      Component selected = tabbedPane.getSelectedComponent();
+      if (selected != null && selected instanceof TwoDScrollPane) {
+         return (TwoDScrollPane) selected;
+      } else return null;
    }
 
    private void windowInit() {
-      window.setJMenuBar(main.frontEndMenu);
+      window.setJMenuBar(frontEndMenu);
 
       window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
       window.addWindowListener(this);
@@ -98,7 +123,7 @@ public class FrontEnd implements WindowListener {
       pane.setLayout(new GridBagLayout());
       GridBagConstraints c;
 
-      main.viewport2D.getScrollPane().setPreferredSize(new Dimension(400,180));
+      tabbedPane.setPreferredSize(new Dimension(400,180));
       main.viewport3D.getCanvas().setPreferredSize(new Dimension(400,180));
       main.objectBrowser.getPane().setPreferredSize(new Dimension(160,180));
 
@@ -135,14 +160,18 @@ public class FrontEnd implements WindowListener {
       }
    }
 
-   public void openNewCoords() {
-      File toOpen = userChoiceOfOpenFile();
+   public void newCoords() {
+
+   }
+
+   public void openCoords() {
+      /*File toOpen = userChoiceOfOpenFile();
       try {
          if (toOpen != null) main.coordStore = FileManager.load(toOpen);
          main.viewport2D.repaint();
       } catch (Exception e) {
          // FAILED TO LOAD, NOTIFY USER
-      }
+      }*/
    }
 
    public void currentCoordsSave() {
@@ -150,36 +179,37 @@ public class FrontEnd implements WindowListener {
    }
 
    public void currentCoordsSaveAs() {
-      
+
    }
 
    public void currentCoordsSaveCopyAs() {
       File saveFile = userChoiceOfSaveFile();
       if (saveFile != null) {
          try {
-            main.coordStore.saveCopyAs(saveFile);
+            TwoDScrollPane selected = getCurrentTab();
+            if (selected != null) selected.getCoords().saveCopyAs(saveFile);
+         
          } catch (IOException io) {
             // SAVE FAILED - NOTIFY USER
          }
       }
    }
+   
+   /** Returns true if the tab should be closed */
+   private boolean quitTab(TwoDScrollPane tab) {
+      if (!tab.getCoords().saveRequired()) return true;
 
-   /** If a save is needed, asks the user to confirm. returns true if the program
-    *  should exit */
-   private boolean quit() {
-      if (!main.coordStore.saveRequired()) return true;
-
-      File saveFile = main.coordStore.getAssociatedSaveFile();
+      File saveFile = tab.getCoords().getAssociatedSaveFile();
 
       int choice = JOptionPane.showConfirmDialog(window,
-         "Save file \"" + main.coordStore.getAssociatedSaveFileAsString()
+         "Save file \"" + (saveFile == null ? tab.getCoords().getAssociatedSaveName() : tab.getCoords().getAssociatedSaveFileAsString())
          + "\" \u003F", "Save", JOptionPane.YES_NO_CANCEL_OPTION);
 
       if (choice == JOptionPane.YES_OPTION) {
          if (saveFile == null) { // user hasn't saved this coords yet
             if ((saveFile = userChoiceOfSaveFile()) == null) return false; // user doesn't want to exit
             try {
-               main.coordStore.saveAs(saveFile);
+               tab.getCoords().saveAs(saveFile);
             } catch (IOException e) {
                return false; // UNABLE TO SAVE, ASK THE USER TO TRY AGAIN
             }
@@ -187,7 +217,7 @@ public class FrontEnd implements WindowListener {
 
          } else {
             try {
-               main.coordStore.save();
+               tab.getCoords().save();
             } catch (IOException e) {
                return false; // UNABLE TO SAVE, ASK THE USER TO TRY AGAIN
             }
@@ -195,8 +225,20 @@ public class FrontEnd implements WindowListener {
          }
 
       } else if (choice == JOptionPane.NO_OPTION) return true; // don't save
-      
-      else return false; // user doesn't actually want to exit
+
+      else return false; // user doesn't actually want to exit (pressed cancel)
+   }
+
+   /** If a save is needed, asks the user to confirm. returns true if the program
+    *  should exit */
+   private boolean quit() {
+      while (tabbedPane.getTabCount() > 0) {
+         TwoDScrollPane tab = getCurrentTab();
+         if (quitTab(tab)) tabbedPane.remove(tab);
+         else return false; // the user cancelled the quit operation on a tab
+      }
+
+      return true;
    }
 
    public File userChoiceOfSaveFile() {
@@ -245,4 +287,161 @@ public class FrontEnd implements WindowListener {
    public void windowClosed(WindowEvent e) {}
    /** Invoked the first time a window is made visible. */
    public void windowOpened(WindowEvent e) {}
+}
+
+
+
+/** Creates the menu that appears at the top of the main window */
+class FrontEndMenu extends JMenuBar implements ActionListener {
+
+   private FrontEnd frontEnd;
+   private JMenuItem create, open, save, saveAs, saveCopyAs, helpContents, undo, fullScreen, tweaker;
+
+   FrontEndMenu(FrontEnd frontEnd) {
+      this.frontEnd = frontEnd;
+
+      addFileMenu();
+      create.addActionListener(this);
+      open.addActionListener(this);
+      save.addActionListener(this);
+      saveAs.addActionListener(this);
+      saveCopyAs.addActionListener(this);
+
+      addEditMenu();
+      undo.addActionListener(this);
+
+      addViewMenu();
+      fullScreen.addActionListener(this);
+
+      addCustomisationMenu();
+      tweaker.addActionListener(this);
+
+      addHelpMenu();
+      helpContents.addActionListener(this);
+   }
+
+   private void addFileMenu() {
+      JMenu menu = new JMenu("File");
+      menu.setMnemonic(KeyEvent.VK_F);
+      menu.getAccessibleContext().setAccessibleDescription("File option menu");
+
+      create = new JMenuItem("New", KeyEvent.VK_N);
+      create.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
+      create.getAccessibleContext().setAccessibleDescription("Create a blank file");
+      menu.add(create);
+
+      open = new JMenuItem("Open", KeyEvent.VK_O);
+      open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+      open.getAccessibleContext().setAccessibleDescription("Open a file");
+      menu.add(open);
+
+      save = new JMenuItem("Save", KeyEvent.VK_S);
+      save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+      save.getAccessibleContext().setAccessibleDescription("Save any changes");
+      menu.add(save);
+
+      saveAs = new JMenuItem("Save As", KeyEvent.VK_E);
+      saveAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
+      saveAs.getAccessibleContext().setAccessibleDescription("Save as a new file");
+      menu.add(saveAs);
+
+      saveCopyAs = new JMenuItem("Save Copy As", KeyEvent.VK_C);
+      saveCopyAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
+      saveCopyAs.getAccessibleContext().setAccessibleDescription("Save a copy of this file");
+      menu.add(saveCopyAs);
+
+      this.add(menu);
+   }
+
+   private void addEditMenu() {
+      JMenu menu;
+
+      menu = new JMenu("Edit");
+      menu.setMnemonic(KeyEvent.VK_E);
+      menu.getAccessibleContext().setAccessibleDescription("Edit option menu");
+
+      undo = new JMenuItem("Undo", KeyEvent.VK_Z);
+      undo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK));
+      undo.getAccessibleContext().setAccessibleDescription("Undo the last action");
+      menu.add(undo);
+
+      this.add(menu);
+   }
+
+   private void addViewMenu() {
+      JMenu menu;
+
+      menu = new JMenu("View");
+      menu.setMnemonic(KeyEvent.VK_V);
+      menu.getAccessibleContext().setAccessibleDescription("View option menu");
+
+      fullScreen = new JMenuItem("Full Screen", KeyEvent.VK_F11);
+      fullScreen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0));
+      fullScreen.getAccessibleContext().setAccessibleDescription("Display window in full screen");
+      menu.add(fullScreen);
+
+      this.add(menu);
+   }
+
+   private void addCustomisationMenu() {
+      JMenu menu;
+
+      menu = new JMenu("Customisation");
+      menu.setMnemonic(KeyEvent.VK_C);
+      menu.getAccessibleContext().setAccessibleDescription("Customisation option menu");
+
+      tweaker = new JMenuItem("Model Tweaker", KeyEvent.VK_T);
+      tweaker.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
+      tweaker.getAccessibleContext().setAccessibleDescription("Show the model tweaker");
+      menu.add(tweaker);
+
+      this.add(menu);
+   }
+
+   private void addHelpMenu() {
+      JMenu menu;
+
+      menu = new JMenu("Help");
+      menu.setMnemonic(KeyEvent.VK_H);
+      menu.getAccessibleContext().setAccessibleDescription("Help option menu");
+
+      helpContents = new JMenuItem("Help Contents", KeyEvent.VK_H);
+      helpContents.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, ActionEvent.CTRL_MASK));
+      helpContents.getAccessibleContext().setAccessibleDescription("Show Help Contents");
+      menu.add(helpContents);
+
+      this.add(menu);
+   }
+
+   /** Invoked when an action occurs. */
+   public void actionPerformed(ActionEvent e) {
+      Object source = e.getSource();
+
+      if (source == create) {
+         frontEnd.newCoords();
+      } else if (source == open) {
+         frontEnd.openCoords();
+      } else if (source == save) {
+         frontEnd.currentCoordsSave();
+      } else if (source == saveAs) {
+         frontEnd.currentCoordsSaveAs();
+      } else if (source == saveCopyAs) {
+         frontEnd.currentCoordsSaveCopyAs();
+      } else if (source == helpContents) {
+         System.out.println("Help Contents...");
+
+      } else if (source == undo) {
+         System.out.println("Undo...");
+
+      } else if (source == fullScreen) {
+         System.out.println("Full Screen...");
+
+      } else if (source == tweaker) {
+         System.out.println("Model Tweaker...");
+
+      } else {
+         Main.showFatalExceptionTraceWindow(
+                 new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
+      }
+   }
 }

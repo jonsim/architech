@@ -136,6 +136,7 @@ public class Coords {
    }
 
    /*!-START OF COORDS--------------------------------------------------------*/
+   private String associatedSaveName = null;
    private File associatedSave = null;
    private boolean saveRequired = false;
    
@@ -145,13 +146,16 @@ public class Coords {
    private int gridWidth = 60; // makes grid lines at 0,60,120,...
 
    /** Creates a blank coordinate system */
-   Coords() {}
+   Coords(String associatedSaveName) {
+      this.associatedSaveName = associatedSaveName;
+   }
 
    /** Blindly makes vertices and edges, there might be orphaned/dup vertices */
    Coords(File loadedFrom, float[][] vertices, int[][] edges) throws IllegalArgumentException {
       if (loadedFrom == null || vertices == null || edges == null)
          throw new IllegalArgumentException("Null argument");
       this.associatedSave = loadedFrom;
+      this.associatedSaveName = loadedFrom.getName();
 
       Vertex[] vertexA = new Vertex[vertices.length];
 
@@ -186,6 +190,10 @@ public class Coords {
 
          //no point throwing events as noone can register as a listener, we're still in constructor!
       }
+   }
+
+   public String getAssociatedSaveName() {
+      return associatedSaveName;
    }
 
    /** Adds the furniture item if it doesn't already exist */
@@ -476,7 +484,7 @@ public class Coords {
    }
 
    public String getAssociatedSaveFileAsString() {
-      if (associatedSave == null) return "";
+      if (associatedSave == null) return associatedSaveName;
 
       try {
          return associatedSave.getCanonicalPath();
@@ -541,7 +549,10 @@ public class Coords {
       FileManager.save(saveAs, saveVerts, saveEdges);
       // if save() throws an IllegalArgumentException, saveRequired is not reset
       if (updateSaveRequired) saveRequired = false;
-      if (updateAssociatedSave) associatedSave = saveAs;
+      if (updateAssociatedSave) {
+         associatedSaveName = saveAs.getName();
+         associatedSave = saveAs;
+      }
    }
 
    /** Returns the index in vArray that v is at, or -1 if it is not found */

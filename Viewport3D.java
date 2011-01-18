@@ -59,9 +59,13 @@ public class Viewport3D implements ActionListener {
    public void actionPerformed(ActionEvent e) {
       // TODO Auto-generated method stub
       if (e.getActionCommand().equals("update")) {
-         canvasApplication.clearall();
-         canvasApplication.updateroot();
-         canvasApplication.addedges(main.coordStore.getEdges());
+         TwoDScrollPane currentTab = main.frontEnd.getCurrentTab();
+         if (currentTab != null) {
+            canvasApplication.clearall();
+            canvasApplication.updateroot();
+            canvasApplication.addedges(currentTab.getCoords().getEdges());
+         }
+         
       }
    }
 }

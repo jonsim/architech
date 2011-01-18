@@ -159,7 +159,6 @@ public class DesignButtons implements ActionListener {
                  new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
       }
 
-      main.viewport2D.requestFocus();
-      main.viewport2D.repaint();
+      main.frontEnd.requestFocusToCurrentTwoDScrollPane();
    }
 }
