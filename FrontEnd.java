@@ -34,8 +34,7 @@ public class FrontEnd implements WindowListener {
       main.viewport3D.getCanvas().setMinimumSize(new Dimension(0,0));
 
       try {
-         TwoDScrollPane newTab = new TwoDScrollPane(new File("testSave.atech"), null, designButtons);
-         tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
+         addTab(new File("testSave.atech"), null);
       } catch (Exception e) {
          // FAILED TO LOAD, NOTIFY USER
       }
@@ -49,6 +48,19 @@ public class FrontEnd implements WindowListener {
       TwoDandThreeD.setDividerSize(11);
       TwoDandThreeD.setBorder(null);
       TwoDandThreeD.setResizeWeight(0.45);
+   }
+
+   private void addTab(File file, String title) throws Exception {
+      TwoDScrollPane newTab = new TwoDScrollPane(file, title, designButtons);
+      tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
+      tabbedPane.setSelectedComponent(newTab);
+      main.viewport3D.tabChanged(newTab.getCoords());
+   }
+
+   private void removeTab(TwoDScrollPane tab) {
+      tabbedPane.remove(tab);
+      TwoDScrollPane currTab = getCurrentTab();
+      main.viewport3D.tabChanged(currTab == null ? null : currTab.getCoords());
    }
 
    /** calls requestFocusToCurrentTwoDScrollPane on the open tab if there is one */
@@ -192,9 +204,7 @@ public class FrontEnd implements WindowListener {
    /** Creates a blank panel and adds a tab with the new file */
    public void newCoords() {
       try {
-         TwoDScrollPane newTab = new TwoDScrollPane(null, "New File", designButtons);
-         tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
-         tabbedPane.setSelectedComponent(newTab);
+         addTab(null, "New File");
       } catch (Exception e) {
          // NEVER HAPPEN CASE
       }
@@ -206,9 +216,7 @@ public class FrontEnd implements WindowListener {
       if (toOpen == null) return;
 
       try {
-         TwoDScrollPane newTab = new TwoDScrollPane(toOpen, null, designButtons);
-         tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
-         tabbedPane.setSelectedComponent(newTab);
+         addTab(toOpen, null);
       } catch (Exception e) {
          // FAILED TO LOAD, NOTIFY USER
       }
@@ -297,7 +305,9 @@ public class FrontEnd implements WindowListener {
    private boolean quit() {
       while (tabbedPane.getTabCount() > 0) {
          TwoDScrollPane tab = getCurrentTab();
-         if (quitTab(tab)) tabbedPane.remove(tab);
+         if (quitTab(tab)) {
+            removeTab(tab);
+         }
          else return false; // the user cancelled the quit operation on a tab
       }
 

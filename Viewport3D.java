@@ -53,6 +53,10 @@ public class Viewport3D implements ActionListener {
       return ctx.getCanvas();
    }
 
+   public void tabChanged(Coords coords) {
+      
+   }
+
    /** Called by the update button, which is in DesignButtons.java */
    @Override
    public void actionPerformed(ActionEvent e) {

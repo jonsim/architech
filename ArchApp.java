@@ -28,6 +28,8 @@ import com.jme3.util.SkyFactory;
  */
 public class ArchApp extends Application {
 
+    public Object syncLockObject = new Object();
+
     private Node rootNode = new Node("Root Node");
     private Node guiNode = new Node("Gui Node");
 
