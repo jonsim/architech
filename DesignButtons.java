@@ -2,20 +2,22 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
 
-/** Holds the buttons for tools and features related to the 2D pane
- */
+/** Holds the buttons for tools and features related to the 2D pane */
 public class DesignButtons implements ActionListener {
-
-   private Main main;
+   private FrontEnd frontEnd;
    private JPanel pane;
-   private JButton selectTool, lineTool, curveTool;
-   private JButton currentTool;
+   private JButton selectTool, lineTool, curveTool, currentTool;
    private Cursor selectCursor, lineCursor, curveCursor;
    private JToggleButton gridTool, snapTool;
 
-   public JButton update3D; // temporary until we can get 3d automatically updating
+   /** Initialises the private variables as usual */
+   DesignButtons(FrontEnd frontEnd) {
+      this.frontEnd = frontEnd;
+      initCursors();
+      initButtons();
+      initPane();
+   }
 
    /** Returns true if the line tool is selected */
    public boolean isLineTool() {
@@ -32,14 +34,6 @@ public class DesignButtons implements ActionListener {
       return selectTool == currentTool;
    }
 
-   /** Initialises the private variables as usual */
-   DesignButtons(Main main) {
-      this.main = main;
-      initCursors();
-      initButtons();
-      initPane();
-   }
-
    /** Initialises the private cursor variables */
    private void initCursors() {
       selectCursor = new Cursor(Cursor.DEFAULT_CURSOR);
@@ -49,10 +43,6 @@ public class DesignButtons implements ActionListener {
 
    /** Initialises the private button variables */
    private void initButtons() {
-
-      update3D = new JButton("Update 3D");
-      update3D.setActionCommand("update");
-
       selectTool = new JButton("Sel");
       lineTool = new JButton("Lne");
       curveTool = new JButton("Crv");
@@ -95,21 +85,18 @@ public class DesignButtons implements ActionListener {
       GridBagConstraints c;
 
       c = FrontEnd.buildGBC(0, 0, 0.5, 0.5, centerAnchor, right);
-      pane.add(update3D, c);
-
-      c = FrontEnd.buildGBC(1, 0, 0.5, 0.5, centerAnchor, right);
       pane.add(selectTool, c);
 
-      c = FrontEnd.buildGBC(2, 0, 0.5, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(1, 0, 0.5, 0.5, centerAnchor, right);
       pane.add(lineTool, c);
 
-      c = FrontEnd.buildGBC(3, 0, 0.5, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(2, 0, 0.5, 0.5, centerAnchor, right);
       pane.add(curveTool, c);
 
-      c = FrontEnd.buildGBC(4, 0, 0.5, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(3, 0, 0.5, 0.5, centerAnchor, right);
       pane.add(gridTool, c);
 
-      c = FrontEnd.buildGBC(5, 0, 0.5, 0.5, centerAnchor, none);
+      c = FrontEnd.buildGBC(4, 0, 0.5, 0.5, centerAnchor, none);
       pane.add(snapTool, c);
 
    }
@@ -125,7 +112,6 @@ public class DesignButtons implements ActionListener {
       selectTool.setEnabled(true);
       lineTool.setEnabled(true);
       curveTool.setEnabled(true);
-
       currentTool.setEnabled(false);
    }
 
@@ -134,17 +120,17 @@ public class DesignButtons implements ActionListener {
       Object source = e.getSource();
 
       if (selectTool == source) {
-         main.frontEnd.setWindowCursor(selectCursor);
+         frontEnd.setWindowCursor(selectCursor);
          currentTool = selectTool;
          reCalcButtonStates();
 
       } else if (lineTool == source) {
-         main.frontEnd.setWindowCursor(lineCursor);
+         frontEnd.setWindowCursor(lineCursor);
          currentTool = lineTool;
          reCalcButtonStates();
 
       } else if (curveTool == source) {
-         main.frontEnd.setWindowCursor(curveCursor);
+         frontEnd.setWindowCursor(curveCursor);
          currentTool = curveTool;
          reCalcButtonStates();
 
@@ -159,6 +145,6 @@ public class DesignButtons implements ActionListener {
                  new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
       }
 
-      main.frontEnd.requestFocusToCurrentTwoDScrollPane();
+      frontEnd.requestFocusToCurrentTwoDScrollPane();
    }
 }

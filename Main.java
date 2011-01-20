@@ -1,26 +1,19 @@
-
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 
 /** Starts the program running and catches "few!" uncaught exceptions gracefully */
 public class Main {
-
    public static final boolean disable3D = true;
 
    public FrontEnd frontEnd;
    public ObjectBrowser objectBrowser;
    public ObjectButtons objectButtons;
-   public DesignButtons designButtons;
    public Viewport3D viewport3D;
 
    /** Does the business making other classes and remembering their pointers. Be
     *  careful editing the order things are created here, to avoid race conditions */
    Main() {
-      designButtons = new DesignButtons(this);
-      
       viewport3D = disable3D ? new Viewport3DEmpty(this) : new Viewport3D(this);
-      designButtons.update3D.addActionListener(viewport3D); // temporary until 3d updates automatically
 
       objectButtons = new ObjectButtons(this);
       objectBrowser = new ObjectBrowser(this);
@@ -40,7 +33,6 @@ public class Main {
          setSystemLookAndFeel();
          Main program = new Main();
          program.run();
-
       } catch (Exception e) {
          showFatalExceptionTraceWindow(e);
       }

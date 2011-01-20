@@ -1,12 +1,10 @@
 import java.awt.datatransfer.*;
 
-/** TransferData */
+/** Transferable object containing furniture data to transfer from SQL to 2D side */
 public class TransferData implements Transferable {
-
    // if we support string the furnitureData will be droppable outside the window
    public static final DataFlavor furniture = new DataFlavor(FurnitureSQLData.class, "Furniture Lookup Data");
-   private static final DataFlavor[] flavors = { furniture };
-
+   private static final DataFlavor[] flavors = {furniture};
    private FurnitureSQLData furnitureSQLData;
 
    /** Constructor. simply initialises instance variable */

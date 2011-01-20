@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.datatransfer.*;
 
+/** Used to enable furniture drag support on the SQL JList (among other things) */
 public class FurnitureTransferHandler extends TransferHandler {
    private ObjectBrowser objectBrowser;
 

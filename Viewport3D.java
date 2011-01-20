@@ -7,7 +7,6 @@ import java.awt.event.ActionListener;
 
 /** Provides a canvas (with getCanvas()) containing the 3d window */
 public class Viewport3D implements ActionListener {
-
    private ArchApp canvasApplication;
    private Main main;
 
