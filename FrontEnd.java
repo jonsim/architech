@@ -1,15 +1,15 @@
 import java.net.URL;
 import javax.swing.*;
+import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
 import java.io.*;
 
 /** Creates and displays the whole main window and adds the various different
  *  JPanels to it.
  *  
  */
-public class FrontEnd implements WindowListener {
+public class FrontEnd implements WindowListener, ChangeListener {
    public static final String  ICON_LOCATION = "icon.png";
    public static final String  WINDOW_TITLE = "ArchiTECH";
 
@@ -35,9 +35,17 @@ public class FrontEnd implements WindowListener {
 
       try {
          addTab(new File("testSave.atech"), null);
+         stateChanged(new ChangeEvent(tabbedPane));
       } catch (Exception e) {
          // FAILED TO LOAD, NOTIFY USER
       }
+
+      tabbedPane.addChangeListener(this);
+   }
+
+   public void stateChanged(ChangeEvent e) {
+      TwoDScrollPane currTab = getCurrentTab();
+      main.viewport3D.tabChanged(currTab == null ? null : currTab.getCoords());
    }
 
    /** Initialises the twoDandThreeD variable */
@@ -54,13 +62,10 @@ public class FrontEnd implements WindowListener {
       TwoDScrollPane newTab = new TwoDScrollPane(file, title, designButtons);
       tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
       tabbedPane.setSelectedComponent(newTab);
-      main.viewport3D.tabChanged(newTab.getCoords());
    }
 
    private void removeTab(TwoDScrollPane tab) {
       tabbedPane.remove(tab);
-      TwoDScrollPane currTab = getCurrentTab();
-      main.viewport3D.tabChanged(currTab == null ? null : currTab.getCoords());
    }
 
    /** calls requestFocusToCurrentTwoDScrollPane on the open tab if there is one */
