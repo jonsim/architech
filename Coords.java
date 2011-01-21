@@ -468,7 +468,7 @@ public class Coords {
       saveRequired = true;
       CoordsChangeListener[] listeners = listenerList.getListeners(CoordsChangeListener.class);
       for (CoordsChangeListener listener : listeners) {
-         listener.CoordsChangeOccurred(event);
+         listener.coordsChangeOccurred(event);
       }
    }
 

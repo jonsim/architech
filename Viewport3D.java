@@ -6,7 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /** Provides a canvas (with getCanvas()) containing the 3d window */
-public class Viewport3D implements ActionListener {
+public class Viewport3D implements ActionListener, CoordsChangeListener {
    private ArchApp canvasApplication;
    private Main main;
 
@@ -54,11 +54,10 @@ public class Viewport3D implements ActionListener {
    }
 
    public void tabChanged(Coords coords) {
-      
+      // repaint all 3d
    }
 
    /** Called by the update button, which is in DesignButtons.java */
-   @Override
    public void actionPerformed(ActionEvent e) {
       // TODO Auto-generated method stub
       if (e.getActionCommand().equals("update")) {
@@ -70,5 +69,9 @@ public class Viewport3D implements ActionListener {
          }
          
       }
+   }
+
+   public void coordsChangeOccurred(CoordsChangeEvent e) {
+      // repaint the 3d that has changed
    }
 }
