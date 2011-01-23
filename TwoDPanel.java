@@ -82,7 +82,7 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
 
       if (designButtons.isGridOn()) coords.drawGrid(g2, getWidth(), getHeight());
 
-      coords.paintEdges(g2);
+      coords.paintEdges(g2, designButtons.isCurveTool());
       coords.paintVertices(g2);
       coords.paintFurniture(g2);
 
@@ -90,7 +90,7 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
 
       if (selectEdge != null && designButtons.isSelectTool()) {
          g2.setColor(Color.blue);
-         selectEdge.paint(g2);
+         selectEdge.paint(g2,false);
       }
 
       if (hoverVertex != null) {
@@ -171,7 +171,16 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
 
             requestFocus(); // makes the keys work if the user clicked on a vertex and presses delete
             repaint(); // gets rid of the blue selected vertex or edge
-         }
+         } else if (designButtons.isCurveTool()) {
+            dragEdge = coords.ctrlAt(e.getPoint());
+
+			if (dragEdge != null)
+			   dragEdge.setCurve();
+			else
+			   dragEdge = null;
+		 }
+			 
+			 
 
          // other tools go here
       }
@@ -204,6 +213,11 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
          lineDragEvent(coords, dragEdge, e.getPoint(), e.isShiftDown(), designButtons.isGridOn());
       } else if (designButtons.isSelectTool()) {
          vertexDragEvent(coords, selectVertex, e.getPoint(), designButtons.isGridOn());
+      } else if (designButtons.isCurveTool()) {
+		 if (dragEdge != null) {
+            dragEdge.setCtrl( new Loc3f(e.getX(), e.getY(), dragEdge.getV1().getZ()) );
+            repaint();// since the ctrl point isn't in the coordStore, this must be called manually
+		 }
       }
 
       // repaint(); - done by the coordStore change listener if anything changes

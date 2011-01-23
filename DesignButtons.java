@@ -34,6 +34,11 @@ public class DesignButtons implements ActionListener {
       return selectTool == currentTool;
    }
 
+	/** Returns true if the curve tool is selected */
+	public boolean isCurveTool() {
+		return curveTool == currentTool;
+	}
+
    /** Initialises the private cursor variables */
    private void initCursors() {
       selectCursor = new Cursor(Cursor.DEFAULT_CURSOR);
@@ -54,7 +59,6 @@ public class DesignButtons implements ActionListener {
       curveTool.addActionListener(this);
       gridTool.addActionListener(this);
       snapTool.addActionListener(this);
-
 
       gridTool.setSelected(true);
       snapTool.setSelected(true);

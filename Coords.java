@@ -258,6 +258,17 @@ public class Coords {
       return null;
    }
 
+   public Edge ctrlAt(Point p) {
+      ListIterator<Edge> ite = edges.listIterator();
+		
+      while (ite.hasNext()) {
+         Edge e = ite.next();
+         if (e.getCurveCtrl().contains(p.getX(), p.getY())) return e;
+      }
+		
+      return null;
+   }
+
    /** If there is already a vertex with the given coords then that vertex is
     *  returned otherwise null is returned */
    private Vertex vertexInUse(float x, float y, float z) {
@@ -272,12 +283,12 @@ public class Coords {
    }
    
    /** Draws things like lines and curves etc. on the given Graphics canvas */
-   public void paintEdges(Graphics2D g2) {
+   public void paintEdges(Graphics2D g2, boolean isCurveTool) {
       g2.setColor(Color.BLACK);
 
       ListIterator<Edge> ite = edges.listIterator();
       while (ite.hasNext()) {
-         ite.next().paint(g2);
+         ite.next().paint(g2, isCurveTool);
       }
    }
 
