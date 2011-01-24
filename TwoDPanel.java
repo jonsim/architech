@@ -17,7 +17,7 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
    private DesignButtons designButtons;
    private Coords coords;
    private Coords.Vertex hoverVertex, selectVertex;
-   private Edge dragEdge, selectEdge;
+   private Edge dragEdge;
 
    /** If file is null creates a blank coords with the tab name nameIfNullFile,
     *  otherwise it tries to open the given file and load a coords from it, if
@@ -88,11 +88,6 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
 
       if (dragEdge != null) dragEdge.paintLengthText(g2);
 
-      if (selectEdge != null && designButtons.isSelectTool()) {
-         g2.setColor(Color.blue);
-         selectEdge.paint(g2,false);
-      }
-
       if (hoverVertex != null) {
          g2.setColor(Color.red);
          hoverVertex.paint(g2);
@@ -162,25 +157,17 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
 
          } else if (designButtons.isSelectTool()) {
             selectVertex = coords.vertexAt(e.getPoint());
-
-            if (selectVertex == null) {
-               selectEdge = coords.edgeAt(e.getPoint());
-            } else {
-               selectEdge = null;
-            }
-
             requestFocus(); // makes the keys work if the user clicked on a vertex and presses delete
-            repaint(); // gets rid of the blue selected vertex or edge
+            repaint(); // gets rid of the blue selected vertex
+            
          } else if (designButtons.isCurveTool()) {
             dragEdge = coords.ctrlAt(e.getPoint());
 
-			if (dragEdge != null)
-			   dragEdge.setCurve();
-			else
-			   dragEdge = null;
-		 }
-			 
-			 
+            if (dragEdge != null)
+               dragEdge.setCurve();
+            else
+               dragEdge = null;
+         }
 
          // other tools go here
       }
@@ -214,10 +201,10 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
       } else if (designButtons.isSelectTool()) {
          vertexDragEvent(coords, selectVertex, e.getPoint(), designButtons.isGridOn());
       } else if (designButtons.isCurveTool()) {
-		 if (dragEdge != null) {
-            dragEdge.setCtrl( new Loc3f(e.getX(), e.getY(), dragEdge.getV1().getZ()) );
+         if (dragEdge != null) {
+            dragEdge.setCtrl( new Loc3f(e.getX(), e.getY(), 0) );
             repaint();// since the ctrl point isn't in the coordStore, this must be called manually
-		 }
+         }
       }
 
       // repaint(); - done by the coordStore change listener if anything changes
@@ -311,7 +298,6 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
 
       if ((c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE) && designButtons.isSelectTool()) {
          coords.delete(selectVertex);
-         coords.delete(selectEdge);
 
          // the vertex currently being hovered over will only update if the person
          // moves the mouse. If they don't move the mouse and the vertex has been
@@ -319,8 +305,7 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
          if (!coords.exists(hoverVertex)) hoverVertex = null;
 
          selectVertex = null;
-         selectEdge = null;
-         repaint(); // removes the blue selected vertex and edge colour
+         repaint(); // removes the blue selected vertex colour
       }
    }
 

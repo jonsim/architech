@@ -10,11 +10,11 @@ import java.awt.*;
 public class Edge {
    private Coords.Vertex v1;
    private Coords.Vertex v2;
-   private Loc3f ctrl = new Loc3f(0,0,0);
+   private final Loc3f ctrl = new Loc3f(0,0,0);
    private boolean isCurve;
    private final Line2D.Float topDownView = new Line2D.Float();
    private final QuadCurve2D.Float topDownViewCurve = new QuadCurve2D.Float();
-   private Ellipse2D.Float curveCtrl = new Ellipse2D.Float();
+   private final Ellipse2D.Float curveCtrl = new Ellipse2D.Float();
 
    /** Creates a new edge from the given vertices. Doesn't add it to the coordStore.
     *  If null is given for a vertex then that vertex will be made at 0,0,0 */
@@ -43,9 +43,9 @@ public class Edge {
       return v2;
    }
 
-   /** Returns the coordinates of the control point */
-   public Ellipse2D getCurveCtrl() {
-      return curveCtrl;
+   /** Returns true if the point lies within the coordinates of the control point */
+   public boolean curveCtrlContains(Point p) {
+      return curveCtrl.contains(p);
    }
 
    /** Updates v1, refuses to update if you give it null */
@@ -68,7 +68,7 @@ public class Edge {
    public void setCtrl(Loc3f ctrl) {
       if (ctrl == null) return;
 
-      this.ctrl = ctrl;
+      this.ctrl.set(ctrl.x(), ctrl.y(), ctrl.z());
       recalcTopDownView();
    }
 
@@ -101,18 +101,18 @@ public class Edge {
          g2.draw(topDownView);
 
       if (isCurveTool) {
-		 g2.setPaint(Color.RED);
+         g2.setPaint(Color.RED);
 
-		 if (isCurve) {
-			// paints the tangents
+         if (isCurve) {
+            // paints the tangents
             g2.draw(new Line2D.Float(v1.getX(), v1.getY(), ctrl.x(), ctrl.y()));
             g2.draw(new Line2D.Float(v2.getX(), v2.getY(), ctrl.x(), ctrl.y()));
          }
 		  
-		 // paint the control circle
+         // paint the control circle
          g2.draw(curveCtrl);
-		 g2.setPaint(Color.BLACK);
-	  }
+         g2.setPaint(Color.BLACK);
+      }
    }
 
    /** Writes the length of this edge next to it on the given graphics canvas */
@@ -132,20 +132,20 @@ public class Edge {
       return (float) Math.sqrt(a*a + b*b);
    }
 
-   /* not yet modified for QuadCurve2D */
-   public boolean contains(Point p, float lineWidth) {
+   /* not yet modified for QuadCurve2D, p.s. its always been a bit broken :) */
+   /*public boolean contains(Point p, float lineWidth) {
       float a = (v2.getY() - v1.getY()) / (v2.getX() - v1.getX());
       float b = v1.getY() - a * v1.getX();
 
       if (Math.abs(p.y - (a * p.x + b)) < lineWidth) return true && topDownView.getBounds().contains(p);
       else return false;
-   }
+   }*/
 
    /** Returns some vaguely useful form of string so you can println() an edge */
    @Override
    public String toString() {
       //MANUAL EXPORT - return "new Edge(new Vertex("+v1.x+","+v1.y+","+v1.z+"), new Vertex("+v2.x+","+v2.y+","+v2.z+"), this);";
       //return "new Edge(new Vertex("+v1.getX()+","+v1.getY()+","+v1.getZ()+"), new Vertex("+v2.getX()+","+v2.getY()+","+v2.getZ()+"), this);";
-      return "v1:(" + v1.getX() + ", " + v1.getY() + ", " + v1.getZ() + ") v2:(" + v2.getX() + ", " + v2.getY() + ", " + v2.getZ() + ")";
+      return "Edge " + this.hashCode() + " - v1:(" + v1.getX() + ", " + v1.getY() + ", " + v1.getZ() + ") v2:(" + v2.getX() + ", " + v2.getY() + ", " + v2.getZ() + ")";
    }
 }

@@ -34,10 +34,10 @@ public class DesignButtons implements ActionListener {
       return selectTool == currentTool;
    }
 
-	/** Returns true if the curve tool is selected */
-	public boolean isCurveTool() {
-		return curveTool == currentTool;
-	}
+   /** Returns true if the curve tool is selected */
+   public boolean isCurveTool() {
+      return curveTool == currentTool;
+   }
 
    /** Initialises the private cursor variables */
    private void initCursors() {

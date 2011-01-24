@@ -247,7 +247,7 @@ public class Coords {
       return null;
    }
 
-   public Edge edgeAt(Point p) {
+   /*public Edge edgeAt(Point p) {
       ListIterator<Edge> ite = edges.listIterator();
 
       while (ite.hasNext()) {
@@ -256,14 +256,16 @@ public class Coords {
       }
 
       return null;
-   }
+   }*/
 
+   /** Returns the edge that is associated with the curve control circle at p,
+    *  or null if p doesn't lie within a ctrl point */
    public Edge ctrlAt(Point p) {
       ListIterator<Edge> ite = edges.listIterator();
 		
       while (ite.hasNext()) {
          Edge e = ite.next();
-         if (e.getCurveCtrl().contains(p.getX(), p.getY())) return e;
+         if (e.curveCtrlContains(p)) return e;
       }
 		
       return null;
