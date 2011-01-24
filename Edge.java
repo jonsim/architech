@@ -120,8 +120,8 @@ public class Edge {
       int x = Math.round((v1.getX() + v2.getX()) / 2);
       int y = Math.round((v1.getY() + v2.getY()) / 2);
 
-      Font sanSerifFont = new Font("SanSerif", Font.PLAIN, 12);
-      g2.setFont(sanSerifFont);
+      //Font sanSerifFont = new Font("SanSerif", Font.PLAIN, 12);
+      //g2.setFont(sanSerifFont);
       g2.drawString(length() + "mm", x, y);
    }
 
