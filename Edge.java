@@ -10,11 +10,12 @@ import java.awt.*;
 public class Edge {
    private Coords.Vertex v1;
    private Coords.Vertex v2;
-   private final Loc3f ctrl = new Loc3f(0,0,0);
-   private boolean isCurve;
-   private final Line2D.Float topDownView = new Line2D.Float();
+   private final Point2D.Float ctrl = new Point2D.Float();
    private final QuadCurve2D.Float topDownViewCurve = new QuadCurve2D.Float();
+   private final static int curveCtrlSize = 6;
    private final Ellipse2D.Float curveCtrl = new Ellipse2D.Float();
+   private final Line2D.Float tangent1 = new Line2D.Float();
+   private final Line2D.Float tangent2 = new Line2D.Float();
 
    /** Creates a new edge from the given vertices. Doesn't add it to the coordStore.
     *  If null is given for a vertex then that vertex will be made at 0,0,0 */
@@ -24,13 +25,9 @@ public class Edge {
 
       this.v1 = v1;
       this.v2 = v2;
-      isCurve = false;
-      ctrl.set( ( v1.getX() + v2.getX() ) / 2, ( v1.getY() + v2.getY() ) / 2, v1.getZ() );
-
-      //recalcTopDownView();
-      topDownView.setLine(v1.getX(), v1.getY(), v2.getX(), v2.getY());
-      topDownViewCurve.setCurve(0,0,0,0,0,0);
-      curveCtrl.setFrame(ctrl.x() - 3, ctrl.y() - 3, 6, 6);
+      
+      resetCtrlPositionToHalfway();
+      recalcTopDownView();
    }
 
    /** Returns the vertex at one end of this line */
@@ -43,76 +40,77 @@ public class Edge {
       return v2;
    }
 
-   /** Returns true if the point lies within the coordinates of the control point */
-   public boolean curveCtrlContains(Point p) {
-      return curveCtrl.contains(p);
-   }
-
-   /** Updates v1, refuses to update if you give it null */
+   /** Updates v1, refuses to update if you give it null. Also updates the ctrl
+    *  point to halfway between the two points. When a new line is drawn this is
+    *  called, and the new line has ctrl point 0,0 so it should be updated. */
    public void setV1(Coords.Vertex v1) {
       if (v1 == null) return;
 
       this.v1 = v1;
+      resetCtrlPositionToHalfway();
       recalcTopDownView();
    }
 
-   /** Updates v2, refuses to update if you give it null */
+   /** Updates v2, refuses to update if you give it null. Also updates the ctrl
+    *  point to halfway between the two points. When a new line is drawn this is
+    *  called, and the new line has ctrl point 0,0 so it should be updated. */
    public void setV2(Coords.Vertex v2) {
       if (v2 == null) return;
 
       this.v2 = v2;
+      resetCtrlPositionToHalfway();
       recalcTopDownView();
+   }
+
+   /** Returns true if the point lies within the coordinates of the control point */
+   public boolean curveCtrlContains(Point p) {
+      return curveCtrl.contains(p);
    }
 
    /** Updates ctrl, refuses to update if you give it null */
    public void setCtrl(Loc3f ctrl) {
       if (ctrl == null) return;
 
-      this.ctrl.set(ctrl.x(), ctrl.y(), ctrl.z());
+      this.ctrl.setLocation(ctrl.x(), ctrl.y());
       recalcTopDownView();
    }
 
-   /** Changes the edge from a line to a curve */
-   public void setCurve() {
-      if (isCurve) return;
-
-      isCurve = true;
-
-      topDownViewCurve.setCurve(v1.getX(), v1.getY(), ctrl.x(), ctrl.y(), v2.getX(), v2.getY());
-      topDownView.setLine(0,0,0,0);
+   /** Places the ctrl point halfway between v1 and v2 */
+   private void resetCtrlPositionToHalfway() {
+      ctrl.setLocation( ( v1.getX() + v2.getX() ) / 2, ( v1.getY() + v2.getY() ) / 2 );
    }
 
    /** Keeps the top down (2D) view of this line up to date */
-   public void recalcTopDownView() {
-      if (!isCurve) {
-         topDownView.setLine(v1.getX(), v1.getY(), v2.getX(), v2.getY());
-         ctrl.set( ( v1.getX() + v2.getX() ) / 2, ( v1.getY() + v2.getY() ) / 2, v1.getZ() );
-      } else
-         topDownViewCurve.setCurve(v1.getX(), v1.getY(), ctrl.x(), ctrl.y(), v2.getX(), v2.getY());
+   public final void recalcTopDownView() {
+      topDownViewCurve.setCurve(v1.getX(), v1.getY(), ctrl.getX(), ctrl.getY(), v2.getX(), v2.getY());
 
-      curveCtrl.setFrame(ctrl.x() - 3, ctrl.y() - 3, 6, 6);
+      curveCtrl.setFrame(ctrl.getX() - (curveCtrlSize/2), ctrl.getY() - (curveCtrlSize/2), curveCtrlSize, curveCtrlSize);
+
+      tangent1.setLine(v1.getX(), v1.getY(), ctrl.getX(), ctrl.getY());
+      tangent2.setLine(v2.getX(), v2.getY(), ctrl.getX(), ctrl.getY());
    }
 
    /** Draws the 2D representation of this line on the given Graphics canvas */
    public void paint(Graphics2D g2, boolean isCurveTool) {
-      if (isCurve)
-         g2.draw(topDownViewCurve);
-      else
-         g2.draw(topDownView);
-
       if (isCurveTool) {
-         g2.setPaint(Color.RED);
+         Color oldColour = g2.getColor();
 
-         if (isCurve) {
-            // paints the tangents
-            g2.draw(new Line2D.Float(v1.getX(), v1.getY(), ctrl.x(), ctrl.y()));
-            g2.draw(new Line2D.Float(v2.getX(), v2.getY(), ctrl.x(), ctrl.y()));
-         }
-		  
+         // paints the tangents
+         g2.setColor(Color.RED);
+         g2.draw(tangent1);
+         g2.draw(tangent2);
+
+         // paint the curve
+         g2.setColor(oldColour);
+         g2.draw(topDownViewCurve);
+
          // paint the control circle
+         g2.setColor(Color.RED);
          g2.draw(curveCtrl);
-         g2.setPaint(Color.BLACK);
-      }
+
+         g2.setColor(oldColour);
+         
+      } else g2.draw(topDownViewCurve);
    }
 
    /** Writes the length of this edge next to it on the given graphics canvas */
@@ -132,19 +130,9 @@ public class Edge {
       return (float) Math.sqrt(a*a + b*b);
    }
 
-   /* not yet modified for QuadCurve2D, p.s. its always been a bit broken :) */
-   /*public boolean contains(Point p, float lineWidth) {
-      float a = (v2.getY() - v1.getY()) / (v2.getX() - v1.getX());
-      float b = v1.getY() - a * v1.getX();
-
-      if (Math.abs(p.y - (a * p.x + b)) < lineWidth) return true && topDownView.getBounds().contains(p);
-      else return false;
-   }*/
-
    /** Returns some vaguely useful form of string so you can println() an edge */
    @Override
    public String toString() {
-      //MANUAL EXPORT - return "new Edge(new Vertex("+v1.x+","+v1.y+","+v1.z+"), new Vertex("+v2.x+","+v2.y+","+v2.z+"), this);";
       //return "new Edge(new Vertex("+v1.getX()+","+v1.getY()+","+v1.getZ()+"), new Vertex("+v2.getX()+","+v2.getY()+","+v2.getZ()+"), this);";
       return "Edge " + this.hashCode() + " - v1:(" + v1.getX() + ", " + v1.getY() + ", " + v1.getZ() + ") v2:(" + v2.getX() + ", " + v2.getY() + ", " + v2.getZ() + ")";
    }

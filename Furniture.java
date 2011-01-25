@@ -5,15 +5,57 @@ import java.awt.*;
 /** Furniture item that is used by Coords */
 public class Furniture {
    private final RoundRectangle2D.Float rectangle = new RoundRectangle2D.Float();
-   private FurnitureSQLData data;
-   private double rotation; // theta - in radians
+   private String furnitureID;
+   private float width, height;
    private float rotationCenterX, rotationCenterY;
+   private double rotation; // theta - in radians
 
    Furniture(FurnitureSQLData data, Point center) {
-      this.data = data;
-      rotation = 0;
+      if (data == null || data.furnitureID == null || center == null) {
+         throw new IllegalArgumentException("Null parameter or furniture ID");
+      }
+
+      this.furnitureID = data.furnitureID;
+      this.width = data.width;
+      this.height = data.height;
+      this.rotation = 0;
+      
       setRotationCenter(center);
       recalcRectangle();
+   }
+   
+   Furniture(String toLoadFrom) throws IllegalArgumentException {
+      if (toLoadFrom == null) throw new IllegalArgumentException("Null parameter");
+
+      String[] split = toLoadFrom.split(",");
+      if (split.length < 6) throw new IllegalArgumentException("Not enough fields");
+
+      // furnitureID might contain "," so just split from the end as we know the expected number
+      try {
+         rotation = java.lang.Double.parseDouble(split[split.length-1]);
+      } catch (NumberFormatException e) {
+         throw new IllegalArgumentException("Malformed rotation value");
+      }
+
+      try {
+         rotationCenterY = java.lang.Float.parseFloat(split[split.length-2]);
+         rotationCenterX = java.lang.Float.parseFloat(split[split.length-3]);
+         height = java.lang.Float.parseFloat(split[split.length-4]);
+         width = java.lang.Float.parseFloat(split[split.length-5]);
+      } catch (NumberFormatException e) {
+         throw new IllegalArgumentException("Malformed float value");
+      }
+
+      furnitureID = "";
+      for (int i = 0; i <= split.length - 6; i++) {
+         furnitureID += split[i];
+      }
+
+      recalcRectangle();
+   }
+
+   public String getSaveString() {
+      return furnitureID + "," + width + "," + height + "," + rotationCenterX + "," + rotationCenterY + "," + rotation;
    }
 
    private void setRotationCenter(Point center) {
@@ -22,10 +64,10 @@ public class Furniture {
    }
 
    private void recalcRectangle() {
-      float x = rotationCenterX - (float) 0.5 * data.width;
-      float y = rotationCenterY - (float) 0.5 * data.height;
+      float x = rotationCenterX - (float) 0.5 * width;
+      float y = rotationCenterY - (float) 0.5 * height;
       // float x, float y, float w, float h, float arcw, float arch
-      rectangle.setRoundRect(x, y, data.width, data.height, 0.2*data.width, 0.2*data.height);
+      rectangle.setRoundRect(x, y, width, height, 0.2*width, 0.2*height);
    }
 
    /** Use moveFurniture() in the coordinates class instead! */
@@ -44,7 +86,7 @@ public class Furniture {
    public void paint(Graphics2D g2) {
       AffineTransform original = g2.getTransform();
       g2.rotate(rotation, rotationCenterX, rotationCenterY);
-      g2.fill(rectangle);
+      g2.draw(rectangle);
       g2.setTransform(original);
    }
 }

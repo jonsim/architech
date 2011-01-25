@@ -1,4 +1,3 @@
-
 import java.io.*;
 
 /** 
@@ -17,12 +16,15 @@ import java.io.*;
    0,1
    0,0
    0,2
+
+   1 Furniture
+   itemNameID,80,160,40,80,0.0       **as specified in Furniture.getSaveString()
 "
  */
 public class FileManager {
 
    /** Writes the given arrays to file in the expected format */
-   public static void save(File saveAs, float[][] vertices, int[][] edges)
+   public static void save(File saveAs, float[][] vertices, int[][] edges, Furniture[] furniture)
          throws IOException, IllegalArgumentException {
       if (saveAs == null) throw new IllegalArgumentException("SaveAs is null");
       FileWriter fileW = new FileWriter(saveAs);
@@ -31,39 +33,51 @@ public class FileManager {
       saveVertices(bw, vertices);
       bw.newLine();
       saveEdges(bw, edges);
+      bw.newLine();
+      saveFurniture(bw, furniture);
+
       bw.flush();
    }
 
-   /** Returns a coords or throws an exception if there is a problem reading */
+   /** Returns a Coords or throws an exception if there is a problem reading */
    public static Coords load(File file) throws IOException, Exception, IllegalArgumentException {
       if (file == null) throw new IllegalArgumentException("SaveAs is null");
       FileReader fileR = new FileReader(file);
       BufferedReader br = new BufferedReader(fileR);
 
-      /* Get number of vertices */
+
+      /* Get number of vertices and load vertices */
       int numVertices = loadHeaderNum(br);
       if (numVertices < 0) {
          throw new Exception("The number of vertices is either invalid or not g"
             + "iven in the file");
       }
-
-      /* Load vertices */
       float[][] vertices = loadVertices(br, numVertices);
       if (vertices == null) throw new Exception("Unable to load all vertices");
 
-      /* Get Number of Edges */
+
+      /* Get Number of Edges and load Edges */
       int numEdges = loadHeaderNum(br);
       if (numEdges < 0) {
          throw new Exception("The number of edges is either invalid or not give"
             + "n in the file");
       }
-
-      /* Load Edges */
       int[][] edges = loadEdges(br, numEdges);
       if (edges == null) throw new Exception("Unable to load all edges");
 
+
+      /* Get Number of Furniture and load Furniture */
+      int numFurniture = loadHeaderNum(br);
+      if (numEdges < 0) {
+         throw new Exception("The number of furniture items is either invalid or"
+            + " not given in the file");
+      }
+      Furniture[] furniture = loadFurniture(br, numFurniture);
+      if (furniture == null) throw new Exception("Unable to load all furniture");
+
+      
       /* Loading might not reach this stage */
-      return new Coords(file, vertices, edges);
+      return new Coords(file, vertices, edges, furniture);
    }
 
 
@@ -104,6 +118,25 @@ public class FileManager {
          }
 
          line = edges[i][0] + "," + edges[i][1];
+         bw.write(line, 0, line.length());
+         bw.newLine();
+      }
+   }
+
+   /** Writes the given furniture objects to the file */
+   private static void saveFurniture(BufferedWriter bw, Furniture[] furniture) throws IOException {
+      if (furniture == null) throw new IllegalArgumentException("Furniture is null");
+
+      String line = furniture.length + " Furniture";
+      bw.write(line, 0, line.length());
+      bw.newLine();
+
+      for (int i = 0; i < furniture.length; i++) {
+         if (furniture[i] == null) {
+            throw new IllegalArgumentException("Furniture array element is null");
+         }
+
+         line = furniture[i].getSaveString();
          bw.write(line, 0, line.length());
          bw.newLine();
       }
@@ -160,7 +193,6 @@ public class FileManager {
             } catch (NumberFormatException e) {
                // skip this line, it is corrupt
             }
-
          }
       }
 
@@ -198,5 +230,26 @@ public class FileManager {
 
       if (edgeLoadCount != numEdges) return null;
       else return edges;
+   }
+
+   /** null if its unable to load all numFurniture # furniture objects */
+   private static Furniture[] loadFurniture(BufferedReader br, int numFurniture) throws IOException {
+      if (numFurniture < 0) return null;
+
+      String line;
+      Furniture[] furniture = new Furniture[numFurniture];
+      int furnitureLoadCount = 0;
+
+      while (furnitureLoadCount < numFurniture && (line = br.readLine()) != null) {
+         try {
+            furniture[furnitureLoadCount] = new Furniture(line);
+            furnitureLoadCount++;
+         } catch (IllegalArgumentException e) {
+            // skip this line, it is corrupt
+         }
+      }
+
+      if (furnitureLoadCount != numFurniture) return null;
+      else return furniture;
    }
 }

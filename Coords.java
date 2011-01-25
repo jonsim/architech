@@ -151,9 +151,12 @@ public class Coords {
    }
 
    /** Blindly makes vertices and edges, there might be orphaned/dup vertices */
-   Coords(File loadedFrom, float[][] vertices, int[][] edges) throws IllegalArgumentException {
+   Coords(File loadedFrom, float[][] vertices, int[][] edges, Furniture[] furniture) throws IllegalArgumentException {
       if (loadedFrom == null || vertices == null || edges == null)
          throw new IllegalArgumentException("Null argument");
+      if (!loadedFrom.isFile()) {
+         throw new IllegalArgumentException("File is a directory or it doesn't exist");
+      }
       this.associatedSave = loadedFrom;
       this.associatedSaveName = loadedFrom.getName();
 
@@ -190,8 +193,17 @@ public class Coords {
 
          //no point throwing events as noone can register as a listener, we're still in constructor!
       }
+
+      for (Furniture f : furniture) {
+         // check for collisions
+         this.furniture.add(f);
+      }
    }
 
+   /** Returns a string with the file name i.e. if the file is C:\hello.txt this
+    *  will return hello.txt. Alternatively if the associated save file has not
+    *  been set (this coords was not loaded from a file, it was created blank),
+    *  then it will return the string that was given to the constructor */
    public String getAssociatedSaveName() {
       return associatedSaveName;
    }
@@ -559,7 +571,13 @@ public class Coords {
          saveEdges[i][1] = saveIndexIn(vArray, eArray[i].getV2());
       }
 
-      FileManager.save(saveAs, saveVerts, saveEdges);
+      Furniture[] fArray = new Furniture[furniture.size()];
+      ListIterator<Furniture> li = furniture.listIterator();
+      while (li.hasNext()) {
+         fArray[li.nextIndex()] = li.next();
+      }
+
+      FileManager.save(saveAs, saveVerts, saveEdges, fArray);
       // if save() throws an IllegalArgumentException, saveRequired is not reset
       if (updateSaveRequired) saveRequired = false;
       if (updateAssociatedSave) {
