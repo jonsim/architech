@@ -3,16 +3,23 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import java.util.*;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.ListSelectionModel;
 import java.awt.dnd.*;
+import java.awt.datatransfer.*;
 
 /**
+ *
  * @author Michael, Brent
  */
 public class ObjectBrowser implements KeyListener, MouseListener {
@@ -24,7 +31,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    public DefaultListModel fields = new DefaultListModel();
    private ListSelectionListener listSelectionListener;
    // This will get the database as long as it is in the current directory
-   private String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "/ObjectDatabase.sqlite";
+   private String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "\\ObjectDatabase.sqlite";
    private Font f = new Font("sansserif", Font.PLAIN, 14);
    private Connection connection = null;
    private PreparedStatement statement = null;
@@ -35,6 +42,9 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    private String backButtonText = "* Go Back *";
    private int currentCategory = -1;
    private FurnitureObject draggedObject;
+	 private String objectName;
+	 private String itemName;
+	 private int itemID = -1;
 
 	ObjectBrowser(Main main) {
 		this.main = main;
@@ -67,9 +77,9 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			public void valueChanged(ListSelectionEvent listSelectionEvent) {
 				int index = library.getSelectedIndex();
 				boolean adjust = listSelectionEvent.getValueIsAdjusting();
-				/*if(!adjust) {
-					if(index >= 0 && index < fields.size()) showImage(fields.get(index));
-				}*/
+				if(!adjust) {
+					if(index >= 0 && index < fields.size()){} //showImage(fields.get(index));
+				}
 			}
 		};
 		library.addMouseListener(this);
@@ -130,6 +140,21 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			e.printStackTrace();
 		}
 	}
+
+	private int getID(String itemName) {
+		itemID = -1;
+		try {
+			statement = connection.prepareStatement("select * from ITEM where Name='" + itemName + "'");
+			rs = statement.executeQuery();
+			if(rs.next()) {
+				itemID = rs.getInt("ID");
+				//return itemID;
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return itemID;
+	}
 	
 	private void selectCategory() {
 		int index = library.getSelectedIndex();
@@ -142,7 +167,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 				" or Category2="+index+" or Category3="+index, "Type");
 			fields.addElement(dashedSeparator);
 			fields.addElement(backButtonText);
-			//picInitialise();
+			//picInitialise();/////////////////////////////////////////
 			pane.revalidate();
 		}
 	}
@@ -152,13 +177,13 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			library.removeListSelectionListener(listSelectionListener);
 			currentCategory = -1;
 			fields.clear();
-			//pane.remove(picLabel);
+			//pane.remove(picLabel);////////////////////////////////////
 			SQLStatement("select * from CATEGORIES", "Category");
 			pane.revalidate();
 		}
 	}
 	
-	/*private void showImage(Object object) {
+	private void showImage(Object object) {
 		if(library.getSelectedIndex() >= 0 && currentCategory > 0) {
 			pane.remove(picLabel);
 			try {
@@ -187,7 +212,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			pane.add(picLabel, gbc);
 			pane.revalidate();
 		}
-	}*/
+	}
 
 	private void picInitialise(){
 		try {
@@ -224,18 +249,22 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 
 	public FurnitureSQLData getSelectedFurnitureOrNull()
 	{
-		String objectName = library.getSelectedValue().toString();
-		if (objectName.equals(dashedSeparator) || objectName.equals(backButtonText))
+		String itemName = library.getSelectedValue().toString();
+		if (itemName.equals(dashedSeparator) || itemName.equals(backButtonText))
 		{
 			return null;
 		}
 		else 
 		{
-			double width = 50;
-			double length = 80;
-			return new FurnitureSQLData("1", (float)width, (float)length);
+			getDimensions(objectName);
+			String ID = Integer.toString(getID(itemName));
+			float width = draggedObject.X * 50;
+			float length = draggedObject.Y * 50;
+			FurnitureSQLData footprint = new FurnitureSQLData(ID, (float)width, (float)length);
+			return footprint;
 		}
-   }
+		//return null;
+	}
 
 	
 	public void keyTyped(KeyEvent e) {}
@@ -253,7 +282,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 	public void mousePressed(MouseEvent e) {
 		if(currentCategory > 0) {
 			int index = library.locationToIndex(e.getPoint());
-			String objectName = fields.get(index).toString();////////////
+			objectName = fields.get(index).toString();////////////
 //System.out.println("Object Name = " + objectName);
 			getDimensions(objectName);
 			if(draggedObject != null) {
@@ -273,8 +302,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 
 	public void mouseClicked(MouseEvent e) {
 		int index = library.getSelectedIndex();
-		//showImage(fields.get(index));
-			pane.revalidate();
+		//showImage(fields.get(index));/////////////////////////////////////////////
 		if(e.getClickCount() == 2) {
 			selectCategory();
 			toCategories();

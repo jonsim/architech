@@ -1,4 +1,3 @@
-
 import java.net.URL;
 import javax.swing.*;
 import java.awt.*;
@@ -24,8 +23,8 @@ public class ObjectButtons implements ActionListener {
    }
 
    private void initButtons() {
-      addObject = new JButton("Select");
-      removeObject = new JButton("Show Categories");
+      addObject = new JButton("Add");
+      removeObject = new JButton("Delete");
 
       addObject.addActionListener(this);
       removeObject.addActionListener(this);
@@ -67,10 +66,12 @@ public class ObjectButtons implements ActionListener {
       Object source = e.getSource();
 
       if (addObject == source) {
+         //main.objectBrowser.addObject();
 
       } else if (removeObject == source) {
-         
-      } else {
+         //main.objectBrowser.deleteObject();
+		 
+	  } else {
          Main.showFatalExceptionTraceWindow(
                  new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
       }

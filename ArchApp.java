@@ -298,8 +298,9 @@ public class ArchApp extends Application {
 		//if(chair!=null){rootNode.detachChild(chair);}
 	//}
 	
-	void addchair(Point center){
-	    chair = assetManager.loadModel("req/armchair.obj");
+	void addchair(Point center, String name){
+		//String path = "req/" + name + ".obj"
+	    chair = assetManager.loadModel("req/Chair.obj");
 	    chair.scale(15f, 10f, 15f);
 	    chair.rotate((float) -(0.5* Math.PI),(float) -(0.5* Math.PI),0);
 	    chair.setLocalTranslation(center.x+15,-100,center.y-30);

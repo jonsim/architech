@@ -152,7 +152,7 @@ public class MovCam implements AnalogListener, ActionListener {
     }
 
     protected void riseCamera(float value){
-        Vector3f vel = new Vector3f(0, value * moveSpeed, 0);
+        Vector3f vel = new Vector3f(0, value * moveSpeed * 2, 0);
         Vector3f pos = cam.getLocation().clone();
         /*//Injected Code to get movement bounds
         if(pos.y>-97 && pos.y<97)
@@ -213,7 +213,7 @@ public class MovCam implements AnalogListener, ActionListener {
         }else{
             cam.getDirection(vel);
         }
-        vel.multLocal(value * moveSpeed);
+        vel.multLocal(value * moveSpeed * 2);
         
         //Injected Code to get movement bounds
         /*
