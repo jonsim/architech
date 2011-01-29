@@ -55,21 +55,23 @@ public class Furniture {
    }
    
    public String getID(){
-	   return furnitureID;
+      return furnitureID;
    }
 
    public String getSaveString() {
       return furnitureID + "," + width + "," + height + "," + rotationCenterX + "," + rotationCenterY + "," + rotation;
    }
 
+   /** Use the method in the Coords class instead! Sets the Furniture's location */
    private void setRotationCenter(Point center) {
       rotationCenterX = (float) center.x;
       rotationCenterY = (float) center.y;
    }
-   
-   Point getRotationCenter() {
-	     return new Point((int) rotationCenterX,(int) rotationCenterY);
-	   }
+
+   /** Returns the location of this furniture object */
+   public Point getRotationCenter() {
+      return new Point((int) Math.round(rotationCenterX), (int) Math.round(rotationCenterY));
+   }
 
    private void recalcRectangle() {
       float x = rotationCenterX - (float) 0.5 * width;

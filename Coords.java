@@ -249,7 +249,7 @@ public class Coords {
    
    /** returns an array containing all the Furniture in the current design */
    public Furniture[] getFurniture(){
-	   return furniture.toArray(new Furniture[0]);
+      return furniture.toArray(new Furniture[0]);
    }
    
 
