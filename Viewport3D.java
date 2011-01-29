@@ -4,6 +4,8 @@ import com.jme3.system.JmeCanvasContext;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /** Provides a canvas (with getCanvas()) containing the 3d window */
 public class Viewport3D implements ActionListener, CoordsChangeListener {
@@ -25,6 +27,7 @@ public class Viewport3D implements ActionListener, CoordsChangeListener {
       // create new canvas application
       canvasApplication = new ArchApp();
       canvasApplication.setSettings(settings);
+      Logger.getLogger("").setLevel(Level.SEVERE);
       canvasApplication.createCanvas(); // create canvas!
 
       // Fill Swing window with canvas and swing components
@@ -66,12 +69,22 @@ public class Viewport3D implements ActionListener, CoordsChangeListener {
             canvasApplication.clearall();
             canvasApplication.updateroot();
             canvasApplication.addedges(currentTab.getCoords().getEdges());
-         }
-         
+         }         
       }
    }
 
    public void coordsChangeOccurred(CoordsChangeEvent e) {
-      // repaint the 3d that has changed
-   }
+	   synchronized(canvasApplication.syncLockObject) {
+		     TwoDScrollPane currentTab = main.frontEnd.getCurrentTab();
+		     if (currentTab != null) {
+		    	 canvasApplication.clearall();
+		    	 Furniture[] furniture = currentTab.getCoords().getFurniture();
+		         for (Furniture f : furniture) {
+		             // check for collisions
+		             canvasApplication.updateroot();		             
+		  	         canvasApplication.addchair(f.getRotationCenter());
+		          }
+		    canvasApplication.addedges(currentTab.getCoords().getEdges());
+		 }
+   }}
 }

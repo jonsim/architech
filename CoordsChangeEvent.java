@@ -45,7 +45,7 @@ public class CoordsChangeEvent extends EventObject {
    }
 
    /** Might be null if event changeType is not furniture related */
-   public Furniture getFurnitureChange() {
+   Furniture getFurnitureChanged() {
       return furnitureChanged;
    }
 

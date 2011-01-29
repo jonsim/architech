@@ -1,3 +1,7 @@
+import java.awt.Point;
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import com.jme3.app.*;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
@@ -12,6 +16,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
@@ -28,15 +33,20 @@ import com.jme3.util.SkyFactory;
  */
 public class ArchApp extends Application {
 
-    public Object syncLockObject = new Object();
-
     private Node rootNode = new Node("Root Node");
     private Node guiNode = new Node("Gui Node");
+    Object syncLockObject = new Object();
+    private Spatial chair;
+    private ArrayList<Geometry> walls = new ArrayList<Geometry>();
 
     private float secondCounter = 0.0f;
     private BitmapText fpsText;
     private BitmapFont guiFont;
     private StatsView statsView;
+    
+    private Material grass;
+    private Texture grasst;
+    private Material wallmat;
 
     private static MovCam flyCam;
     private boolean showSettings = false;
@@ -114,12 +124,9 @@ public class ArchApp extends Application {
     public void initCamera(){
         cam = new Camera(settings.getWidth(), settings.getHeight());
         cam.setFrustumPerspective(45f, (float)cam.getWidth() / cam.getHeight(), 1f, 10000f);
-        //cam.setLocation(new Vector3f(-340.92062f, 22.140797f, 240.82248f));
-        //cam.lookAt(new Vector3f(0f, 0f, 200f), Vector3f.UNIT_Y);
-        cam.setLocation(new Vector3f(559.42f, 729.21277f, 308.6828f));
-        cam.lookAt(new Vector3f(600f, 0f, 100f), Vector3f.UNIT_Y);
+        cam.setLocation(new Vector3f(357.61813f, -46.365437f, 546.6056f));
+        cam.lookAt(new Vector3f(400f, -50f, 0f), Vector3f.UNIT_Y);
         renderManager = new RenderManager(renderer);
-        //Remy - 09/14/2010 setted the timer in the renderManager
         renderManager.setTimer(timer);
         viewPort = renderManager.createMainView("Default", cam);
         viewPort.setClearEnabled(true);
@@ -127,7 +134,7 @@ public class ArchApp extends Application {
         Camera guiCam = new Camera(settings.getWidth(), settings.getHeight());
         guiViewPort = renderManager.createPostView("Gui Default", guiCam);
         guiViewPort.setClearEnabled(false);
-    }      
+    }
 
     @Override
     public void initialize(){
@@ -136,7 +143,7 @@ public class ArchApp extends Application {
         guiNode.setQueueBucket(Bucket.Gui);
         guiNode.setCullHint(CullHint.Never);
        // loadFPSText();
-        //loadStatsView();
+       // loadStatsView();
         viewPort.attachScene(rootNode);
         guiViewPort.attachScene(guiNode);
 
@@ -154,44 +161,63 @@ public class ArchApp extends Application {
                                      "SIMPLEAPP_CameraPos", "SIMPLEAPP_Memory");
         }
         // call user code
+        
+	    //grass = new Material(assetManager, "Common/MatDefs/Misc/SimpleTextured.j3md");
+	    grasst = assetManager.loadTexture("req/grass.jpg");
+	    
+	   grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+       //grass.setColor("m_Color", ColorRGBA.White);
+       grass.setFloat("m_Shininess", 5f); 
+        
+		wallmat = new Material(assetManager, "Common/MatDefs/Misc/SimpleTextured.j3md");
+		wallmat.setTexture("m_ColorMap", assetManager.loadTexture("req/wall1.jpg"));
+        
+        
         simpleInitApp();
     }
 
     @Override
     public void update() {
-        if (speed == 0 || paused)
-            return;
-        
-        super.update();
-        float tpf = timer.getTimePerFrame() * speed;
-
-        //secondCounter += timer.getTimePerFrame();
-       // int fps = (int) timer.getFrameRate();
-       // if (secondCounter >= 1.0f){
-         //   fpsText.setText("Mother-licking FPS: "+fps);
-         //   secondCounter = 0.0f;
-       // }
-
-        // update states
-        stateManager.update(tpf);
-
-        // simple update and root node
-        simpleUpdate(tpf);
-        rootNode.updateLogicalState(tpf);
-        guiNode.updateLogicalState(tpf);
-        rootNode.updateGeometricState();
-        guiNode.updateGeometricState();
-
-        // render states
-        stateManager.render(renderManager);
-        renderManager.render(tpf);
-        simpleRender(renderManager);
-        stateManager.postRender();
+		synchronized(syncLockObject) {
+	        if (speed == 0 || paused)
+	            return;
+	        
+	        super.update();
+	        float tpf = timer.getTimePerFrame() * speed;
+	
+	        //secondCounter += timer.getTimePerFrame();
+	       // int fps = (int) timer.getFrameRate();
+	       // if (secondCounter >= 1.0f){
+	         //   fpsText.setText("FPS: "+fps);
+	         //   secondCounter = 0.0f;
+	       // }
+	
+	        // update states
+	        stateManager.update(tpf);
+	
+	        // simple update and root node
+	        simpleUpdate(tpf);
+	        rootNode.updateLogicalState(tpf);
+	        guiNode.updateLogicalState(tpf);
+	        rootNode.updateGeometricState();
+	        guiNode.updateGeometricState();
+	
+	        // render states
+	        stateManager.render(renderManager);
+	        renderManager.render(tpf);
+	        simpleRender(renderManager);
+	        stateManager.postRender();
+		}
     }
 
     public void simpleInitApp() {
 		flyCam.setDragToRotate(true);
 		addbackg();
+	    //add a sun
+	    DirectionalLight sun = new DirectionalLight();
+	    sun.setDirection(new Vector3f(10,-50,0).normalizeLocal());
+	    sun.setColor(ColorRGBA.White);
+	    rootNode.addLight(sun);
     }
 
     public void simpleUpdate(float tpf){
@@ -200,58 +226,6 @@ public class ArchApp extends Application {
     public void simpleRender(RenderManager rm){
     }
 
-	/*
-    // NB: a float[] model_rotation is required
-    void addModels (String[] model_name, int[][] model_position, Spatial[] model)
-    {
-	    float[] scales = new float[3];
-	    Material mat;
-	    model = new Spatial[args.length];
-
-        // load models (as per arguments given), position and scale accordingly.
-		for (int i = 0; i < args.length; i++)
-		{
-			scales = dbGetScale(model_name[i]);
-
-			model[i] = assetManager.loadModel(dbGetModel(model_name[i]));
-			model[i].scale(scales[0], scales[1], scales[2]);
-        	model[i].setLocalTranslation(model_position[i][0], model_position[i][1], model_position[i][2]);
-        	model[i].rotate((float) -(0.5 * PI), (float) -(PI), 0);
-
-        	mat = new Material(assetManager, "Common/MatDefs/Misc/SolidColor.j3md");
-			mat.setColor("m_Color", ColorRGBA.LightGray);
-			model[i].setMaterial(mat);
-
-        	rootNode.attachChild(model[i]);
-		}
-    }*/
-    /* list of requirements from 2D GUI:
-           - array of vertices representing the points making up the room
-                 FORM: V[n][2]  :  V[i][0] = xi, V[i][1] = yi, etc.
-                 INTERNAL FORM: wall[n]  :  wall[i], etc. (as a Quad)
-
-           - array of strings (or other database identifiers) defining the pieces
-             of furniture needed in the room allowing their details to be looked
-             up from the database
-                 FORM: F[n]  :  F[i] = "furniture1", etc.
-                 INTERNAL FORM: model[n]  :  model[i], etc. (as a Spatial)
-
-           - array of vertices representing the points furniture (whose id
-             corresponds the the identicle position in the array of strings)
-                 FORM: P[n][2]  :  V[i][0] = xi, V[i][1] = yi, etc. (top left)
-
-           - array of floats representing relevent rotations where -PI < rot <= PI
-             depends on implementation decision wrt. rotation (snapping etc)
-                 FORM: R[n]  :  R[i] = -PI/2, etc. (where wall[i].rotation = R[i])
-
-           - array of vertices representing the location of doors
-
-           - array of vertices representing the location of windows
-
-           - array of strings representing the texture of the strip of wall at the
-             corresponding position in the wall array.
-                 FORM: T[n]  :  T[i], etc. (where wall[i].texture = T[i])
-    */
 
     // constructs a wall between (x1,y1) and (x2,y2)
     void makewall (int x1, int y1, int x2, int y2)
@@ -266,6 +240,7 @@ public class ArchApp extends Application {
 		if(lenx==0){length=leny; rotation=-(float) Math.toRadians(90);} else{
 		if(leny==0){length=lenx; rotation=0;} else{
     	          length = (int) Math.sqrt((Math.pow(lenx,2) + Math.pow(leny,2)));
+    	          length += 2;
     	          rotation = (float) -(Math.atan((double) (leny) / (lenx)));
                 if(y2>y1 & x1>x2)  {rotation += Math.PI;}
                 if(y2<y1 & x1>x2)  {rotation += Math.PI;}
@@ -273,45 +248,36 @@ public class ArchApp extends Application {
 
 		//Draw a quad between the two given verticies using dist
 		//and angles calculate above
-		wall = new Geometry ("Box", new Quad(length,200));
-		Material mat = new Material(assetManager, "Common/MatDefs/Misc/SimpleTextured.j3md");
-		mat.setTexture("m_ColorMap", assetManager.loadTexture("req/wall1.jpg"));
-		wall.setMaterial(mat);
+		wall = new Geometry ("Box", new Quad(length,100));
+		wall.setMaterial(wallmat);
 		wall.setLocalTranslation(new Vector3f(x1, -100, y1));
 		wall.rotate(0f, rotation, 0f);
 		rootNode.attachChild(wall);
+		walls.add(wall);
 
 		//Double up the quad
-		wall = new Geometry ("Box", new Quad(length,200));
-		wall.setMaterial(mat);
+		wall = new Geometry ("Box", new Quad(length,100));
+		wall.setMaterial(wallmat);
 		wall.setLocalTranslation(new Vector3f(x2, -100, y2));
 		wall.rotate(0f, (float) (rotation + Math.PI), 0f);
 		rootNode.attachChild(wall);
+		walls.add(wall);
     	}
 
     void addbackg(){
 		//add the grassy area
-	    Quad blah = new Quad(2000,2000);
+	    Quad blah = new Quad(4000,4000);
 		Geometry geom = new Geometry("Box", blah);
-	    Material mat_stl = new Material(assetManager, "Common/MatDefs/Misc/SimpleTextured.j3md");
-	    Texture tex_ml = assetManager.loadTexture("req/grass.jpg");
-	    mat_stl.setTexture("m_ColorMap", tex_ml);
-	    geom.setMaterial(mat_stl);
-	    geom.setLocalTranslation(new Vector3f(2000,-100,-500));
+	    //grass.setTexture("m_ColorMap", grasst);
+	    geom.setMaterial(grass);geom.setLocalTranslation(new Vector3f(2000,-100,-500));
 		geom.rotate((float) -Math.toRadians(90),(float) Math.toRadians(180),0f );
 	    rootNode.attachChild(geom);
 
 	    //add the sky image
 	    rootNode.attachChild(SkyFactory.createSky(
 	            assetManager, "req/BrightSky.dds", false));
-
-	    //add a sun
-	    DirectionalLight sun = new DirectionalLight();
-	    sun.setDirection(new Vector3f(10,-50,0).normalizeLocal());
-	    sun.setColor(ColorRGBA.White);
-	    rootNode.addLight(sun);
     }
-
+    
 	void clearall()
     {
 		rootNode.detachAllChildren();
@@ -320,6 +286,24 @@ public class ArchApp extends Application {
 
 	void updateroot(){
 		rootNode.updateGeometricState();
+	}
+	
+	public void updateall(Edge[] edges)
+	{
+	          clearall();
+	          addedges(edges);
+	}
+	
+	//void removechair(){
+		//if(chair!=null){rootNode.detachChild(chair);}
+	//}
+	
+	void addchair(Point center){
+	    chair = assetManager.loadModel("req/armchair.obj");
+	    chair.scale(15f, 10f, 15f);
+	    chair.rotate((float) -(0.5* Math.PI),(float) -(0.5* Math.PI),0);
+	    chair.setLocalTranslation(center.x+15,-100,center.y-30);
+	    rootNode.attachChild(chair);
 	}
 
 	void addedges(Edge[] edges){
@@ -333,3 +317,56 @@ public class ArchApp extends Application {
 		}
       }
 }
+
+/*
+// NB: a float[] model_rotation is required
+void addModels (String[] model_name, int[][] model_position, Spatial[] model)
+{
+    float[] scales = new float[3];
+    Material mat;
+    model = new Spatial[args.length];
+
+    // load models (as per arguments given), position and scale accordingly.
+	for (int i = 0; i < args.length; i++)
+	{
+		scales = dbGetScale(model_name[i]);
+
+		model[i] = assetManager.loadModel(dbGetModel(model_name[i]));
+		model[i].scale(scales[0], scales[1], scales[2]);
+    	model[i].setLocalTranslation(model_position[i][0], model_position[i][1], model_position[i][2]);
+    	model[i].rotate((float) -(0.5 * PI), (float) -(PI), 0);
+
+    	mat = new Material(assetManager, "Common/MatDefs/Misc/SolidColor.j3md");
+		mat.setColor("m_Color", ColorRGBA.LightGray);
+		model[i].setMaterial(mat);
+
+    	rootNode.attachChild(model[i]);
+	}
+}*/
+/* list of requirements from 2D GUI:
+       - array of vertices representing the points making up the room
+             FORM: V[n][2]  :  V[i][0] = xi, V[i][1] = yi, etc.
+             INTERNAL FORM: wall[n]  :  wall[i], etc. (as a Quad)
+
+       - array of strings (or other database identifiers) defining the pieces
+         of furniture needed in the room allowing their details to be looked
+         up from the database
+             FORM: F[n]  :  F[i] = "furniture1", etc.
+             INTERNAL FORM: model[n]  :  model[i], etc. (as a Spatial)
+
+       - array of vertices representing the points furniture (whose id
+         corresponds the the identicle position in the array of strings)
+             FORM: P[n][2]  :  V[i][0] = xi, V[i][1] = yi, etc. (top left)
+
+       - array of floats representing relevent rotations where -PI < rot <= PI
+         depends on implementation decision wrt. rotation (snapping etc)
+             FORM: R[n]  :  R[i] = -PI/2, etc. (where wall[i].rotation = R[i])
+
+       - array of vertices representing the location of doors
+
+       - array of vertices representing the location of windows
+
+       - array of strings representing the texture of the strip of wall at the
+         corresponding position in the wall array.
+             FORM: T[n]  :  T[i], etc. (where wall[i].texture = T[i])
+*/

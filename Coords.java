@@ -246,6 +246,12 @@ public class Coords {
    public Edge[] getEdges() {
       return edges.toArray(new Edge[0]);
    }
+   
+   /** returns an array containing all the Furniture in the current design */
+   public Furniture[] getFurniture(){
+	   return furniture.toArray(new Furniture[0]);
+   }
+   
 
    /** returns the vertex that the Point p lies within, or null if none */
    public Vertex vertexAt(Point p) {

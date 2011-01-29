@@ -53,6 +53,10 @@ public class Furniture {
 
       recalcRectangle();
    }
+   
+   public String getID(){
+	   return furnitureID;
+   }
 
    public String getSaveString() {
       return furnitureID + "," + width + "," + height + "," + rotationCenterX + "," + rotationCenterY + "," + rotation;
@@ -62,6 +66,10 @@ public class Furniture {
       rotationCenterX = (float) center.x;
       rotationCenterY = (float) center.y;
    }
+   
+   Point getRotationCenter() {
+	     return new Point((int) rotationCenterX,(int) rotationCenterY);
+	   }
 
    private void recalcRectangle() {
       float x = rotationCenterX - (float) 0.5 * width;

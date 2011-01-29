@@ -18,8 +18,8 @@ public class MovCam implements AnalogListener, ActionListener {
 
     protected Camera cam;
     protected Vector3f initialUpVec;
-    protected float rotationSpeed = 1f;
-    protected float moveSpeed = 3f;
+    protected float rotationSpeed = 5f;
+    protected float moveSpeed = 1f;
     protected boolean enabled = true;
     protected boolean dragToRotate = false;
     protected boolean canRotate = false;
@@ -174,7 +174,8 @@ public class MovCam implements AnalogListener, ActionListener {
         Vector3f mov = null,des = null;
         Vector3f pos = cam.getLocation().clone();
         cam.getDirection(vel);
-        
+        if(value>=0) {vel = new Vector3f(vel.x,0,vel.z);}
+        else {vel = new Vector3f(-vel.x,0,-vel.z);}
         //Injected Code to get movement bounds
         /*if(value>0){
         	des = new Vector3f(vel.x,0,vel.z); }
@@ -198,10 +199,9 @@ public class MovCam implements AnalogListener, ActionListener {
         	if(des.z<=0 && pos.z>387) {mov = new Vector3f(0,0,des.z);pos.addLocal(mov);}        	
         }
         //end*/
-        vel = new Vector3f(vel.x,0,vel.z);
         pos.addLocal(vel);
         cam.setLocation(pos);
-        System.out.println(pos.x+ " "+pos.y+ " "+pos.z);
+        //System.out.println(pos.x+ " "+pos.y+ " "+pos.z);
     }
 
     protected void sideCamera(float value, boolean sideways){
@@ -213,7 +213,7 @@ public class MovCam implements AnalogListener, ActionListener {
         }else{
             cam.getDirection(vel);
         }
-        vel.multLocal(value * moveSpeed * 2);
+        vel.multLocal(value * moveSpeed);
         
         //Injected Code to get movement bounds
         /*

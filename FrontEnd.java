@@ -37,7 +37,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
          addTab(new File("testSave.atech"), null);
          stateChanged(new ChangeEvent(tabbedPane));
       } catch (Exception e) {
-         // FAILED TO LOAD, NOTIFY USER
+         e.printStackTrace();
       }
 
       tabbedPane.addChangeListener(this);
