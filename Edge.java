@@ -19,9 +19,8 @@ public class Edge {
 
    /** Creates a new edge from the given vertices. Doesn't add it to the coordStore.
     *  If null is given for a vertex then that vertex will be made at 0,0,0 */
-   Edge(Coords coordStore, Coords.Vertex v1, Coords.Vertex v2) {
-      if (v1 == null) v1 = coordStore.new Vertex();
-      if (v2 == null) v2 = coordStore.new Vertex();
+   Edge(Coords.Vertex v1, Coords.Vertex v2) {
+      if (v1 == null || v2 == null) throw new IllegalArgumentException("null vertex");
 
       this.v1 = v1;
       this.v2 = v2;
@@ -67,16 +66,16 @@ public class Edge {
       return curveCtrl.contains(p);
    }
 
-   /** Updates ctrl, refuses to update if you give it null */
-   public void setCtrl(Loc3f ctrl) {
+   /** Use setEdgeCtrl() in Coords! Updates ctrl, refuses to update if you give it null */
+   public void setCtrl(Point ctrl) {
       if (ctrl == null) return;
 
-      this.ctrl.setLocation(ctrl.x(), ctrl.y());
+      this.ctrl.setLocation(ctrl.getX(), ctrl.getY());
       recalcTopDownView();
    }
 
    /** Places the ctrl point halfway between v1 and v2 */
-   private void resetCtrlPositionToHalfway() {
+   public final void resetCtrlPositionToHalfway() {
       ctrl.setLocation( ( v1.getX() + v2.getX() ) / 2, ( v1.getY() + v2.getY() ) / 2 );
    }
 

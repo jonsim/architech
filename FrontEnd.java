@@ -56,7 +56,11 @@ public class FrontEnd implements WindowListener, ChangeListener {
 
    public void stateChanged(ChangeEvent e) {
       TwoDScrollPane currTab = getCurrentTab();
-      main.viewport3D.tabChanged(currTab == null ? null : currTab.getCoords());
+      try {
+         main.viewport3D.tabChanged(currTab == null ? null : currTab.getCoords());
+      } catch (Exception err) {
+         /* Catch and ignore just in case something in viewport3D crashes. */
+      }
    }
 
    private void addTab(File file, String title) throws Exception {

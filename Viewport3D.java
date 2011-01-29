@@ -81,7 +81,7 @@ public class Viewport3D implements ActionListener, CoordsChangeListener {
 		    	 Furniture[] furniture = currentTab.getCoords().getFurniture();
 		         for (Furniture f : furniture) {
 		             // check for collisions
-		             canvasApplication.updateroot();		             
+		             //canvasApplication.updateroot();
 		  	         canvasApplication.addchair(f.getRotationCenter(),f.getID());
 		          }
 		    canvasApplication.addedges(currentTab.getCoords().getEdges());

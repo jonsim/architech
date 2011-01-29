@@ -15,7 +15,7 @@ public class Coords {
     *  better in the long run prevention of bugs wise!
     *  
     */
-   public class Vertex {
+   public static class Vertex {
       private int diameter = 10;
 
       private final Loc3f p = new Loc3f(0,0,0);
@@ -112,26 +112,37 @@ public class Coords {
          }
 
          v.edgeUses.clear();
-         vertices.remove(v);
       }
 
       /** Each Vertex remembers the Coords class that it was created with. This
        *  method returns that Coords instance */
-      public Coords getOuterInstance() {
+      /* public Coords getOuterInstance() {
          return Coords.this;
+      }*/
+
+      /** Returns true iff the x,y,z coords of v match the parameters */
+      public boolean equalsLocation(float x, float y, float z) {
+         return p.x() == x && p.y() == y && p.z() == z;
       }
 
       /** Returns true iff the x,y,z coords of the given vertex match this
        *  vertex's coords */
-      public boolean equals(Vertex v) {
+      public boolean equalsLocation(Vertex v) {
          if (v == null) return false;
-         return equals(v.p.x(), v.p.y(), v.p.z());
+         return equalsLocation(v.p.x(), v.p.y(), v.p.z());
       }
 
-      /** Returns true iff the x,y,z coords of v match the parameters */
-      public boolean equals(float x, float y, float z) {
-         if (p.x() == x && p.y() == y && p.z() == z) return true;
-         else return false;
+      /** @see Coords.Vertex.equalsLocation */
+      @Override
+      public boolean equals(Object obj) {
+         if (!(obj instanceof Coords.Vertex)) return false;
+         return equalsLocation((Coords.Vertex) obj);
+      }
+
+      /** hashCode is for only the location of this vertex, not edges using it etc. */
+      @Override
+      public int hashCode() {
+         return p.hashCode();
       }
    }
 
@@ -186,7 +197,7 @@ public class Coords {
          Vertex v1 = vertexA[v1Index];
          Vertex v2 = vertexA[v2Index];
 
-         Edge e = new Edge(this, v1, v2);
+         Edge e = new Edge(v1, v2);
          v1.setUse(e);
          v2.setUse(e);
          this.edges.add(e);
@@ -231,10 +242,12 @@ public class Coords {
 
    /** Returns a new edge object, already added to the coordStore */
    public Edge newEdge(Vertex v1, Vertex v2, boolean snapToGrid) {
-      Edge e = new Edge(this, null, null);
+      v1 = addVertex(v1.getX(), v1.getY(), v1.getZ(), null, snapToGrid);
+      v2 = addVertex(v2.getX(), v2.getY(), v2.getZ(), null, snapToGrid);
 
-      e.setV1(addVertex(v1.getX(), v1.getY(), v1.getZ(), e, snapToGrid));
-      e.setV2(addVertex(v2.getX(), v2.getY(), v2.getZ(), e, snapToGrid));
+      Edge e = new Edge(v1, v2);
+      v1.setUse(e);
+      v2.setUse(e);
 
       edges.add(e);
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_ADDED, e));
@@ -265,17 +278,6 @@ public class Coords {
       return null;
    }
 
-   /*public Edge edgeAt(Point p) {
-      ListIterator<Edge> ite = edges.listIterator();
-
-      while (ite.hasNext()) {
-         Edge e = ite.next();
-         if (e.contains(p, 10)) return e;
-      }
-
-      return null;
-   }*/
-
    /** Returns the edge that is associated with the curve control circle at p,
     *  or null if p doesn't lie within a ctrl point */
    public Edge ctrlAt(Point p) {
@@ -296,7 +298,7 @@ public class Coords {
       
       while (ite.hasNext()) {
          Vertex v = ite.next();
-         if (v.equals(x, y, z)) return v;
+         if (v.equalsLocation(x, y, z)) return v;
       }
       
       return null;
@@ -348,7 +350,10 @@ public class Coords {
 
       Vertex vAlt = vertexInUse(x, y, z);
 
-      if (vAlt != null && vAlt != v) v.addUsesCutFrom(vAlt);
+      if (vAlt != null && vAlt != v) {
+         v.addUsesCutFrom(vAlt);
+         vertices.remove(vAlt);
+      }
 
       // if the vertex is currently snapped, it might not be changing position, don't fire events
       if (!(v.p.x()==x && v.p.y()==y && v.p.z()==z)) {
@@ -389,10 +394,9 @@ public class Coords {
 
    /** If the vertex exists already it prevents duplicate entries.
     *  usefor is the object that will be added to the (perhaps new) vertex's
-    *  list of objects that are using it */
+    *  list of objects that are using it. If Edge useFor is null, then it will
+    *  not be added to the vertex's list of uses */
    private Vertex addVertex(float x, float y, float z, Edge useFor, boolean snapToGrid) {
-      if (useFor == null) return null;
-
       if (snapToGrid) {
          x = snapToGrid(x);
          y = snapToGrid(y);
@@ -402,13 +406,13 @@ public class Coords {
       Vertex inUse = vertexInUse(x, y, z);
       if (inUse != null) {
          // there is already a vertex with these points
-         inUse.setUse(useFor);
+         inUse.setUse(useFor); // will do nothing if useFor is null
          return inUse;
 
       } else {
          // vertex doesn't exist yet
          Vertex newV = new Vertex(x, y, z);
-         newV.setUse(useFor);
+         newV.setUse(useFor); // will do nothing if useFor is null
          vertices.add(newV);
          return newV;
       }
@@ -475,6 +479,16 @@ public class Coords {
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_REMOVED, e));
    }
 
+   /** calls setCtrl on the edge with the new point and fires an edge changed event */
+   public void setEdgeCtrl(Edge dragEdge, Point loc) {
+      if (dragEdge == null || !edges.contains(dragEdge) || loc == null) {
+         throw new IllegalArgumentException("null parameter");
+      }
+      
+      dragEdge.setCtrl(loc);
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, dragEdge));
+   }
+
    /** Draws the grid on the given Graphics canvas, from 0,0 to width,height */
    public void drawGrid(Graphics2D g2, int width, int height) {
       g2.setColor(Color.LIGHT_GRAY);
@@ -488,20 +502,7 @@ public class Coords {
       }
    }
 
-   private javax.swing.event.EventListenerList listenerList = new javax.swing.event.EventListenerList();
-   void addCoordsChangeListener(CoordsChangeListener listener) {
-      listenerList.add(CoordsChangeListener.class, listener);
-   }
-   void removeCoordsChangeListener(CoordsChangeListener listener) {
-      listenerList.remove(CoordsChangeListener.class, listener);
-   }
-   private void fireCoordsChangeEvent(CoordsChangeEvent event) {
-      saveRequired = true;
-      CoordsChangeListener[] listeners = listenerList.getListeners(CoordsChangeListener.class);
-      for (CoordsChangeListener listener : listeners) {
-         listener.coordsChangeOccurred(event);
-      }
-   }
+   //-SAVING-STUFF--------------------------------------------------------------
 
    /** Returns true if the coords were modified since it was created, or if save
     *  failed or false if nothing has changed or a save was successful */
@@ -598,5 +599,34 @@ public class Coords {
          if (vArray[i] == v) return i;
       }
       return -1;
+   }
+
+   //-CHANGE-EVENT-STUFF--------------------------------------------------------
+   
+   private javax.swing.event.EventListenerList listenerList = new javax.swing.event.EventListenerList();
+   void addCoordsChangeListener(CoordsChangeListener listener) {
+      listenerList.add(CoordsChangeListener.class, listener);
+   }
+   void removeCoordsChangeListener(CoordsChangeListener listener) {
+      listenerList.remove(CoordsChangeListener.class, listener);
+   }
+   private void fireCoordsChangeEvent(CoordsChangeEvent event) {
+      saveRequired = true;
+      CoordsChangeListener[] listeners = listenerList.getListeners(CoordsChangeListener.class);
+      for (CoordsChangeListener listener : listeners) {
+         try {
+            listener.coordsChangeOccurred(event);
+         } catch (Exception e) {
+            /* Catch so we can still fire events if one of the listeners crash */
+         }
+      }
+   }
+   public void somethingChanged(Edge e) {
+      if (e == null || !edges.contains(e)) return;
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
+   }
+   public void somethingChanged(Furniture f) {
+      if (f == null || !furniture.contains(f)) return;
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_CHANGED, f));
    }
 }

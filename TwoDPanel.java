@@ -104,7 +104,7 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
    private void lineDragStarted(Coords coordStore, Point p, boolean snapToGrid) {
       if (p == null) return;
 
-      Coords.Vertex v = coordStore.new Vertex(p.x, p.y, 0);
+      Coords.Vertex v = new Coords.Vertex(p.x, p.y, 0);
       dragEdge = coordStore.newEdge(v, v, snapToGrid);
    }
 
@@ -202,7 +202,7 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
          vertexDragEvent(coords, selectVertex, e.getPoint(), designButtons.isGridOn());
       } else if (designButtons.isCurveTool()) {
          if (dragEdge != null) {
-            dragEdge.setCtrl( new Loc3f(e.getX(), e.getY(), 0) );
+            coords.setEdgeCtrl(dragEdge, e.getPoint());
             repaint();// since the ctrl point isn't in the coordStore, this must be called manually
          }
       }

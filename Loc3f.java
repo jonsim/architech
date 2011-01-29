@@ -26,4 +26,19 @@ public class Loc3f {
    public float z() {
       return z;
    }
+
+   public boolean equalsLocation(Loc3f loc) {
+      return loc.x == x && loc.y == y && loc.z == z;
+   }
+
+   @Override
+   public boolean equals(Object obj) {
+      if (!(obj instanceof Loc3f)) return false;
+      return equalsLocation((Loc3f) obj);
+   }
+
+   @Override
+   public int hashCode() {
+      return (int) x ^ (int) y ^ (int) z;
+   }
 }
