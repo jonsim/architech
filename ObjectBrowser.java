@@ -31,7 +31,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    public DefaultListModel fields = new DefaultListModel();
    private ListSelectionListener listSelectionListener;
    // This will get the database as long as it is in the current directory
-   private String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "\\ObjectDatabase.sqlite";
+   private String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "/ObjectDatabase.sqlite";
    private Font f = new Font("sansserif", Font.PLAIN, 14);
    private Connection connection = null;
    private PreparedStatement statement = null;
