@@ -29,11 +29,6 @@ public class Viewport3DEmpty extends Viewport3D {
    public void tabChanged(Coords coords) {
    }
 
-   /** Called by the update button, which is in DesignButtons.java */
-   @Override
-   public void actionPerformed(ActionEvent e) {
-   }
-
    @Override
    public void coordsChangeOccurred(CoordsChangeEvent e) {
    }
