@@ -20,14 +20,14 @@ public class Edge {
    /** Creates a new edge from the given vertices. Doesn't add it to the coordStore.
     *  If null is given for a vertex then that vertex will be made at 0,0,0
     *  If ctrl is null the ctrl point will be at the middle, otherwise it is set */
-   Edge(Coords.Vertex v1, Coords.Vertex v2, Point ctrl) {
+   Edge(Coords.Vertex v1, Coords.Vertex v2, Point ctrl, double zoomScale) {
       if (v1 == null || v2 == null) throw new IllegalArgumentException("null vertex");
 
       this.v1 = v1;
       this.v2 = v2;
 
-      if (ctrl == null) resetCtrlPositionToHalfway();
-      else setCtrl(ctrl);
+      if (ctrl == null) resetCtrlPositionToHalfway(zoomScale);
+      else setCtrl(ctrl, zoomScale);
    }
 
    /** Returns the vertex at one end of this line */
@@ -43,21 +43,21 @@ public class Edge {
    /** Updates v1, refuses to update if you give it null. Also updates the ctrl
     *  point to halfway between the two points. When a new line is drawn this is
     *  called, and the new line has ctrl point 0,0 so it should be updated. */
-   public void setV1(Coords.Vertex v1) {
+   public void setV1(Coords.Vertex v1, double zoomScale) {
       if (v1 == null) return;
 
       this.v1 = v1;
-      resetCtrlPositionToHalfway();
+      resetCtrlPositionToHalfway(zoomScale);
    }
 
    /** Updates v2, refuses to update if you give it null. Also updates the ctrl
     *  point to halfway between the two points. When a new line is drawn this is
     *  called, and the new line has ctrl point 0,0 so it should be updated. */
-   public void setV2(Coords.Vertex v2) {
+   public void setV2(Coords.Vertex v2, double zoomScale) {
       if (v2 == null) return;
 
       this.v2 = v2;
-      resetCtrlPositionToHalfway();
+      resetCtrlPositionToHalfway(zoomScale);
    }
 
    /** Returns true if the point lies within the coordinates of the control point */
@@ -66,11 +66,11 @@ public class Edge {
    }
 
    /** Use setEdgeCtrl() in Coords! Updates ctrl, refuses to update if you give it null */
-   public final void setCtrl(Point ctrl) {
+   public final void setCtrl(Point ctrl, double zoomScale) {
       if (ctrl == null) return;
 
       this.ctrl.setLocation(ctrl.getX(), ctrl.getY());
-      recalcTopDownView();
+      recalcTopDownView(zoomScale);
    }
 
    /** Returns the x coordinate of the ctrl point */
@@ -84,19 +84,19 @@ public class Edge {
    }
 
    /** Places the ctrl point halfway between v1 and v2 */
-   public final void resetCtrlPositionToHalfway() {
+   public final void resetCtrlPositionToHalfway(double zoomScale) {
       ctrl.setLocation( ( v1.getX() + v2.getX() ) / 2, ( v1.getY() + v2.getY() ) / 2 );
-      recalcTopDownView();
+      recalcTopDownView(zoomScale);
    }
 
    /** Keeps the top down (2D) view of this line up to date */
-   public final void recalcTopDownView() {
-      topDownViewCurve.setCurve(v1.getX(), v1.getY(), ctrl.getX(), ctrl.getY(), v2.getX(), v2.getY());
+   public final void recalcTopDownView(double zoomScale) {
+      topDownViewCurve.setCurve(zoomScale*v1.getX(), zoomScale*v1.getY(), zoomScale*ctrl.getX(), zoomScale*ctrl.getY(), zoomScale*v2.getX(), zoomScale*v2.getY());
 
-      curveCtrl.setFrame(ctrl.getX() - (curveCtrlSize/2), ctrl.getY() - (curveCtrlSize/2), curveCtrlSize, curveCtrlSize);
+      curveCtrl.setFrame(zoomScale*ctrl.getX() - (curveCtrlSize/2), zoomScale*ctrl.getY() - (curveCtrlSize/2), curveCtrlSize, curveCtrlSize);
 
-      tangent1.setLine(v1.getX(), v1.getY(), ctrl.getX(), ctrl.getY());
-      tangent2.setLine(v2.getX(), v2.getY(), ctrl.getX(), ctrl.getY());
+      tangent1.setLine(zoomScale*v1.getX(), zoomScale*v1.getY(), zoomScale*ctrl.getX(), zoomScale*ctrl.getY());
+      tangent2.setLine(zoomScale*v2.getX(), zoomScale*v2.getY(), zoomScale*ctrl.getX(), zoomScale*ctrl.getY());
    }
 
    /** Draws the 2D representation of this line on the given Graphics canvas */

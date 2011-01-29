@@ -13,7 +13,7 @@ import javax.swing.*;
  *  mouse button than the line drag tool then you can draw both at once. */
 class TwoDPanel extends JPanel implements KeyListener, Scrollable,
       MouseListener, MouseMotionListener, CoordsChangeListener {
-   private double zoomScaleX = 1, zoomScaleY = 1;
+   private double zoomScale = 1.0;
    private DesignButtons designButtons;
    private Coords coords;
    private Coords.Vertex hoverVertex, selectVertex;
@@ -57,13 +57,14 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
    }
 
    /** Returns the current zoom multiplier for x axis 1.0 is normal */
-   public double getZoomScaleX() {
-      return zoomScaleX;
+   public void setZoomScale(double scale) {
+      zoomScale = scale;
+      coords.setZoomScale(scale);
    }
 
    /** Returns the current zoom multiplier for y axis 1.0 is normal */
-   public double getZoomScaleY() {
-      return zoomScaleY;
+   public double getZoomScale() {
+      return zoomScale;
    }
 
    /** Called when the something changes in the coordinate system */
@@ -104,7 +105,7 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
    private void lineDragStarted(Coords coordStore, Point p, boolean snapToGrid) {
       if (p == null) return;
 
-      Coords.Vertex v = new Coords.Vertex(p.x, p.y, 0);
+      Coords.Vertex v = new Coords.Vertex(p.x, p.y, 0, zoomScale);
       dragEdge = coordStore.newEdge(v, v, snapToGrid);
    }
 
@@ -149,19 +150,21 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
    /** Invoked when a mouse button has been pressed on a component. */
    public void mousePressed(MouseEvent e) {
       if (e.getButton() == MouseEvent.BUTTON1) {
+         Point p = new Point();
+         p.setLocation(e.getX()/zoomScale, e.getY()/zoomScale);
 
          if (designButtons.isLineTool()) {
-            lineDragStarted(coords, e.getPoint(), designButtons.isGridOn());
+            lineDragStarted(coords, p, designButtons.isGridOn());
             setCursor(new Cursor(Cursor.HAND_CURSOR));
             // repaint(); - done by the coordStore change listener if anything changes
 
          } else if (designButtons.isSelectTool()) {
-            selectVertex = coords.vertexAt(e.getPoint());
+            selectVertex = coords.vertexAt(p);
             requestFocus(); // makes the keys work if the user clicked on a vertex and presses delete
             repaint(); // gets rid of the blue selected vertex
             
          } else if (designButtons.isCurveTool()) {
-            dragEdge = coords.ctrlAt(e.getPoint());
+            dragEdge = coords.ctrlAt(p);
 
             //if (dragEdge != null)
             //   dragEdge.setCurve();
@@ -196,14 +199,16 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
 
    /** Invoked when a mouse button is pressed on a component and then dragged. */
    public void mouseDragged(MouseEvent e) {
+      Point p = new Point();
+      p.setLocation(e.getX()/zoomScale, e.getY()/zoomScale);
+
       if (designButtons.isLineTool()) {
-         lineDragEvent(coords, dragEdge, e.getPoint(), e.isShiftDown(), designButtons.isGridOn());
+         lineDragEvent(coords, dragEdge, p, e.isShiftDown(), designButtons.isGridOn());
       } else if (designButtons.isSelectTool()) {
-         vertexDragEvent(coords, selectVertex, e.getPoint(), designButtons.isGridOn());
+         vertexDragEvent(coords, selectVertex, p, designButtons.isGridOn());
       } else if (designButtons.isCurveTool()) {
-         if (dragEdge != null) {
-            coords.setEdgeCtrl(dragEdge, e.getPoint());
-         }
+         if (dragEdge != null)
+            coords.setEdgeCtrl(dragEdge, p);
       }
 
       // repaint(); - done by the coordStore change listener if anything changes
@@ -211,8 +216,11 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
 
    /** Invoked when the mouse cursor has been moved onto a component but no buttons have been pushed. */
    public void mouseMoved(MouseEvent e) {
+      Point p = new Point();
+      p.setLocation(e.getX()/zoomScale, e.getY()/zoomScale);
+
       Coords.Vertex before = hoverVertex;
-      hoverVertex = coords.vertexAt(e.getPoint());
+      hoverVertex = coords.vertexAt(p);
       if (before != hoverVertex) repaint();
    }
 

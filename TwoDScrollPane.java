@@ -39,8 +39,8 @@ public class TwoDScrollPane extends JScrollPane {
       @Override
       public Dimension toViewCoordinates(Dimension size) {
          // calculate the difference between normal un-scaled size and scaled size
-         double scaleX = twoDPanel.getZoomScaleX();
-         double scaleY = twoDPanel.getZoomScaleY();
+         double scaleX = twoDPanel.getZoomScale();
+         double scaleY = twoDPanel.getZoomScale();
          
          return super.toViewCoordinates(size);
       }
@@ -49,8 +49,8 @@ public class TwoDScrollPane extends JScrollPane {
       @Override
       public Point toViewCoordinates(Point p) {
          // calculate the difference between normal un-scaled size and scaled size
-         double scaleX = twoDPanel.getZoomScaleX();
-         double scaleY = twoDPanel.getZoomScaleY();
+         double scaleX = twoDPanel.getZoomScale();
+         double scaleY = twoDPanel.getZoomScale();
          
          return super.toViewCoordinates(p);
       }
