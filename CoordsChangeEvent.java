@@ -81,14 +81,22 @@ public class CoordsChangeEvent extends EventObject {
       if (changeType == EDGE_ADDED || changeType == EDGE_REMOVED || changeType == EDGE_CHANGED) return true;
       else return false;
    }
+
    private boolean isFurnitureRelated(int changeType) {
       if (changeType == FURNITURE_ADDED || changeType == FURNITURE_REMOVED || changeType == FURNITURE_CHANGED) return true;
       else return false;
    }
+
    public boolean isEdgeRelated() {
       return isEdgeRelated(changeType);
    }
+
    public boolean isFurnitureRelated() {
       return isFurnitureRelated(changeType);
+   }
+
+   @Override
+   public Coords getSource() {
+      return (Coords) super.source;
    }
 }

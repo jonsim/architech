@@ -84,7 +84,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
    }
 
    /** Gets the current tab or null if there are no tabs */
-   public TwoDScrollPane getCurrentTab() {
+   private TwoDScrollPane getCurrentTab() {
       Component selected = tabbedPane.getSelectedComponent();
       if (selected != null && selected instanceof TwoDScrollPane) {
          return (TwoDScrollPane) selected;
@@ -177,7 +177,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
    }
 
    /** Asks the user to choose a file to open */
-   public File userChoiceOfOpenFile() {
+   private File userChoiceOfOpenFile() {
       JFileChooser fc = new JFileChooser();
       fc.setDialogType(JFileChooser.OPEN_DIALOG);
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -196,7 +196,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
    }
 
    /** Asks the user to choose a file to save to */
-   public File userChoiceOfSaveFile() {
+   private File userChoiceOfSaveFile() {
       JFileChooser fc = new JFileChooser();
       fc.setDialogType(JFileChooser.SAVE_DIALOG);
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
