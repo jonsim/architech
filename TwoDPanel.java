@@ -203,7 +203,6 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
       } else if (designButtons.isCurveTool()) {
          if (dragEdge != null) {
             coords.setEdgeCtrl(dragEdge, e.getPoint());
-            repaint();// since the ctrl point isn't in the coordStore, this must be called manually
          }
       }
 

@@ -163,8 +163,8 @@ public class Coords {
 
    /** Blindly makes vertices and edges, there might be orphaned/dup vertices */
    Coords(File loadedFrom, float[][] vertices, int[][] edges, Furniture[] furniture) throws IllegalArgumentException {
-      if (loadedFrom == null || vertices == null || edges == null)
-         throw new IllegalArgumentException("Null argument");
+      if (loadedFrom == null || vertices == null || edges == null || furniture == null)
+         throw new IllegalArgumentException("null argument");
       if (!loadedFrom.isFile()) {
          throw new IllegalArgumentException("File is a directory or it doesn't exist");
       }
@@ -183,12 +183,13 @@ public class Coords {
       }
 
       for (int i=0; i < edges.length; i++) {
-         if (edges[i] == null || edges[i].length != 2) {
+         if (edges[i] == null || edges[i].length != 4) {
             throw new IllegalArgumentException("Edges array needs to be of size m by 2");
          }
 
          int v1Index = edges[i][0];
          int v2Index = edges[i][1];
+         Point ctrl = new Point(edges[i][2], edges[i][3]);
          
          if (v1Index < 0 || v1Index >= vertexA.length || v2Index < 0 || v2Index >= vertexA.length) {
             throw new IllegalArgumentException("A given edge indexes a vertex that doesn't exist (OOB)");
@@ -197,7 +198,7 @@ public class Coords {
          Vertex v1 = vertexA[v1Index];
          Vertex v2 = vertexA[v2Index];
 
-         Edge e = new Edge(v1, v2);
+         Edge e = new Edge(v1, v2, ctrl);
          v1.setUse(e);
          v2.setUse(e);
          this.edges.add(e);
@@ -245,7 +246,7 @@ public class Coords {
       v1 = addVertex(v1.getX(), v1.getY(), v1.getZ(), null, snapToGrid);
       v2 = addVertex(v2.getX(), v2.getY(), v2.getZ(), null, snapToGrid);
 
-      Edge e = new Edge(v1, v2);
+      Edge e = new Edge(v1, v2, null);
       v1.setUse(e);
       v2.setUse(e);
 
@@ -569,13 +570,15 @@ public class Coords {
 
       // make the list of edges that will be saved
       Edge[] eArray = edges.toArray(new Edge[0]);
-      int[][] saveEdges = new int[eArray.length][2];
+      int[][] saveEdges = new int[eArray.length][4];
       for (int i=0; i < eArray.length; i++) {
          // find the index of the two endpoint vertices. If there is an error
          // finding v1 or v2, the save file will be corrupt, but it might be
          // recoverable, so continue anyway!
          saveEdges[i][0] = saveIndexIn(vArray, eArray[i].getV1());
          saveEdges[i][1] = saveIndexIn(vArray, eArray[i].getV2());
+         saveEdges[i][2] = eArray[i].getCtrlX();
+         saveEdges[i][3] = eArray[i].getCtrlY();
       }
 
       Furniture[] fArray = new Furniture[furniture.size()];

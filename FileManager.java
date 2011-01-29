@@ -1,24 +1,18 @@
 import java.io.*;
 
-/** 
- *  File format:
+/** Sample File format:
 "
    3 Vertices
-   0,40.0,71.0,0.0
+   0,40.0,71.0,0.0                **vertex 0, x=40, y=71, z=0
    1,646.0,71.0,0.0
    2,61.0,77.0,0.0
 
    2 Edges
-   1,0
-   2,1
-
-   3 Curves
-   0,1
-   0,0
-   0,2
+   1,0,43,24                      **edge uses vertex 1 and 0, ctrl point (43,24)
+   2,1,21,21
 
    1 Furniture
-   itemNameID,80,160,40,80,0.0       **as specified in Furniture.getSaveString()
+   itemNameID,80,160,40,80,0.0    **as specified in Furniture.getSaveString()
 "
  */
 public class FileManager {
@@ -113,11 +107,11 @@ public class FileManager {
       bw.newLine();
 
       for (int i = 0; i < edges.length; i++) {
-         if (edges[i] == null || edges[i].length != 2) {
+         if (edges[i] == null || edges[i].length != 4) {
             throw new IllegalArgumentException("Edges array needs to be of size m by 2");
          }
 
-         line = edges[i][0] + "," + edges[i][1];
+         line = edges[i][0] + "," + edges[i][1] + "," + edges[i][2] + "," + edges[i][3];
          bw.write(line, 0, line.length());
          bw.newLine();
       }
@@ -206,18 +200,21 @@ public class FileManager {
 
       String line;
       String[] split;
-      int[][] edges = new int[numEdges][2];
+      int[][] edges = new int[numEdges][4];
       int edgeLoadCount = 0;
 
       while (edgeLoadCount < numEdges && (line = br.readLine()) != null && (split = line.split(",")) != null) {
-         if (split.length == 2) {
+         if (split.length == 4) {
             try {
-               int v1, v2;
-               v1 = Integer.parseInt(split[0]);
-               v2 = Integer.parseInt(split[1]);
+               int v1 = Integer.parseInt(split[0]);
+               int v2 = Integer.parseInt(split[1]);
+               int ctrlX = Integer.parseInt(split[2]);
+               int ctrlY = Integer.parseInt(split[3]);
 
                edges[edgeLoadCount][0] = v1;
                edges[edgeLoadCount][1] = v2;
+               edges[edgeLoadCount][2] = ctrlX;
+               edges[edgeLoadCount][3] = ctrlY;
 
                edgeLoadCount++;
 

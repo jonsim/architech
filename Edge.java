@@ -18,15 +18,16 @@ public class Edge {
    private final Line2D.Float tangent2 = new Line2D.Float();
 
    /** Creates a new edge from the given vertices. Doesn't add it to the coordStore.
-    *  If null is given for a vertex then that vertex will be made at 0,0,0 */
-   Edge(Coords.Vertex v1, Coords.Vertex v2) {
+    *  If null is given for a vertex then that vertex will be made at 0,0,0
+    *  If ctrl is null the ctrl point will be at the middle, otherwise it is set */
+   Edge(Coords.Vertex v1, Coords.Vertex v2, Point ctrl) {
       if (v1 == null || v2 == null) throw new IllegalArgumentException("null vertex");
 
       this.v1 = v1;
       this.v2 = v2;
-      
-      resetCtrlPositionToHalfway();
-      recalcTopDownView();
+
+      if (ctrl == null) resetCtrlPositionToHalfway();
+      else setCtrl(ctrl);
    }
 
    /** Returns the vertex at one end of this line */
@@ -47,7 +48,6 @@ public class Edge {
 
       this.v1 = v1;
       resetCtrlPositionToHalfway();
-      recalcTopDownView();
    }
 
    /** Updates v2, refuses to update if you give it null. Also updates the ctrl
@@ -58,7 +58,6 @@ public class Edge {
 
       this.v2 = v2;
       resetCtrlPositionToHalfway();
-      recalcTopDownView();
    }
 
    /** Returns true if the point lies within the coordinates of the control point */
@@ -67,16 +66,27 @@ public class Edge {
    }
 
    /** Use setEdgeCtrl() in Coords! Updates ctrl, refuses to update if you give it null */
-   public void setCtrl(Point ctrl) {
+   public final void setCtrl(Point ctrl) {
       if (ctrl == null) return;
 
       this.ctrl.setLocation(ctrl.getX(), ctrl.getY());
       recalcTopDownView();
    }
 
+   /** Returns the x coordinate of the ctrl point */
+   public int getCtrlX() {
+      return (int) Math.round(ctrl.getX());
+   }
+
+   /** Returns the y coordinate of the ctrl point */
+   public int getCtrlY() {
+      return (int) Math.round(ctrl.getY());
+   }
+
    /** Places the ctrl point halfway between v1 and v2 */
    public final void resetCtrlPositionToHalfway() {
       ctrl.setLocation( ( v1.getX() + v2.getX() ) / 2, ( v1.getY() + v2.getY() ) / 2 );
+      recalcTopDownView();
    }
 
    /** Keeps the top down (2D) view of this line up to date */
