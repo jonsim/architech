@@ -8,7 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /** Provides a canvas (with getCanvas()) containing the 3d window */
-public class Viewport3D implements ActionListener, CoordsChangeListener {
+public class Viewport3D implements CoordsChangeListener {
    private ArchApp canvasApplication;
    private Main main;
 
@@ -56,35 +56,24 @@ public class Viewport3D implements ActionListener, CoordsChangeListener {
       return ctx.getCanvas();
    }
 
+   /** coords can be null if there is no tab selected */
    public void tabChanged(Coords coords) {
-      // repaint all 3d
-   }
-
-   /** Called by the update button, which is in DesignButtons.java */
-   public void actionPerformed(ActionEvent e) {
-      // TODO Auto-generated method stub
-      if (e.getActionCommand().equals("update")) {
-         TwoDScrollPane currentTab = main.frontEnd.getCurrentTab();
-         if (currentTab != null) {
-            canvasApplication.clearall();
-            canvasApplication.updateroot();
-            canvasApplication.addedges(currentTab.getCoords().getEdges());
-         }         
+      synchronized(canvasApplication.syncLockObject) {
+         // repaint all 3d
       }
    }
 
    public void coordsChangeOccurred(CoordsChangeEvent e) {
 	   synchronized(canvasApplication.syncLockObject) {
-		     TwoDScrollPane currentTab = main.frontEnd.getCurrentTab();
-		     if (currentTab != null) {
+		     Coords c = e.getSource();
 		    	 canvasApplication.clearall();
-		    	 Furniture[] furniture = currentTab.getCoords().getFurniture();
+		    	 Furniture[] furniture = c.getFurniture();
 		         for (Furniture f : furniture) {
 		             // check for collisions
 		             //canvasApplication.updateroot();
 		  	         canvasApplication.addchair(f.getRotationCenter(),f.getID());
 		          }
-		    canvasApplication.addedges(currentTab.getCoords().getEdges());
+		    canvasApplication.addedges(c.getEdges());
 		 }
-   }}
+   }
 }
