@@ -25,7 +25,7 @@ public class Viewport3D implements CoordsChangeListener {
       settings.setWidth(640);
       settings.setHeight(480);
       // create new canvas application
-      canvasApplication = new ArchApp();
+      canvasApplication = new ArchApp(main);
       canvasApplication.setSettings(settings);
       Logger.getLogger("").setLevel(Level.SEVERE);
       canvasApplication.createCanvas(); // create canvas!
@@ -56,24 +56,59 @@ public class Viewport3D implements CoordsChangeListener {
       return ctx.getCanvas();
    }
 
-   /** coords can be null if there is no tab selected */
-   public void tabChanged(Coords coords) {
+   private void fullUpdate(Coords coords) {
+      if (coords == null || !canvasApplication.isInitComplete()) return;
+
       synchronized(canvasApplication.syncLockObject) {
          // repaint all 3d
-      }
-   }
-
-   public void coordsChangeOccurred(CoordsChangeEvent e) {
-	   synchronized(canvasApplication.syncLockObject) {
-		     Coords c = e.getSource();
 		    	 canvasApplication.clearall();
-		    	 Furniture[] furniture = c.getFurniture();
+		    	 Furniture[] furniture = coords.getFurniture();
 		         for (Furniture f : furniture) {
 		             // check for collisions
 		             //canvasApplication.updateroot();
 		  	         canvasApplication.addchair(f.getRotationCenter(),f.getID());
 		          }
-		    canvasApplication.addedges(c.getEdges());
-		 }
+		    canvasApplication.addedges(coords.getEdges());
+      }
+   }
+
+   /** coords can be null if there is no tab selected. This is synchronized as
+    *  ArchApp might call tabChanged to do an initial full load, and it will stop
+    *  both FrontEnd and ArchApp calling this method at the same time */
+   public synchronized void tabChanged(Coords coords) {
+      fullUpdate(coords);
+   }
+
+   public void coordsChangeOccurred(CoordsChangeEvent e) {
+      fullUpdate(e.getSource()); // this only needs to update the thing that changed, fill out below cases
+      
+      if (e.isEdgeRelated()) {
+         Edge hasChanged = e.getEdgeChanges();
+         switch (e.getChangeType()) {
+            case CoordsChangeEvent.EDGE_ADDED:
+               // add the new edge
+               break;
+            case CoordsChangeEvent.EDGE_CHANGED:
+               // update the edge location
+               break;
+            case CoordsChangeEvent.EDGE_REMOVED:
+               // remove the edge
+               break;
+         }
+
+      } else if (e.isFurnitureRelated()) {
+         Furniture hasChanged = e.getFurnitureChanged();
+         switch (e.getChangeType()) {
+            case CoordsChangeEvent.FURNITURE_ADDED:
+               // add the new furniture
+               break;
+            case CoordsChangeEvent.FURNITURE_CHANGED:
+               // update the furniture location
+               break;
+            case CoordsChangeEvent.FURNITURE_REMOVED:
+               // remove the furniture
+               break;
+         }
+      }
    }
 }

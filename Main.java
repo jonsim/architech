@@ -3,7 +3,7 @@ import java.awt.*;
 
 /** Starts the program running and catches "few!" uncaught exceptions gracefully */
 public class Main {
-   public static final boolean disable3D = true;
+   public static final boolean disable3D = false;
 
    public FrontEnd frontEnd;
    public ObjectBrowser objectBrowser;

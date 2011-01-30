@@ -35,9 +35,9 @@ public class ArchApp extends Application {
 
     private Node rootNode = new Node("Root Node");
     private Node guiNode = new Node("Gui Node");
-    Object syncLockObject = new Object();
+    final Object syncLockObject = new Object();
     private Spatial chair;
-    private ArrayList<Geometry> walls = new ArrayList<Geometry>();
+    //private ArrayList<Geometry> walls = new ArrayList<Geometry>();
 
     private float secondCounter = 0.0f;
     private BitmapText fpsText;
@@ -53,6 +53,15 @@ public class ArchApp extends Application {
 
     private AppActionListener actionListener = new AppActionListener();
 
+    private boolean isInitComplete = false;
+    public boolean isInitComplete(){return isInitComplete;}
+    private Main main;
+
+    ArchApp(Main main) {
+       super();
+       this.main = main;
+    }
+    
     private class AppActionListener implements ActionListener {
         public void onAction(String name, boolean value, float tpf) {
             if (!value)
@@ -174,6 +183,9 @@ public class ArchApp extends Application {
         
         
         simpleInitApp();
+        
+        isInitComplete = true;
+        if (main.frontEnd != null) main.viewport3D.tabChanged(main.frontEnd.getCurrentCoords());
     }
 
     @Override
@@ -253,7 +265,7 @@ public class ArchApp extends Application {
 		wall.setLocalTranslation(new Vector3f(x1, -100, y1));
 		wall.rotate(0f, rotation, 0f);
 		rootNode.attachChild(wall);
-		walls.add(wall);
+		//walls.add(wall);
 
 		//Double up the quad
 		wall = new Geometry ("Box", new Quad(length,100));
@@ -261,7 +273,7 @@ public class ArchApp extends Application {
 		wall.setLocalTranslation(new Vector3f(x2, -100, y2));
 		wall.rotate(0f, (float) (rotation + Math.PI), 0f);
 		rootNode.attachChild(wall);
-		walls.add(wall);
+		//walls.add(wall);
     	}
 
     void addbackg(){

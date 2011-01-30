@@ -91,6 +91,12 @@ public class FrontEnd implements WindowListener, ChangeListener {
       } else return null;
    }
 
+   /** Returns the current tab's coords or null if there are no tabs */
+   public Coords getCurrentCoords() {
+      TwoDScrollPane tab = getCurrentTab();
+      return tab == null ? null : tab.getCoords();
+   }
+
    /** Initialises the window variable */
    private void initWindow() {
       window.setJMenuBar(frontEndMenu);

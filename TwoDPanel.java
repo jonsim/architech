@@ -69,7 +69,6 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
 
    /** Called when the something changes in the coordinate system */
    public void coordsChangeOccurred(CoordsChangeEvent e) {
-      System.out.println("Coords Change Event: " + e);
       repaint();
    }
 
