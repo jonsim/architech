@@ -3,6 +3,7 @@ import java.awt.event.*;
 import java.awt.dnd.DropTarget;
 import java.io.*;
 import javax.swing.*;
+import javax.swing.event.*;
 
 /** This class holds the panel for the 2D view, it extends JPanel so has repaint()
  *  and all the other methods to do with JPanel. It draws the vertices and edges
@@ -12,7 +13,7 @@ import javax.swing.*;
  *  Future bug to watch out for: If we add a curve on drag tool to a different
  *  mouse button than the line drag tool then you can draw both at once. */
 class TwoDPanel extends JPanel implements KeyListener, Scrollable,
-      MouseListener, MouseMotionListener, CoordsChangeListener {
+      MouseListener, MouseMotionListener, CoordsChangeListener, ChangeListener {
    private double zoomScale = 1.0;
    private DesignButtons designButtons;
    private Coords coords;
@@ -43,6 +44,14 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
       addKeyListener(this);
       addMouseListener(this);
       addMouseMotionListener(this);
+
+      designButtons.zoomTool.addChangeListener(this);
+      designButtons.zoomTool.setMajorTickSpacing(5);
+      designButtons.zoomTool.setMinorTickSpacing(1);
+      designButtons.zoomTool.setPaintTicks(true);
+      designButtons.zoomTool.setPaintLabels(true);
+      Font font = new Font("Serif", Font.ITALIC, 15);
+      designButtons.zoomTool.setFont(font);
    }
 
    /** Gets the coords being displayed on this JPanel */
@@ -60,6 +69,7 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
    public void setZoomScale(double scale) {
       zoomScale = scale;
       coords.setZoomScale(scale);
+      repaint();
    }
 
    /** Returns the current zoom multiplier for y axis 1.0 is normal */
@@ -317,5 +327,11 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
 
    /** Invoked when a key is released */
    public void keyReleased(KeyEvent kevt) {
+   }
+
+   public void stateChanged(ChangeEvent e) {
+      JSlider source = (JSlider)e.getSource();
+      if (!source.getValueIsAdjusting())
+         setZoomScale((double)source.getValue()/10);
    }
 }

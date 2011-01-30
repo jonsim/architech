@@ -1,5 +1,6 @@
 
 import javax.swing.*;
+import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -8,6 +9,7 @@ public class DesignButtons implements ActionListener {
    private FrontEnd frontEnd;
    private JPanel pane;
    private JButton selectTool, lineTool, curveTool, currentTool;
+   public JSlider zoomTool;
    private Cursor selectCursor, lineCursor, curveCursor;
    private JToggleButton gridTool, snapTool;
 
@@ -53,6 +55,7 @@ public class DesignButtons implements ActionListener {
       curveTool = new JButton("Crv");
       gridTool = new JToggleButton("Grd");
       snapTool = new JToggleButton("Snp");
+      zoomTool = new JSlider(JSlider.HORIZONTAL, 0, 20, 10);
 
       selectTool.addActionListener(this);
       lineTool.addActionListener(this);
@@ -102,6 +105,9 @@ public class DesignButtons implements ActionListener {
 
       c = FrontEnd.buildGBC(4, 0, 0.5, 0.5, centerAnchor, none);
       pane.add(snapTool, c);
+
+      c = FrontEnd.buildGBC(5, 0, 0.5, 0.5, centerAnchor, none);
+      pane.add(zoomTool, c);
 
    }
 
