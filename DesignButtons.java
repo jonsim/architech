@@ -3,6 +3,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Hashtable;
 
 /** Holds the buttons for tools and features related to the 2D pane */
 public class DesignButtons implements ActionListener {
@@ -10,6 +11,7 @@ public class DesignButtons implements ActionListener {
    private JPanel pane;
    private JButton selectTool, lineTool, curveTool, currentTool;
    public JSlider zoomTool;
+   private JLabel zoomToolLabel;
    private Cursor selectCursor, lineCursor, curveCursor;
    private JToggleButton gridTool, snapTool;
 
@@ -56,6 +58,7 @@ public class DesignButtons implements ActionListener {
       gridTool = new JToggleButton("Grd");
       snapTool = new JToggleButton("Snp");
       zoomTool = new JSlider(JSlider.HORIZONTAL, 0, 20, 10);
+      zoomToolLabel = new JLabel("Zoom", JLabel.CENTER);
 
       selectTool.addActionListener(this);
       lineTool.addActionListener(this);
@@ -67,7 +70,26 @@ public class DesignButtons implements ActionListener {
       snapTool.setSelected(true);
 
       currentTool = lineTool;
+      
+      initZoomTool();
       reCalcButtonStates();
+   }
+
+   /** Initialises the zoomTool slider */
+   private void initZoomTool() {
+      zoomTool.setMajorTickSpacing(5);
+      zoomTool.setMinorTickSpacing(1);
+      zoomTool.setPaintTicks(true);
+      
+      Hashtable<Integer,JLabel> labelTable = new Hashtable<Integer,JLabel>();
+      labelTable.put( new Integer( 0 ), new JLabel("0%") );
+      labelTable.put( new Integer( 10 ), new JLabel("100%") );
+      labelTable.put( new Integer( 20 ), new JLabel("200%") );
+      zoomTool.setLabelTable( labelTable );
+
+      zoomTool.setPaintLabels(true);
+      Font font = new Font("Serif", Font.ITALIC, 15);
+      zoomTool.setFont(font);
    }
 
    /** Initialises the private pane variable, adds the buttons to it */
@@ -75,8 +97,10 @@ public class DesignButtons implements ActionListener {
       int leftAnchor = GridBagConstraints.LINE_START;
       int rightAnchor = GridBagConstraints.LINE_END;
       int centerAnchor = GridBagConstraints.CENTER;
+      int topCenterAnchor = GridBagConstraints.NORTH;
       int topLeftAnchor = GridBagConstraints.NORTHWEST;
       int topRightAnchor = GridBagConstraints.NORTHEAST;
+      int bottomCenterAnchor = GridBagConstraints.SOUTH;
 
       Insets top_left_right = new Insets(10, 10, 0, 10);
       Insets top_left_bottom_right = new Insets(10, 10, 10, 10);
@@ -91,24 +115,26 @@ public class DesignButtons implements ActionListener {
 
       GridBagConstraints c;
 
-      c = FrontEnd.buildGBC(0, 0, 0.5, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(0, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(selectTool, c);
 
-      c = FrontEnd.buildGBC(1, 0, 0.5, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(1, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(lineTool, c);
 
-      c = FrontEnd.buildGBC(2, 0, 0.5, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(2, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(curveTool, c);
 
-      c = FrontEnd.buildGBC(3, 0, 0.5, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(3, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(gridTool, c);
 
-      c = FrontEnd.buildGBC(4, 0, 0.5, 0.5, centerAnchor, none);
+      c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, topCenterAnchor, none);
       pane.add(snapTool, c);
 
-      c = FrontEnd.buildGBC(5, 0, 0.5, 0.5, centerAnchor, none);
+      c = FrontEnd.buildGBC(5, 1, 0.5, 0.5, topCenterAnchor, none);
       pane.add(zoomTool, c);
 
+      c = FrontEnd.buildGBC(5, 0, 0.5, 0.5, bottomCenterAnchor, none);
+      pane.add(zoomToolLabel, c);
    }
 
    /** Returns the pane containing the buttons / GUI stuff */

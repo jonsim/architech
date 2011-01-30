@@ -44,14 +44,7 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
       addKeyListener(this);
       addMouseListener(this);
       addMouseMotionListener(this);
-
       designButtons.zoomTool.addChangeListener(this);
-      designButtons.zoomTool.setMajorTickSpacing(5);
-      designButtons.zoomTool.setMinorTickSpacing(1);
-      designButtons.zoomTool.setPaintTicks(true);
-      designButtons.zoomTool.setPaintLabels(true);
-      Font font = new Font("Serif", Font.ITALIC, 15);
-      designButtons.zoomTool.setFont(font);
    }
 
    /** Gets the coords being displayed on this JPanel */
