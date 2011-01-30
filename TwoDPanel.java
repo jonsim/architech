@@ -324,7 +324,6 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
 
    public void stateChanged(ChangeEvent e) {
       JSlider source = (JSlider)e.getSource();
-      if (!source.getValueIsAdjusting())
-         setZoomScale((double)source.getValue()/10);
+      setZoomScale((double)source.getValue()/10);
    }
 }
