@@ -61,8 +61,10 @@ public class Edge {
    }
 
    /** Returns true if the point lies within the coordinates of the control point */
-   public boolean curveCtrlContains(Point p) {
-      return curveCtrl.contains(p);
+   public boolean curveCtrlContains(Point p, double zoomScale) {
+      Point temp = new Point();
+      temp.setLocation(p.getX()*zoomScale, p.getY()*zoomScale);
+      return curveCtrl.contains(temp);
    }
 
    /** Use setEdgeCtrl() in Coords! Updates ctrl, refuses to update if you give it null */

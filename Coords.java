@@ -83,8 +83,10 @@ public class Coords {
       }
 
       /** Returns true if the vertex at its current diameter contains the point */
-      public boolean contains(Point p) {
-         return topDownView.contains(p);
+      public boolean contains(Point p, double zoomScale) {
+         Point temp = new Point();
+         temp.setLocation(p.getX()*zoomScale, p.getY()*zoomScale);
+         return topDownView.contains(temp);
       }
 
       /** Draws the vertex at its current diameter, and the current graphics colour */
@@ -274,7 +276,7 @@ public class Coords {
 
       while (ite.hasNext()) {
          Vertex v = ite.next();
-         if (v.contains(p)) return v;
+         if (v.contains(p, zoomScale)) return v;
       }
       
       return null;
@@ -287,7 +289,7 @@ public class Coords {
 		
       while (ite.hasNext()) {
          Edge e = ite.next();
-         if (e.curveCtrlContains(p)) return e;
+         if (e.curveCtrlContains(p, zoomScale)) return e;
       }
 		
       return null;
