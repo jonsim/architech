@@ -52,10 +52,10 @@ public class DesignButtons implements ActionListener {
 
    /** Initialises the private button variables */
    private void initButtons() {
-      selectTool = new JButton("Sel");
-      lineTool = new JButton("Lne");
-      curveTool = new JButton("Crv");
-      gridTool = new JToggleButton("Grd");
+      selectTool = new JButton(new ImageIcon("hand.png"));
+      lineTool = new JButton(new ImageIcon("line.png"));
+      curveTool = new JButton(new ImageIcon("cline.png"));
+      gridTool = new JToggleButton(new ImageIcon("grid.png"));
       snapTool = new JToggleButton("Snp");
       zoomTool = new JSlider(JSlider.HORIZONTAL, 0, 20, 10);
       zoomToolLabel = new JLabel("Zoom", JLabel.CENTER);
@@ -127,13 +127,13 @@ public class DesignButtons implements ActionListener {
       c = FrontEnd.buildGBC(3, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(gridTool, c);
 
-      c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, topCenterAnchor, none);
-      pane.add(snapTool, c);
+      //c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, topCenterAnchor, none);
+      //pane.add(snapTool, c);
 
-      c = FrontEnd.buildGBC(5, 1, 0.5, 0.5, topCenterAnchor, none);
+      c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, topCenterAnchor, none);
       pane.add(zoomTool, c);
 
-      c = FrontEnd.buildGBC(5, 0, 0.5, 0.5, bottomCenterAnchor, none);
+      c = FrontEnd.buildGBC(4, 0, 0.5, 0.5, bottomCenterAnchor, none);
       pane.add(zoomToolLabel, c);
    }
 
