@@ -404,20 +404,6 @@ public class ArchApp extends Application {
          }
       }
 
-      /** Makes new objects from the given edge array and adds them to the given HashMap */
-      private void addAllEdgesFromCoordsTo(HashMap<Edge, WallGeometry> toAddTo, Edge[] edges) {
-         for (Edge e : edges) {
-            toAddTo.put(e, makewall(e));
-         }
-      }
-
-      /** Makes new objects from the given furniture array and adds them to the given HashMap */
-      private void addAllFurnitureFromCoordsTo(HashMap<Furniture, Spatial> toAddTo, Furniture[] furniture) {
-         for (Furniture f : furniture) {
-            toAddTo.put(f, addfurniture(f));
-         }
-      }
-
       // edges is the set of edges associated with those coords, likewise for furniture
       // if these coords havn't been seen before both edges and furniture
       // will be null (its a brand new tab). Either both will be null or not,
@@ -440,7 +426,9 @@ public class ArchApp extends Application {
                // make a brand new edge container for the new tab and add all
                // the edges from the given coords
                edges = new HashMap<Edge, WallGeometry>();
-               addAllEdgesFromCoordsTo(edges, newTab.getEdges());
+               for (Edge e : newTab.getEdges()) {
+                  edges.put(e, makewall(e));
+               }
 
                tabEdgeGeometry.put(newTab, edges);
             }
@@ -452,7 +440,9 @@ public class ArchApp extends Application {
                // make a brand new furniture container for the new tab and add all
                // the furniture from the given coords
                furniture = new HashMap<Furniture, Spatial>();
-               addAllFurnitureFromCoordsTo(furniture, newTab.getFurniture());
+               for (Furniture f : newTab.getFurniture()) {
+                  furniture.put(f, addfurniture(f));
+               }
                
                tabFurnitureSpatials.put(newTab, furniture);
             }
