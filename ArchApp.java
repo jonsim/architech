@@ -9,17 +9,20 @@ import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.DirectionalLight;
+import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
+import com.jme3.shadow.BasicShadowRenderer;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext.Type;
 import com.jme3.system.JmeSystem;
@@ -37,7 +40,7 @@ public class ArchApp extends Application {
     private Node rootNode = new Node("Root Node");
     private Node guiNode = new Node("Gui Node");
     final Object syncLockObject = new Object();
-    private Spatial chair;
+    private Spatial furn;
     //private ArrayList<Geometry> walls = new ArrayList<Geometry>();
 
     private float secondCounter = 0.0f;
@@ -232,12 +235,20 @@ public class ArchApp extends Application {
 
     public void simpleInitApp() {
 		flyCam.setDragToRotate(true);
-		addbackg();
+		addbackg();		
+		PointLight pl;
+	    Geometry lightMdl;
+
 	    //add a sun
-	    DirectionalLight sun = new DirectionalLight();
-	    sun.setDirection(new Vector3f(10,-50,0).normalizeLocal());
-	    sun.setColor(ColorRGBA.White);
-	    rootNode.addLight(sun);
+		pl = new PointLight();
+        pl.setColor(ColorRGBA.White);
+        pl.setRadius(4f);
+        rootNode.addLight(pl);
+
+        DirectionalLight dl = new DirectionalLight();
+        dl.setDirection(new Vector3f(-1, -1, -1).normalizeLocal());
+        dl.setColor(ColorRGBA.White);
+        rootNode.addLight(dl);
     }
 
     public void simpleUpdate(float tpf){
@@ -320,13 +331,15 @@ public class ArchApp extends Application {
 		//if(chair!=null){rootNode.detachChild(chair);}
 	//}
 	
-	void addchair(Point center, String name){
-		//String path = "req/" + name + ".obj"
-	    chair = assetManager.loadModel("req/Chair.obj");
-	    chair.scale(15f, 10f, 15f);
-	    chair.rotate((float) -(0.5* Math.PI),(float) -(0.5* Math.PI),0);
-	    chair.setLocalTranslation(center.x+15,-100,center.y-30);
-	    rootNode.attachChild(chair);
+	void addfurniture(Point center, String name){
+		String path = "req/" + name;
+		if(name==null){furn = assetManager.loadModel("req/armchair.obj");}
+		else{furn = assetManager.loadModel(path);}
+		furn.scale(5, 5, 5);
+	    //chair.rotate((float) -(0.5* Math.PI),(float) -(0.5* Math.PI),0);
+		furn.rotate(0,(float) -(0.5* Math.PI),0);
+		furn.setLocalTranslation(center.x,-100,center.y-10);
+	    rootNode.attachChild(furn);
 	}
 
 	void addedges(Edge[] edges){

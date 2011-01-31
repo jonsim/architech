@@ -66,7 +66,7 @@ public class Viewport3D implements CoordsChangeListener {
 		         for (Furniture f : furniture) {
 		             // check for collisions
 		             //canvasApplication.updateroot();
-		  	         canvasApplication.addchair(f.getRotationCenter(),f.getID());
+		  	         canvasApplication.addfurniture(f.getRotationCenter(),f.getopath());
 		          }
 		    canvasApplication.addedges(coords.getEdges());
       }
