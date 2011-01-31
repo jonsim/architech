@@ -323,31 +323,19 @@ public class ArchApp extends Application {
 	private Spatial addfurniture(Furniture f) {
          Point center = f.getRotationCenter();
          String name = f.getopath();
-
-         String path = "req/" + name;
-
-         Spatial furn;
-         if(name==null) furn = assetManager.loadModel("req/armchair.obj");
-         else furn = assetManager.loadModel(path);
-
+         Spatial furn = null;
+         if(name == null || name.equals("none")) furn = assetManager.loadModel("req/armchair/armchair.obj");
+         else {
+         String path = "req/" + name.substring(0,name.length()-4) +"/" +name;
+         furn = assetManager.loadModel(path);
+         }
          furn.scale(5, 5, 5);
          //chair.rotate((float) -(0.5* Math.PI),(float) -(0.5* Math.PI),0);
          furn.rotate(0,(float) -(0.5* Math.PI),0);
-         furn.setLocalTranslation(center.x,-100,center.y-10);
+         furn.setLocalTranslation(center.x,-100,center.y);
 
          return furn;
 	}
-
-
-
-
-
-
-
-
-
-
-
 
       private class WallGeometry {
          public Geometry geom1;
@@ -378,7 +366,7 @@ public class ArchApp extends Application {
 
          // move the furniture to the new position!
          Point center = f.getRotationCenter();
-         spatial.setLocalTranslation(center.x+15,-100,center.y-30);
+         spatial.setLocalTranslation(center.x,-100,center.y);
 
          rootNode.attachChild(spatial);
       }
