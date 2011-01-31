@@ -373,7 +373,6 @@ public class Coords {
 
    public void setZoomScale(double scale) {
       zoomScale = scale;
-         
       recalcAll();
    }
 

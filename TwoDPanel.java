@@ -59,7 +59,11 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
 
    /** Returns the current zoom multiplier for x axis 1.0 is normal */
    public void setZoomScale(double scale) {
-      zoomScale = scale;
+      if( scale == 0 )
+         scale = 0.05;
+      else
+         zoomScale = scale;
+
       coords.setZoomScale(scale);
       repaint();
    }
