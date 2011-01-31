@@ -1,5 +1,6 @@
 import java.net.URL;
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -10,10 +11,11 @@ import javax.swing.border.TitledBorder;
  *
  */
 public class ObjectButtons implements ActionListener {
-
+   public static final String IMG_DIR = "img/designbuttons/";
    private Main main;
    private JPanel pane;
    private JButton addObject, removeObject;
+   private JLabel addl,reml;
 
    ObjectButtons(Main main) {
       this.main = main;
@@ -23,9 +25,12 @@ public class ObjectButtons implements ActionListener {
    }
 
    private void initButtons() {
-      addObject = new JButton("Add");
-      removeObject = new JButton("Delete");
-
+	  addl = new JLabel();
+	  addl.setText("Add");
+	  reml = new JLabel();
+	  reml.setText("Remove");
+      addObject = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "add.png")));
+      removeObject = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "min.png")));
       addObject.addActionListener(this);
       removeObject.addActionListener(this);
    }
@@ -50,11 +55,18 @@ public class ObjectButtons implements ActionListener {
 
       GridBagConstraints c;
 
-      c = buildGridBagConstraints(0, 0, 0.5, centerAnchor, right);
+      c = buildGridBagConstraints(0, 0, 0.5, centerAnchor, none);
       pane.add(addObject, c);
 
-      c = buildGridBagConstraints(1, 0, 0.5, centerAnchor, right);
+      c = buildGridBagConstraints(1, 0, 0.5, centerAnchor, none);
       pane.add(removeObject, c);
+      
+      c = buildGridBagConstraints(0, 1, 0.5, centerAnchor, none);
+      pane.add(addl, c);
+      
+      c = buildGridBagConstraints(1, 1, 0.5, centerAnchor, none);
+      pane.add(reml, c);
+      
 
    }
 
