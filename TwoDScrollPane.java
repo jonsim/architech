@@ -9,10 +9,13 @@ public class TwoDScrollPane extends JScrollPane {
    private TwoDPanel twoDPanel;
 
    /** Sets up all the classes mentioned above in the one ScrollPane */
-   TwoDScrollPane(File file, String nameIfNullFile, DesignButtons designButtons) throws Exception {
+   TwoDScrollPane(File file, String nameIfNullFile, DesignButtons designButtons, Viewport3D viewport3D) throws Exception {
       super(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
       twoDPanel = new TwoDPanel(file, nameIfNullFile, designButtons);
-      setViewportView(twoDPanel);
+      twoDPanel.getCoords().addCoordsChangeListener(viewport3D);
+      this.setViewportView(twoDPanel);
+
+      designButtons.getSlider().addChangeListener(twoDPanel);
    }
    
    /** Subclasses may override this method to return a subclass of JViewport.  */
@@ -39,8 +42,7 @@ public class TwoDScrollPane extends JScrollPane {
       @Override
       public Dimension toViewCoordinates(Dimension size) {
          // calculate the difference between normal un-scaled size and scaled size
-         double scaleX = twoDPanel.getZoomScale();
-         double scaleY = twoDPanel.getZoomScale();
+         double scale = twoDPanel.getZoomScale();
          
          return super.toViewCoordinates(size);
       }
@@ -49,8 +51,7 @@ public class TwoDScrollPane extends JScrollPane {
       @Override
       public Point toViewCoordinates(Point p) {
          // calculate the difference between normal un-scaled size and scaled size
-         double scaleX = twoDPanel.getZoomScale();
-         double scaleY = twoDPanel.getZoomScale();
+         double scale = twoDPanel.getZoomScale();
          
          return super.toViewCoordinates(p);
       }

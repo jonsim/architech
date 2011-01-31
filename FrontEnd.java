@@ -10,8 +10,8 @@ import java.io.*;
  *  
  */
 public class FrontEnd implements WindowListener, ChangeListener {
-   public static final String  ICON_LOCATION = "icon.png";
-   public static final String  WINDOW_TITLE = "ArchiTECH";
+   public static final String ICON_LOCATION = "img/frontend/icon.png";
+   public static final String WINDOW_TITLE = "ArchiTECH";
 
    private final JFrame window = new JFrame(WINDOW_TITLE);
    private final JSplitPane TwoDandThreeD = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
@@ -54,7 +54,8 @@ public class FrontEnd implements WindowListener, ChangeListener {
       TwoDandThreeD.setResizeWeight(0.45);
    }
 
-   public void stateChanged(ChangeEvent e) {
+   /** Called whenever the current tab state is changed in tabbedPane */
+   public final void stateChanged(ChangeEvent e) {
       TwoDScrollPane currTab = getCurrentTab();
       try {
          main.viewport3D.tabChanged(currTab == null ? null : currTab.getCoords());
@@ -63,10 +64,9 @@ public class FrontEnd implements WindowListener, ChangeListener {
       }
    }
 
+   /** Creates a new tab and registers viewport3D as a listener for it */
    private void addTab(File file, String title) throws Exception {
-      TwoDScrollPane newTab = new TwoDScrollPane(file, title, designButtons);
-      newTab.getCoords().addCoordsChangeListener(main.viewport3D);
-      
+      TwoDScrollPane newTab = new TwoDScrollPane(file, title, designButtons, main.viewport3D);
       tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
       tabbedPane.setSelectedComponent(newTab);
    }
@@ -104,7 +104,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
       window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
       window.addWindowListener(this);
 
-      Image icon = getIcon(ICON_LOCATION);
+      Image icon = FrontEnd.getImage(this, ICON_LOCATION);
       if (icon != null) window.setIconImage(icon);
 
       // puts everything in the window at its default (fairly small) size
@@ -122,28 +122,6 @@ public class FrontEnd implements WindowListener, ChangeListener {
    public void display() {
       window.setLocationRelativeTo(null);
       window.setVisible(true);
-   }
-
-   /** Returns an image for use as the icon or null if it failed somehow */
-   public Image getIcon(String location) {
-      URL iconResource = this.getClass().getResource(location);
-      if (iconResource == null) return null;
-
-      Image icon = (new ImageIcon(iconResource)).getImage();
-      return icon;
-   }
-
-   /** Creates and returns a GridBagConstraints with the values given */
-   public static GridBagConstraints buildGBC(int x, int y,
-         double weightx, double weighty, int anchor, Insets i) {
-      GridBagConstraints c = new GridBagConstraints();
-      c.gridx = x;
-      c.gridy = y;
-      c.weightx = weightx;
-      c.weighty = weighty;
-      c.anchor = anchor;
-      c.insets = i;
-      return c;
    }
 
    /** Adds all the things 2D, 3D, SQL etc. to the given pane */
@@ -337,7 +315,8 @@ public class FrontEnd implements WindowListener, ChangeListener {
       window.setCursor(cursor);
    }
 
-//! WINDOWLISTENER
+   //-WINDOW-LISTENER-----------------------------------------------------------
+
    /** Invoked when the user attempts to close the window from the window's system menu. */
    public void windowClosing(WindowEvent e) {
       if (quit()) {
@@ -346,7 +325,6 @@ public class FrontEnd implements WindowListener, ChangeListener {
          //System.exit(0); // if JME thread is still running, (for now) this stops it
       }
    }
-
    /** Invoked when the Window is set to be the active Window. */
    public void windowActivated(WindowEvent e) {}
    /** Invoked when a Window is no longer the active Window. */
@@ -359,4 +337,32 @@ public class FrontEnd implements WindowListener, ChangeListener {
    public void windowClosed(WindowEvent e) {}
    /** Invoked the first time a window is made visible. */
    public void windowOpened(WindowEvent e) {}
+
+   //-STATIC-METHODS------------------------------------------------------------
+
+   /** Returns an image for use as the icon or null if it failed somehow. It will
+    *  look, to begin with, in the same directory as the class you give it. For us
+    *  giving it "this" will probably be what we need */
+   public static Image getImage(Object classToGetResourceFrom, String location) {
+      if (classToGetResourceFrom == null) throw new IllegalArgumentException("null class");
+
+      URL iconResource = classToGetResourceFrom.getClass().getResource(location);
+      if (iconResource == null) return null;
+
+      Image icon = (new ImageIcon(iconResource)).getImage();
+      return icon;
+   }
+
+   /** Creates and returns a GridBagConstraints with the values given */
+   public static GridBagConstraints buildGBC(int x, int y,
+         double weightx, double weighty, int anchor, Insets i) {
+      GridBagConstraints c = new GridBagConstraints();
+      c.gridx = x;
+      c.gridy = y;
+      c.weightx = weightx;
+      c.weighty = weighty;
+      c.anchor = anchor;
+      c.insets = i;
+      return c;
+   }
 }

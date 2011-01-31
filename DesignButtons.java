@@ -1,19 +1,19 @@
 
 import javax.swing.*;
-import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Hashtable;
 
 /** Holds the buttons for tools and features related to the 2D pane */
 public class DesignButtons implements ActionListener {
+   public static final String IMG_DIR = "img/designbuttons/";
+
    private FrontEnd frontEnd;
    private JPanel pane;
    private JButton selectTool, lineTool, curveTool, currentTool;
-   public JSlider zoomTool;
-   private JLabel zoomToolLabel;
+   private JSlider zoomTool;
    private Cursor selectCursor, lineCursor, curveCursor;
-   private JToggleButton gridTool, snapTool;
+   private JToggleButton gridTool;
 
    /** Initialises the private variables as usual */
    DesignButtons(FrontEnd frontEnd) {
@@ -21,6 +21,11 @@ public class DesignButtons implements ActionListener {
       initCursors();
       initButtons();
       initPane();
+   }
+
+   /** Returns the zoom slider object */
+   public JSlider getSlider() {
+      return zoomTool;
    }
 
    /** Returns true if the line tool is selected */
@@ -52,25 +57,23 @@ public class DesignButtons implements ActionListener {
 
    /** Initialises the private button variables */
    private void initButtons() {
-      selectTool = new JButton(new ImageIcon("hand.png"));
-      lineTool = new JButton(new ImageIcon("line.png"));
-      curveTool = new JButton(new ImageIcon("cline.png"));
-      gridTool = new JToggleButton(new ImageIcon("grid.png"));
-      snapTool = new JToggleButton("Snp");
-      zoomTool = new JSlider(JSlider.HORIZONTAL, 0, 20, 10);
-      zoomToolLabel = new JLabel("Zoom", JLabel.CENTER);
-
+      selectTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "hand.png")));
       selectTool.addActionListener(this);
-      lineTool.addActionListener(this);
-      curveTool.addActionListener(this);
-      gridTool.addActionListener(this);
-      snapTool.addActionListener(this);
 
+      lineTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "line.png")));
+      lineTool.addActionListener(this);
+
+      curveTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "cline.png")));
+      curveTool.addActionListener(this);
+
+      gridTool = new JToggleButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "grid.png")));
+      gridTool.addActionListener(this);
       gridTool.setSelected(true);
-      snapTool.setSelected(true);
 
       currentTool = lineTool;
-      
+
+      zoomTool = new JSlider(JSlider.HORIZONTAL, 0, 20, 10);
+
       initZoomTool();
       reCalcButtonStates();
    }
@@ -80,14 +83,15 @@ public class DesignButtons implements ActionListener {
       zoomTool.setMajorTickSpacing(5);
       zoomTool.setMinorTickSpacing(1);
       zoomTool.setPaintTicks(true);
-      
-      Hashtable<Integer,JLabel> labelTable = new Hashtable<Integer,JLabel>();
-      labelTable.put( new Integer( 0 ), new JLabel("0%") );
-      labelTable.put( new Integer( 10 ), new JLabel("100%") );
-      labelTable.put( new Integer( 20 ), new JLabel("200%") );
-      zoomTool.setLabelTable( labelTable );
+      zoomTool.setSnapToTicks(true);
 
+      Hashtable<Integer,JLabel> labelTable = new Hashtable<Integer,JLabel>();
+      labelTable.put( 0, new JLabel("0%") );
+      labelTable.put( 10, new JLabel("100%") );
+      labelTable.put( 20, new JLabel("200%") );
+      zoomTool.setLabelTable( labelTable );
       zoomTool.setPaintLabels(true);
+
       Font font = new Font("Serif", Font.ITALIC, 15);
       zoomTool.setFont(font);
    }
@@ -127,14 +131,11 @@ public class DesignButtons implements ActionListener {
       c = FrontEnd.buildGBC(3, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(gridTool, c);
 
-      //c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, topCenterAnchor, none);
-      //pane.add(snapTool, c);
-
       c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, topCenterAnchor, none);
       pane.add(zoomTool, c);
 
       c = FrontEnd.buildGBC(4, 0, 0.5, 0.5, bottomCenterAnchor, none);
-      pane.add(zoomToolLabel, c);
+      pane.add(new JLabel("Zoom"), c);
    }
 
    /** Returns the pane containing the buttons / GUI stuff */
@@ -173,9 +174,6 @@ public class DesignButtons implements ActionListener {
       } else if (gridTool == source) {
          // toggle grid showing
 
-      } else if (snapTool == source) {
-         // toggle snap
-         
       } else {
          Main.showFatalExceptionTraceWindow(
                  new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));

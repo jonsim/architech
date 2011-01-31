@@ -4,8 +4,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
@@ -17,6 +15,7 @@ import java.awt.dnd.*;
  * @author Michael, Brent
  */
 public class ObjectBrowser implements KeyListener, MouseListener {
+   public static final String IMG_DIR = "img/database/";
 
    private Main main;
 
@@ -25,7 +24,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    public DefaultListModel fields = new DefaultListModel();
    private ListSelectionListener listSelectionListener;
    // This will get the database as long as it is in the current directory
-   private String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "\\ObjectDatabase.sqlite";
+   private String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "/ObjectDatabase.sqlite";
    private Font f = new Font("sansserif", Font.PLAIN, 14);
    private Connection connection = null;
    private PreparedStatement statement = null;
@@ -263,8 +262,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			try {
 				BufferedImage myPicture;
 				if(object == dashedSeparator || object == backButtonText) {
-					myPicture = ImageIO.read(new File("blank.png"));
-					picLabel = new JLabel(new ImageIcon( myPicture ));
+					picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"blank.png") ));
 				} else {
 					String request = "select * from ITEM where Type='" + typeName + "' AND Name='"+object+"'";
 					statement = connection.prepareStatement(request);
@@ -274,17 +272,14 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 						String image = rs.getString("Image");
 						if (image.equals("none")==true)
 						{
-							myPicture = ImageIO.read(new File("NoImage.png"));
-							picLabel = new JLabel(new ImageIcon( myPicture ));
+							picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"NoImage.png") ));
 						}
 						else
 					    {
-							Image i = main.frontEnd.getIcon("images/"+image);
-							picLabel = new JLabel(new ImageIcon( i ));
+							picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+image) ));
 						}
 					} else {
-						myPicture = ImageIO.read(new File("NoImage.png"));
-						picLabel = new JLabel(new ImageIcon( myPicture ));
+						picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"NoImage.png") ));
 					}
 				}
 			} catch(Exception e) {
@@ -300,8 +295,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 
 	private void picInitialise(){
 		try {
-			BufferedImage myPicture = ImageIO.read(new File("blank.png"));
-			picLabel = new JLabel(new ImageIcon( myPicture ));
+			picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"blank.png") ));
 			Insets top_left_bottom_right = new Insets(10,10,10,10);
 			GridBagConstraints gbc;
 			gbc = FrontEnd.buildGBC(0, 0, 0.5, 0.5, GridBagConstraints.SOUTH, top_left_bottom_right);

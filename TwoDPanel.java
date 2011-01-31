@@ -44,7 +44,6 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
       addKeyListener(this);
       addMouseListener(this);
       addMouseMotionListener(this);
-      designButtons.zoomTool.addChangeListener(this);
    }
 
    /** Gets the coords being displayed on this JPanel */
@@ -323,7 +322,9 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
    }
 
    public void stateChanged(ChangeEvent e) {
-      JSlider source = (JSlider)e.getSource();
-      setZoomScale((double)source.getValue()/10);
+      if (e.getSource() instanceof JSlider) {
+         JSlider source = (JSlider) e.getSource();
+         setZoomScale((double) source.getValue()/10);
+      }
    }
 }
