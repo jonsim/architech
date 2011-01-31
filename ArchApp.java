@@ -10,9 +10,9 @@ import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.DirectionalLight;
+import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Transform;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
@@ -26,6 +26,7 @@ import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext.Type;
 import com.jme3.system.JmeSystem;
 import com.jme3.texture.Texture;
+import com.jme3.texture.Texture.WrapMode;
 import com.jme3.util.BufferUtils;
 import com.jme3.util.SkyFactory;
 
@@ -171,11 +172,18 @@ public class ArchApp extends Application {
         // call user code
         
 	    //grass = new Material(assetManager, "Common/MatDefs/Misc/SimpleTextured.j3md");
-	    grasst = assetManager.loadTexture("req/grass.jpg");
+	    //grasst = assetManager.loadTexture("req/grass.jpg");
 	    
-	   grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+	   //grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
        //grass.setColor("m_Color", ColorRGBA.White);
-       grass.setFloat("m_Shininess", 5f); 
+       //grass.setFloat("m_Shininess", 5f);
+
+        grass = new Material(assetManager, "Common/MatDefs/Terrain/Terrain.j3md");
+        grass.setTexture("m_Alpha", assetManager.loadTexture("req/tile.png"));
+        grasst = assetManager.loadTexture("req/floor.jpg");
+        grasst.setWrap(WrapMode.Repeat);
+        grass.setTexture("m_Tex1", grasst);
+        grass.setFloat("m_Tex1Scale", 66.6f);
         
 		wallmat = new Material(assetManager, "Common/MatDefs/Misc/SimpleTextured.j3md");
 		wallmat.setTexture("m_ColorMap", assetManager.loadTexture("req/wall1.jpg"));
@@ -224,11 +232,18 @@ public class ArchApp extends Application {
     public void simpleInitApp() {
 		flyCam.setDragToRotate(true);
 		addbackg();
-	    //add a sun
-	    DirectionalLight sun = new DirectionalLight();
-	    sun.setDirection(new Vector3f(10,-50,0).normalizeLocal());
-	    sun.setColor(ColorRGBA.White);
-	    rootNode.addLight(sun);
+            PointLight pl;
+
+            //add a sun
+            pl = new PointLight();
+            pl.setColor(ColorRGBA.White);
+            pl.setRadius(4f);
+            rootNode.addLight(pl);
+
+            DirectionalLight dl = new DirectionalLight();
+            dl.setDirection(new Vector3f(-1, -1, -1).normalizeLocal());
+            dl.setColor(ColorRGBA.White);
+            rootNode.addLight(dl);
     }
 
     public void simpleUpdate(float tpf){
@@ -290,7 +305,7 @@ public class ArchApp extends Application {
 		Geometry geom = new Geometry("Box", blah);
 	    //grass.setTexture("m_ColorMap", grasst);
 	    geom.setMaterial(grass);
-	    geom.setLocalTranslation(new Vector3f(2000,-100,-500));
+	    geom.setLocalTranslation(new Vector3f(2102,-100,-902));
 	    geom.rotate((float) -Math.toRadians(90),(float) Math.toRadians(180),0f );
 	    rootNode.attachChild(geom);
 
@@ -305,16 +320,22 @@ public class ArchApp extends Application {
 		addbackg();
     }
 
-	private Spatial makechair(Furniture f) {
+	private Spatial addfurniture(Furniture f) {
          Point center = f.getRotationCenter();
-         String name = f.getID();
+         String name = f.getopath();
 
-		//String path = "req/" + name + ".obj"
-	    Spatial chair = assetManager.loadModel("req/Chair.obj");
-	    chair.scale(15f, 10f, 15f);
-	    chair.rotate((float) -(0.5* Math.PI),(float) -(0.5* Math.PI),0);
-	    chair.setLocalTranslation(center.x+15,-100,center.y-30);
-          return chair;
+         String path = "req/" + name;
+
+         Spatial furn;
+         if(name==null) furn = assetManager.loadModel("req/armchair.obj");
+         else furn = assetManager.loadModel(path);
+
+         furn.scale(5, 5, 5);
+         //chair.rotate((float) -(0.5* Math.PI),(float) -(0.5* Math.PI),0);
+         furn.rotate(0,(float) -(0.5* Math.PI),0);
+         furn.setLocalTranslation(center.x,-100,center.y-10);
+
+         return furn;
 	}
 
 
@@ -393,7 +414,7 @@ public class ArchApp extends Application {
       /** Makes new objects from the given furniture array and adds them to the given HashMap */
       private void addAllFurnitureFromCoordsTo(HashMap<Furniture, Spatial> toAddTo, Furniture[] furniture) {
          for (Furniture f : furniture) {
-            toAddTo.put(f, makechair(f));
+            toAddTo.put(f, addfurniture(f));
          }
       }
 
@@ -506,7 +527,7 @@ public class ArchApp extends Application {
 
             Spatial spatial = furniture.get(f);
             if (spatial == null) {
-               spatial = makechair(f);
+               spatial = addfurniture(f);
                furniture.put(f, spatial);
                rootNode.attachChild(spatial);
             }
