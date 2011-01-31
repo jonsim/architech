@@ -89,7 +89,7 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
       coords.paintVertices(g2);
       coords.paintFurniture(g2);
 
-      if (dragEdge != null) dragEdge.paintLengthText(g2);
+      if (dragEdge != null) dragEdge.paintLengthText(g2, zoomScale);
 
       if (hoverVertex != null) {
          g2.setColor(Color.red);

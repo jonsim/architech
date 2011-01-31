@@ -125,9 +125,9 @@ public class Edge {
    }
 
    /** Writes the length of this edge next to it on the given graphics canvas */
-   public void paintLengthText(Graphics2D g2) {
-      int x = Math.round((v1.getX() + v2.getX()) / 2);
-      int y = Math.round((v1.getY() + v2.getY()) / 2);
+   public void paintLengthText(Graphics2D g2, double zoomScale) {
+      int x = Math.round((int) (v1.getX()*zoomScale + v2.getX()*zoomScale) / 2);
+      int y = Math.round((int) (v1.getY()*zoomScale + v2.getY()*zoomScale) / 2);
 
       //Font sanSerifFont = new Font("SanSerif", Font.PLAIN, 12);
       //g2.setFont(sanSerifFont);

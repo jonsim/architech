@@ -517,11 +517,11 @@ public class Coords {
    public void drawGrid(Graphics2D g2, int width, int height) {
       g2.setColor(Color.LIGHT_GRAY);
 
-      for (int i = gridWidth; i < width; i += gridWidth) {
+      for (int i = (int) (gridWidth*zoomScale); i < width; i += gridWidth*zoomScale) {
          g2.drawLine(i, 0, i, height);
       }
 
-      for (int i = gridWidth; i < height; i += gridWidth) {
+      for (int i = (int) (gridWidth*zoomScale); i < height; i += gridWidth*zoomScale) {
          g2.drawLine(0, i, width, i);
       }
    }
