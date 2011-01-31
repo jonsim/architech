@@ -170,14 +170,6 @@ public class ArchApp extends Application {
                                      "SIMPLEAPP_CameraPos", "SIMPLEAPP_Memory");
         }
         // call user code
-        
-	    //grass = new Material(assetManager, "Common/MatDefs/Misc/SimpleTextured.j3md");
-	    //grasst = assetManager.loadTexture("req/grass.jpg");
-	    
-	   //grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-       //grass.setColor("m_Color", ColorRGBA.White);
-       //grass.setFloat("m_Shininess", 5f);
-
         grass = new Material(assetManager, "Common/MatDefs/Terrain/Terrain.j3md");
         grass.setTexture("m_Alpha", assetManager.loadTexture("req/tile.png"));
         grasst = assetManager.loadTexture("req/floor.jpg");
@@ -202,15 +194,8 @@ public class ArchApp extends Application {
 	            return;
 	        
 	        super.update();
-	        float tpf = timer.getTimePerFrame() * speed;
-	
-	        //secondCounter += timer.getTimePerFrame();
-	       // int fps = (int) timer.getFrameRate();
-	       // if (secondCounter >= 1.0f){
-	         //   fpsText.setText("FPS: "+fps);
-	         //   secondCounter = 0.0f;
-	       // }
-	
+	        float tpf = timer.getTimePerFrame() * speed;	
+
 	        // update states
 	        stateManager.update(tpf);
 	
@@ -543,59 +528,3 @@ public class ArchApp extends Application {
          }
       }
 }
-
-
-
-
-/*
-// NB: a float[] model_rotation is required
-void addModels (String[] model_name, int[][] model_position, Spatial[] model)
-{
-    float[] scales = new float[3];
-    Material mat;
-    model = new Spatial[args.length];
-
-    // load models (as per arguments given), position and scale accordingly.
-	for (int i = 0; i < args.length; i++)
-	{
-		scales = dbGetScale(model_name[i]);
-
-		model[i] = assetManager.loadModel(dbGetModel(model_name[i]));
-		model[i].scale(scales[0], scales[1], scales[2]);
-    	model[i].setLocalTranslation(model_position[i][0], model_position[i][1], model_position[i][2]);
-    	model[i].rotate((float) -(0.5 * PI), (float) -(PI), 0);
-
-    	mat = new Material(assetManager, "Common/MatDefs/Misc/SolidColor.j3md");
-		mat.setColor("m_Color", ColorRGBA.LightGray);
-		model[i].setMaterial(mat);
-
-    	rootNode.attachChild(model[i]);
-	}
-}*/
-/* list of requirements from 2D GUI:
-       - array of vertices representing the points making up the room
-             FORM: V[n][2]  :  V[i][0] = xi, V[i][1] = yi, etc.
-             INTERNAL FORM: wall[n]  :  wall[i], etc. (as a Quad)
-
-       - array of strings (or other database identifiers) defining the pieces
-         of furniture needed in the room allowing their details to be looked
-         up from the database
-             FORM: F[n]  :  F[i] = "furniture1", etc.
-             INTERNAL FORM: model[n]  :  model[i], etc. (as a Spatial)
-
-       - array of vertices representing the points furniture (whose id
-         corresponds the the identicle position in the array of strings)
-             FORM: P[n][2]  :  V[i][0] = xi, V[i][1] = yi, etc. (top left)
-
-       - array of floats representing relevent rotations where -PI < rot <= PI
-         depends on implementation decision wrt. rotation (snapping etc)
-             FORM: R[n]  :  R[i] = -PI/2, etc. (where wall[i].rotation = R[i])
-
-       - array of vertices representing the location of doors
-
-       - array of vertices representing the location of windows
-
-       - array of strings representing the texture of the strip of wall at the
-         corresponding position in the wall array.
-             FORM: T[n]  :  T[i], etc. (where wall[i].texture = T[i])
-*/
