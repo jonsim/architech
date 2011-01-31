@@ -3,20 +3,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
-import java.util.*;
-import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.ListSelectionModel;
 import java.awt.dnd.*;
-import java.awt.datatransfer.*;
 
 /**
  *
@@ -31,7 +25,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    public DefaultListModel fields = new DefaultListModel();
    private ListSelectionListener listSelectionListener;
    // This will get the database as long as it is in the current directory
-   private String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "/ObjectDatabase.sqlite";
+   private String url = "jdbc:sqlite:" + System.getProperty("user.dir") + "\\ObjectDatabase.sqlite";
    private Font f = new Font("sansserif", Font.PLAIN, 14);
    private Connection connection = null;
    private PreparedStatement statement = null;
@@ -41,10 +35,15 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    private String dashedSeparator = "------------------------";
    private String backButtonText = "* Go Back *";
    private int currentCategory = -1;
+   private int currentType = -1;
    private FurnitureObject draggedObject;
-	 private String objectName;
-	 private String itemName;
-	 private int itemID = -1;
+   private String objectName;
+   private String typeName;
+   private int itemID = -1;
+   private int typeID = -1;
+   private int itemType = -1;
+   private int currentLibrary = -1;
+   private int categoryIndex = -1;
 
 	ObjectBrowser(Main main) {
 		this.main = main;
@@ -62,7 +61,6 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		AddLibrary();
 		currentCategory = -1;
 		SQLStatement("select COUNT(*) from TYPE", "count");
-		//addObject("Test", 1, 3, 0);
 	}
 	
 	private void AddLibrary() {
@@ -78,7 +76,11 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 				int index = library.getSelectedIndex();
 				boolean adjust = listSelectionEvent.getValueIsAdjusting();
 				if(!adjust) {
-					if(index >= 0 && index < fields.size()){} //showImage(fields.get(index));
+					if(index >= 0 && index < fields.size())//{} //showImage(fields.get(index));
+						//if (currentLibrary == 2)
+						//{
+							showImage(fields.get(index), typeName);
+						//}
 				}
 			}
 		};
@@ -86,6 +88,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		library.addKeyListener(this);
 		library.setDragEnabled(true);
 		SQLStatement("select * from CATEGORIES", "Category");
+		currentLibrary = 0;
 
 		library.setDragEnabled(true);
   		library.setTransferHandler(new FurnitureTransferHandler(this));
@@ -128,10 +131,10 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		}
 	}
 	
-	private void getDimensions(String objectName) {
+	private void getDimensions(int itemTypeID) {
 		draggedObject = null;
 		try {
-			statement = connection.prepareStatement("select * from TYPE where Type='" + objectName + "'");
+			statement = connection.prepareStatement("select * from TYPE where ID='" + itemTypeID + "'");
 			rs = statement.executeQuery();
 			if(rs.next()) {
 				draggedObject = new FurnitureObject(objectName, rs.getFloat("Length"), rs.getFloat("Width"), rs.getFloat("Height"));
@@ -155,6 +158,56 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		}
 		return itemID;
 	}
+
+	private int getItemType(String itemName)
+	{
+		itemType = -1;
+		try {
+			statement = connection.prepareStatement("select * from ITEM where Name='" + itemName + "'");
+			rs = statement.executeQuery();
+			if(rs.next()) {
+				itemType = rs.getInt("Type");
+				//return itemID;
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return itemType;
+	}
+
+	private int getTypeID(String typeName)
+	{
+		try {
+			statement = connection.prepareStatement("select * from TYPE where Type='" + typeName + "'");
+			rs = statement.executeQuery();
+			if(rs.next()) {
+				typeID = rs.getInt("ID");
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return typeID;
+	}
+
+	private void selectType() {
+		int index = library.getSelectedIndex();
+		if (index != -1)
+		{
+			typeName = fields.get(index).toString();
+			index++;
+		}
+		if(index > 0 && currentType == -1) {
+			library.addListSelectionListener(listSelectionListener);
+			int typeIndex = getTypeID(typeName);
+			currentType = index;
+			fields.clear();
+			SQLStatement("select * from ITEM where Type="+ typeIndex, "Name");
+			currentLibrary = 2;
+			fields.addElement(dashedSeparator);
+			fields.addElement(backButtonText);
+			pane.revalidate();
+		}
+	}
 	
 	private void selectCategory() {
 		int index = library.getSelectedIndex();
@@ -165,9 +218,11 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			fields.clear();
 			SQLStatement("select * from TYPE where Category1="+index+
 				" or Category2="+index+" or Category3="+index, "Type");
+			currentLibrary = 1;
+			categoryIndex = index;
 			fields.addElement(dashedSeparator);
 			fields.addElement(backButtonText);
-			//picInitialise();/////////////////////////////////////////
+			picInitialise();/////////////////////////////////////////
 			pane.revalidate();
 		}
 	}
@@ -177,14 +232,33 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			library.removeListSelectionListener(listSelectionListener);
 			currentCategory = -1;
 			fields.clear();
-			//pane.remove(picLabel);////////////////////////////////////
+			pane.remove(picLabel);////////////////////////////////////
 			SQLStatement("select * from CATEGORIES", "Category");
+			currentLibrary = 0;
+			pane.remove(picLabel);
+			pane.revalidate();
+		}
+	}
+
+	private void toType() {
+		if(currentType > 0 && library.getSelectedIndex() == fields.size()-1 ) {
+			library.removeListSelectionListener(listSelectionListener);
+			typeID = -1;
+			currentType = -1;
+			fields.clear();
+			pane.remove(picLabel);////////////////////////////////////
+			SQLStatement("select * from TYPE where Category1="+categoryIndex+
+				" or Category2="+categoryIndex+" or Category3="+categoryIndex, "Type");
+			currentLibrary = 1;
+			fields.addElement(dashedSeparator);
+			fields.addElement(backButtonText);
+			pane.remove(picLabel);
 			pane.revalidate();
 		}
 	}
 	
-	private void showImage(Object object) {
-		if(library.getSelectedIndex() >= 0 && currentCategory > 0) {
+	private void showImage(Object object, Object typeName) {
+		if(library.getSelectedIndex() >= 0 && currentType > 0) {
 			pane.remove(picLabel);
 			try {
 				BufferedImage myPicture;
@@ -192,12 +266,22 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 					myPicture = ImageIO.read(new File("blank.png"));
 					picLabel = new JLabel(new ImageIcon( myPicture ));
 				} else {
-					String request = "select * from ITEM where Name='" + object + "'";
+					String request = "select * from ITEM where Type='" + typeName + "' AND Name='"+object+"'";
 					statement = connection.prepareStatement(request);
 					rs = statement.executeQuery();
+					System.out.println("Type Name ===== "+typeName);
 					if(rs.next()) {
-						myPicture = ImageIO.read(new File(rs.getString("Image")));
-						picLabel = new JLabel(new ImageIcon( myPicture ));
+						String image = rs.getString("Image");
+						if (image.equals("none")==true)
+						{
+							myPicture = ImageIO.read(new File("NoImage.png"));
+							picLabel = new JLabel(new ImageIcon( myPicture ));
+						}
+						else
+					    {
+							Image i = main.frontEnd.getIcon("images/"+image);
+							picLabel = new JLabel(new ImageIcon( i ));
+						}
 					} else {
 						myPicture = ImageIO.read(new File("NoImage.png"));
 						picLabel = new JLabel(new ImageIcon( myPicture ));
@@ -256,7 +340,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		}
 		else 
 		{
-			getDimensions(objectName);
+			getDimensions(getItemType(objectName));
 			String ID = Integer.toString(getID(itemName));
 			float width = draggedObject.X * 50;
 			float length = draggedObject.Y * 50;
@@ -270,11 +354,24 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 	public void keyTyped(KeyEvent e) {}
 
     public void keyPressed(KeyEvent e) {
-		if(e.getKeyCode() == 10) {
-			int index = library.getSelectedIndex();
-			selectCategory();
-			toCategories();
-		}
+			if(e.getKeyCode() == 10) {
+				int index = library.getSelectedIndex();
+				if (currentLibrary == 0)
+				{
+					selectCategory();
+				}
+				else if (currentLibrary == 1)
+				{
+					selectType();
+		 		 	toCategories();
+					//toType();
+				}
+				if (currentLibrary == 2)
+				{
+					toType();
+		  		//toCategories();
+				}
+			}
     }
 
     public void keyReleased(KeyEvent e) {}
@@ -283,8 +380,8 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		if(currentCategory > 0) {
 			int index = library.locationToIndex(e.getPoint());
 			objectName = fields.get(index).toString();////////////
-//System.out.println("Object Name = " + objectName);
-			getDimensions(objectName);
+System.out.println("Object Name = " + objectName);			
+			getDimensions(getItemType(objectName));
 			if(draggedObject != null) {
 				System.out.println("Object Name = " + draggedObject.Name);
 				System.out.println("X = " + draggedObject.X + " m");
@@ -302,10 +399,28 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 
 	public void mouseClicked(MouseEvent e) {
 		int index = library.getSelectedIndex();
-		//showImage(fields.get(index));/////////////////////////////////////////////
+		typeName = fields.get(index).toString();
+		Object obj = fields.get(index);
+		typeID = getTypeID(typeName);
+		System.out.println("TYPE ID === "+typeID);
+		if(obj != dashedSeparator || obj != backButtonText) 
+		{ 
+				showImage(obj,typeID);
+		}
 		if(e.getClickCount() == 2) {
-			selectCategory();
-			toCategories();
+			if (currentLibrary == 0)
+			{
+				selectCategory();
+			}
+			if (currentLibrary == 1)
+			{
+		  	toCategories();
+				selectType();
+			}
+			if (currentLibrary == 2)
+			{
+				toType();
+			}
 		}
 	}
 
