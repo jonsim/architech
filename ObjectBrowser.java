@@ -255,6 +255,30 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			pane.revalidate();
 		}
 	}
+
+	private String getModel(Object object) {
+		String model = null;
+		if(library.getSelectedIndex() >= 0 && currentType > 0) {
+			pane.remove(picLabel);
+			try {
+				if(object != dashedSeparator && object != backButtonText) {
+					String request = "select * from ITEM where Name='"+object+"'";
+					System.out.println("OBJNAME: "+object);
+					statement = connection.prepareStatement(request);
+					rs = statement.executeQuery();
+					//System.out.println("Type Name ===== "+typeName);
+					if(rs.next()) {
+						model = rs.getString("Model");	
+						System.out.println("MODEL: "+model);				
+					} 
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		System.out.println("ObjPath - - - - "+model);
+		return model;
+	}
 	
 	private void showImage(Object object, Object typeName) {
 		if(library.getSelectedIndex() >= 0 && currentType > 0) {
@@ -336,9 +360,10 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		{
 			getDimensions(getItemType(objectName));
 			String ID = Integer.toString(getID(itemName));
+			String objPath = getModel(objectName);
 			float width = draggedObject.X * 50;
 			float length = draggedObject.Y * 50;
-			FurnitureSQLData footprint = new FurnitureSQLData(ID, (float)width, (float)length);
+			FurnitureSQLData footprint = new FurnitureSQLData(ID, (float)width, (float)length, objPath);
 			return footprint;
 		}
 		//return null;
@@ -376,6 +401,8 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			objectName = fields.get(index).toString();////////////
 System.out.println("Object Name = " + objectName);			
 			getDimensions(getItemType(objectName));
+			String test = getModel(objectName);
+			System.out.println("ObjPath - - - - - - - - - - "+test);
 			if(draggedObject != null) {
 				System.out.println("Object Name = " + draggedObject.Name);
 				System.out.println("X = " + draggedObject.X + " m");
@@ -399,7 +426,7 @@ System.out.println("Object Name = " + objectName);
 		System.out.println("TYPE ID === "+typeID);
 		if(obj != dashedSeparator || obj != backButtonText) 
 		{ 
-				showImage(obj,typeID);
+				showImage(obj,typeID);			
 		}
 		if(e.getClickCount() == 2) {
 			if (currentLibrary == 0)

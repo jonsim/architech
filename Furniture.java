@@ -6,6 +6,7 @@ import java.awt.*;
 public class Furniture {
    private final RoundRectangle2D.Float rectangle = new RoundRectangle2D.Float();
    private String furnitureID;
+	 private String objPath;
    private float width, height;
    private float rotationCenterX, rotationCenterY;
    private double rotation; // theta - in radians
@@ -19,6 +20,7 @@ public class Furniture {
       this.width = data.width;
       this.height = data.height;
       this.rotation = 0;
+			this.objPath = data.objPath;
       
       setRotationCenter(center);
       recalcRectangle(zoomScale);
@@ -57,6 +59,10 @@ public class Furniture {
    public String getID(){
       return furnitureID;
    }
+   
+   public String getopath(){
+	      return objPath;
+	   }
 
    public String getSaveString() {
       return furnitureID + "," + width + "," + height + "," + rotationCenterX + "," + rotationCenterY + "," + rotation;
