@@ -19,7 +19,7 @@ public class MovCam implements AnalogListener, ActionListener {
     protected Camera cam;
     protected Vector3f initialUpVec;
     protected float rotationSpeed = 5f;
-    protected float moveSpeed = 1f;
+    protected float moveSpeed = 4f;
     protected boolean enabled = true;
     protected boolean dragToRotate = false;
     protected boolean canRotate = false;
@@ -174,7 +174,7 @@ public class MovCam implements AnalogListener, ActionListener {
         Vector3f mov = null,des = null;
         Vector3f pos = cam.getLocation().clone();
         cam.getDirection(vel);
-        if(value>=0) {vel = new Vector3f(vel.x,0,vel.z);}
+        if(value>=0) {vel = new Vector3f(vel.x ,0,vel.z);}
         else {vel = new Vector3f(-vel.x,0,-vel.z);}
         //Injected Code to get movement bounds
         /*if(value>0){

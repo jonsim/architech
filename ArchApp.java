@@ -24,6 +24,7 @@ import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext.Type;
 import com.jme3.system.JmeSystem;
 import com.jme3.texture.Texture;
+import com.jme3.texture.Texture.WrapMode;
 import com.jme3.util.BufferUtils;
 import com.jme3.util.SkyFactory;
 
@@ -172,11 +173,18 @@ public class ArchApp extends Application {
         // call user code
         
 	    //grass = new Material(assetManager, "Common/MatDefs/Misc/SimpleTextured.j3md");
-	    grasst = assetManager.loadTexture("req/grass.jpg");
+	    //grasst = assetManager.loadTexture("req/grass.jpg");
 	    
-	   grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+	   //grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
        //grass.setColor("m_Color", ColorRGBA.White);
-       grass.setFloat("m_Shininess", 5f); 
+       //grass.setFloat("m_Shininess", 5f); 
+       
+	    grass = new Material(assetManager, "Common/MatDefs/Terrain/Terrain.j3md");
+	    grass.setTexture("m_Alpha", assetManager.loadTexture("req/tile.png"));
+	    grasst = assetManager.loadTexture("req/floor.jpg");
+	    grasst.setWrap(WrapMode.Repeat);
+	    grass.setTexture("m_Tex1", grasst);
+	    grass.setFloat("m_Tex1Scale", 66.6f);
         
 		wallmat = new Material(assetManager, "Common/MatDefs/Misc/SimpleTextured.j3md");
 		wallmat.setTexture("m_ColorMap", assetManager.loadTexture("req/wall1.jpg"));
@@ -280,8 +288,10 @@ public class ArchApp extends Application {
 		//add the grassy area
 	    Quad blah = new Quad(4000,4000);
 		Geometry geom = new Geometry("Box", blah);
-	    //grass.setTexture("m_ColorMap", grasst);
-	    geom.setMaterial(grass);geom.setLocalTranslation(new Vector3f(2000,-100,-500));
+	    //grass.setTexture("m_ColorMap", grasst);		
+		
+	    geom.setMaterial(grass);
+	    geom.setLocalTranslation(new Vector3f(2102,-100,-902));
 		geom.rotate((float) -Math.toRadians(90),(float) Math.toRadians(180),0f );
 	    rootNode.attachChild(geom);
 
