@@ -1,4 +1,5 @@
 import java.awt.event.*;
+import java.awt.Toolkit;
 import javax.swing.*;
 
 /** Creates the menu that appears at the top of the main window */
@@ -30,32 +31,35 @@ public class FrontEndMenu extends JMenuBar implements ActionListener {
    }
 
    private void addFileMenu() {
-      JMenu menu = new JMenu("File");
+      JMenu menu;
+      int shortcutMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
+      menu = new JMenu("File");
       menu.setMnemonic(KeyEvent.VK_F);
       menu.getAccessibleContext().setAccessibleDescription("File option menu");
 
       create = new JMenuItem("New", KeyEvent.VK_N);
-      create.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
+      create.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, shortcutMask));
       create.getAccessibleContext().setAccessibleDescription("Create a blank file");
       menu.add(create);
 
       open = new JMenuItem("Open", KeyEvent.VK_O);
-      open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+      open.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, shortcutMask));
       open.getAccessibleContext().setAccessibleDescription("Open a file");
       menu.add(open);
 
       save = new JMenuItem("Save", KeyEvent.VK_S);
-      save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+      save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutMask));
       save.getAccessibleContext().setAccessibleDescription("Save any changes");
       menu.add(save);
 
       saveAs = new JMenuItem("Save As", KeyEvent.VK_E);
-      saveAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
+      saveAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, shortcutMask));
       saveAs.getAccessibleContext().setAccessibleDescription("Save as a new file");
       menu.add(saveAs);
 
       saveCopyAs = new JMenuItem("Save Copy As", KeyEvent.VK_C);
-      saveCopyAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
+      saveCopyAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, shortcutMask));
       saveCopyAs.getAccessibleContext().setAccessibleDescription("Save a copy of this file");
       menu.add(saveCopyAs);
 
@@ -64,13 +68,14 @@ public class FrontEndMenu extends JMenuBar implements ActionListener {
 
    private void addEditMenu() {
       JMenu menu;
+      int shortcutMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
       menu = new JMenu("Edit");
       menu.setMnemonic(KeyEvent.VK_E);
       menu.getAccessibleContext().setAccessibleDescription("Edit option menu");
 
       undo = new JMenuItem("Undo", KeyEvent.VK_Z);
-      undo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK));
+      undo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, shortcutMask));
       undo.getAccessibleContext().setAccessibleDescription("Undo the last action");
       menu.add(undo);
 
@@ -94,13 +99,14 @@ public class FrontEndMenu extends JMenuBar implements ActionListener {
 
    private void addCustomisationMenu() {
       JMenu menu;
+      int shortcutMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
       menu = new JMenu("Customisation");
       menu.setMnemonic(KeyEvent.VK_C);
       menu.getAccessibleContext().setAccessibleDescription("Customisation option menu");
 
       tweaker = new JMenuItem("Model Tweaker", KeyEvent.VK_T);
-      tweaker.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
+      tweaker.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, shortcutMask));
       tweaker.getAccessibleContext().setAccessibleDescription("Show the model tweaker");
       menu.add(tweaker);
 
@@ -109,13 +115,14 @@ public class FrontEndMenu extends JMenuBar implements ActionListener {
 
    private void addHelpMenu() {
       JMenu menu;
+      int shortcutMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
       menu = new JMenu("Help");
       menu.setMnemonic(KeyEvent.VK_H);
       menu.getAccessibleContext().setAccessibleDescription("Help option menu");
 
       helpContents = new JMenuItem("Help Contents", KeyEvent.VK_H);
-      helpContents.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, ActionEvent.CTRL_MASK));
+      helpContents.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, shortcutMask));
       helpContents.getAccessibleContext().setAccessibleDescription("Show Help Contents");
       menu.add(helpContents);
 
