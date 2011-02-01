@@ -2,17 +2,17 @@ import java.awt.geom.*;
 import java.awt.geom.Line2D.*;
 import java.awt.*;
 
-/** Furniture item that is used by Coords */
+/** Furniture item that is used by Coords. NOTE: objPath doesn't save to file! */
 public class Furniture {
    private final RoundRectangle2D.Float rectangle = new RoundRectangle2D.Float();
-   private String furnitureID;
-	 private String objPath;
+   private int furnitureID;
+   private String objPath;
    private float width, height;
    private float rotationCenterX, rotationCenterY;
    private double rotation; // theta - in radians
 
    Furniture(FurnitureSQLData data, Point center, double zoomScale) {
-      if (data == null || data.furnitureID == null || center == null) {
+      if (data == null || data.objPath == null || center == null) {
          throw new IllegalArgumentException("Null parameter or furniture ID");
       }
 
@@ -20,7 +20,7 @@ public class Furniture {
       this.width = data.width;
       this.height = data.height;
       this.rotation = 0;
-			this.objPath = data.objPath;
+      this.objPath = data.objPath;
       
       setRotationCenter(center);
       recalcRectangle(zoomScale);
@@ -48,21 +48,22 @@ public class Furniture {
          throw new IllegalArgumentException("Malformed float value");
       }
 
-      furnitureID = "";
-      for (int i = 0; i <= split.length - 6; i++) {
-         furnitureID += split[i];
+      try {
+         furnitureID = Integer.parseInt(split[split.length-6]);
+      } catch (NumberFormatException e) {
+         throw new IllegalArgumentException("Malformed furnitureID");
       }
 
       recalcRectangle(1.0);
    }
    
-   public String getID(){
+   public int getID(){
       return furnitureID;
    }
    
-   public String getopath(){
-	      return objPath;
-	   }
+   public String getObjPath(){
+      return objPath;
+   }
 
    public String getSaveString() {
       return furnitureID + "," + width + "," + height + "," + rotationCenterX + "," + rotationCenterY + "," + rotation;
@@ -79,7 +80,7 @@ public class Furniture {
       return new Point((int) Math.round(rotationCenterX), (int) Math.round(rotationCenterY));
    }
 
-   public void recalcRectangle(double zoomScale) {
+   public final void recalcRectangle(double zoomScale) {
       float x = rotationCenterX - (float) 0.5 * width;
       float y = rotationCenterY - (float) 0.5 * height;
       // float x, float y, float w, float h, float arcw, float arch

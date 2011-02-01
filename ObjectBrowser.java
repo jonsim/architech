@@ -359,7 +359,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		else 
 		{
 			getDimensions(getItemType(objectName));
-			String ID = Integer.toString(getID(itemName));
+			int ID = getID(itemName);
 			String objPath = getModel(objectName);
 			float width = draggedObject.X * 50;
 			float length = draggedObject.Y * 50;

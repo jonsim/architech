@@ -72,30 +72,28 @@ class TwoDDropListener implements DropTargetListener {
                inProgress = new Furniture((FurnitureSQLData) data, e.getLocation(), twoDPanel.getZoomScale());
                twoDPanel.getCoords().addFurniture(inProgress);
                e.acceptDrag(e.getDropAction());
-            }
+            } else e.rejectDrag();
          } catch (UnsupportedFlavorException ufe) {
-            /* if the requested data flavor is not supported. */
+            e.rejectDrag();
          } catch (IOException ioe) {
-            /* if the data is no longer available in the requested flavor. */
+            e.rejectDrag();
          }
-
-         e.rejectDrag();
       }
    }
 
    /** Called while a drag operation is ongoing, when the mouse pointer has exited
     *  the operable part of the drop site for the DropTarget registered with this listener. */
    public void dragExit(DropTargetEvent e) {
-      // user is no longer dragging over the window, get rid of any redrawn things
       twoDPanel.getCoords().delete(inProgress);
-      inProgress = null;
+      // remember inProgress as the same drag might continue again
    }
 
    /** Called when a drag operation is ongoing, while the mouse pointer is still over
     * the operable part of the drop site for the DropTarget registered with this listener. */
    public void dragOver(DropTargetDragEvent e) {
-      // assumes that dropActionChanged(DropTargetDragEvent e) is called if something
-      // changed about the drag, so it must still be ok since dragEnter()...
+      // dragEnter is not called for every entry, so re-add the furniture if it
+      // was deleted from coords by dragExit. This will do nothing if already added
+      twoDPanel.getCoords().addFurniture(inProgress);
       twoDPanel.getCoords().moveFurniture(inProgress, e.getLocation());
       e.acceptDrag(e.getDropAction());
    }
@@ -106,13 +104,14 @@ class TwoDDropListener implements DropTargetListener {
       if (!isDropOk(e)) {
          e.rejectDrop();
          twoDPanel.getCoords().delete(inProgress);
+         e.dropComplete(false);
       } else {
-         // if you give ACTION_COPY_OR_MOVE, then source will receive MOVE!
-         e.acceptDrop(acceptableActions);
+         e.acceptDrop(acceptableActions); // if you give ACTION_COPY_OR_MOVE, then source will receive MOVE!
+         twoDPanel.getCoords().moveFurniture(inProgress, e.getLocation());
+         e.dropComplete(true);
       }
 
-      twoDPanel.getCoords().moveFurniture(inProgress, e.getLocation());
-      e.dropComplete(true);
+      inProgress = null;
    }
 
    /** Called if the user has modified the current drop gesture. */

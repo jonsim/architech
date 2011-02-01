@@ -98,5 +98,7 @@ public class Viewport3D implements CoordsChangeListener {
                break;
          }
       }
+
+      getCanvas().requestFocus(); // Stops you having to click to update the 3D (for lines & furniture)
    }
 }

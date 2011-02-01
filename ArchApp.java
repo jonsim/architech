@@ -23,6 +23,7 @@ import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
 import com.jme3.system.AppSettings;
+import com.jme3.system.JmeCanvasContext;
 import com.jme3.system.JmeContext.Type;
 import com.jme3.system.JmeSystem;
 import com.jme3.texture.Texture;
@@ -183,8 +184,8 @@ public class ArchApp extends Application {
         
         simpleInitApp();
         
+        if (main.frontEnd != null) tabChangedIgnoreInitComplete(main.frontEnd.getCurrentCoords());
         isInitComplete = true;
-        if (main.frontEnd != null) tabChanged(main.frontEnd.getCurrentCoords());
     }
 
     @Override
@@ -307,12 +308,12 @@ public class ArchApp extends Application {
 
 	private Spatial addfurniture(Furniture f) {
          Point center = f.getRotationCenter();
-         String name = f.getopath();
+         String name = f.getObjPath();
          Spatial furn = null;
          if(name == null || name.equals("none")) furn = assetManager.loadModel("req/armchair/armchair.obj");
          else {
-         String path = "req/" + name.substring(0,name.length()-4) +"/" +name;
-         furn = assetManager.loadModel(path);
+            String path = "req/" + name.substring(0,name.length()-4) +"/" +name;
+            furn = assetManager.loadModel(path);
          }
          furn.scale(5, 5, 5);
          //chair.rotate((float) -(0.5* Math.PI),(float) -(0.5* Math.PI),0);
@@ -382,9 +383,7 @@ public class ArchApp extends Application {
       // will be null (its a brand new tab). Either both will be null or not,
       // never one or the other. If the tab has never been seen before then new
       // objects will be created for it
-      public void tabChanged(Coords newTab) {
-         if (!isInitComplete) return;
-
+      private void tabChangedIgnoreInitComplete(Coords newTab) {
          synchronized(syncLockObject) {
             if (newTab == null) {
                // no tab selected
@@ -416,7 +415,7 @@ public class ArchApp extends Application {
                for (Furniture f : newTab.getFurniture()) {
                   furniture.put(f, addfurniture(f));
                }
-               
+
                tabFurnitureSpatials.put(newTab, furniture);
             }
 
@@ -425,6 +424,14 @@ public class ArchApp extends Application {
             redrawAllEdges(edges);
             redrawAllFurniture(furniture);
          }
+      }
+
+      public void tabChanged(Coords newTab) {
+         if (!isInitComplete) return;
+         tabChangedIgnoreInitComplete(newTab);
+
+         // Stops you having to click to update the 3D (for tab changes)
+         ((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
       }
 
       /** Adds the given edge. Returns if Coords c is not known yet or if e is already
