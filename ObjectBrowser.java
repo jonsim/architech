@@ -263,20 +263,20 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			try {
 				if(object != dashedSeparator && object != backButtonText) {
 					String request = "select * from ITEM where Name='"+object+"'";
-					System.out.println("OBJNAME: "+object);
+					//System.out.println("OBJNAME: "+object);
 					statement = connection.prepareStatement(request);
 					rs = statement.executeQuery();
 					//System.out.println("Type Name ===== "+typeName);
 					if(rs.next()) {
 						model = rs.getString("Model");	
-						System.out.println("MODEL: "+model);				
+						//System.out.println("MODEL: "+model);				
 					} 
 				}
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
-		System.out.println("ObjPath - - - - "+model);
+		//System.out.println("ObjPath - - - - "+model);
 		return model;
 	}
 	
@@ -291,7 +291,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 					String request = "select * from ITEM where Type='" + typeName + "' AND Name='"+object+"'";
 					statement = connection.prepareStatement(request);
 					rs = statement.executeQuery();
-					System.out.println("Type Name ===== "+typeName);
+					//System.out.println("Type Name ===== "+typeName);
 					if(rs.next()) {
 						String image = rs.getString("Image");
 						if (image.equals("none")==true)
@@ -399,17 +399,17 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		if(currentCategory > 0) {
 			int index = library.locationToIndex(e.getPoint());
 			objectName = fields.get(index).toString();////////////
-System.out.println("Object Name = " + objectName);			
+//System.out.println("Object Name = " + objectName);			
 			getDimensions(getItemType(objectName));
 			String test = getModel(objectName);
-			System.out.println("ObjPath - - - - - - - - - - "+test);
+			//System.out.println("ObjPath - - - - - - - - - - "+test);
 			if(draggedObject != null) {
-				System.out.println("Object Name = " + draggedObject.Name);
-				System.out.println("X = " + draggedObject.X + " m");
-				System.out.println("Y = " + draggedObject.Y + " m");
-				System.out.println("Z = " + draggedObject.Z + " m");
+				//System.out.println("Object Name = " + draggedObject.Name);
+				////System.out.println("X = " + draggedObject.X + " m");
+				//System.out.println("Y = " + draggedObject.Y + " m");
+				//System.out.println("Z = " + draggedObject.Z + " m");
 			} else if(!objectName.equals(dashedSeparator) && !objectName.equals(backButtonText)) {
-				System.out.println("Object '" + objectName + "' Not Found In Database 'TYPE'");
+				//System.out.println("Object '" + objectName + "' Not Found In Database 'TYPE'");
 			}
 		}
 	}
@@ -423,7 +423,7 @@ System.out.println("Object Name = " + objectName);
 		typeName = fields.get(index).toString();
 		Object obj = fields.get(index);
 		typeID = getTypeID(typeName);
-		System.out.println("TYPE ID === "+typeID);
+		//System.out.println("TYPE ID === "+typeID);
 		if(obj != dashedSeparator || obj != backButtonText) 
 		{ 
 				showImage(obj,typeID);			
