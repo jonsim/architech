@@ -11,7 +11,7 @@ public class Furniture {
    private float rotationCenterX, rotationCenterY;
    private double rotation; // theta - in radians
 
-   Furniture(FurnitureSQLData data, Point center, double zoomScale) {
+   Furniture(FurnitureSQLData data, Point center) {
       if (data == null || data.objPath == null || center == null) {
          throw new IllegalArgumentException("Null parameter or furniture ID");
       }
@@ -23,7 +23,7 @@ public class Furniture {
       this.objPath = data.objPath;
       
       setRotationCenter(center);
-      recalcRectangle(zoomScale);
+      recalcRectangle();
    }
    
    Furniture(String toLoadFrom) throws IllegalArgumentException {
@@ -54,7 +54,7 @@ public class Furniture {
          throw new IllegalArgumentException("Malformed furnitureID");
       }
 
-      recalcRectangle(1.0);
+      recalcRectangle();
    }
    
    public int getID(){
@@ -80,18 +80,18 @@ public class Furniture {
       return new Point((int) Math.round(rotationCenterX), (int) Math.round(rotationCenterY));
    }
 
-   public final void recalcRectangle(double zoomScale) {
+   public final void recalcRectangle() {
       float x = rotationCenterX - (float) 0.5 * width;
       float y = rotationCenterY - (float) 0.5 * height;
       // float x, float y, float w, float h, float arcw, float arch
-      rectangle.setRoundRect(zoomScale*x, zoomScale*y, zoomScale*width, zoomScale*height, 0.2*width, 0.2*height);
+      rectangle.setRoundRect(x, y, width, height, 0.2*width, 0.2*height);
    }
 
    /** Use moveFurniture() in the coordinates class instead! */
-   public void set(Point center, double zoomScale) {
+   public void set(Point center) {
       if (center == null) return;
       setRotationCenter(center);
-      recalcRectangle(zoomScale);
+      recalcRectangle();
    }
 
    /** use rotateFurniture() in the coordinates class instead! Rotates clockwise */

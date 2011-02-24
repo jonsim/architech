@@ -2,6 +2,7 @@ import java.awt.dnd.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
+import java.awt.Point;
 
 /** Drop Listener for 2D end of the drag and drop furniture system */
 class TwoDDropListener implements DropTargetListener {
@@ -69,10 +70,13 @@ class TwoDDropListener implements DropTargetListener {
          try {
             Object data = e.getTransferable().getTransferData(chosen);
             if (data instanceof FurnitureSQLData) {
-               inProgress = new Furniture((FurnitureSQLData) data, e.getLocation(), twoDPanel.getZoomScale());
+               Point p = scalePoint(e.getLocation(), twoDPanel.getZoomScale());
+               inProgress = new Furniture((FurnitureSQLData) data, p);
                twoDPanel.getCoords().addFurniture(inProgress);
                e.acceptDrag(e.getDropAction());
+               
             } else e.rejectDrag();
+
          } catch (UnsupportedFlavorException ufe) {
             e.rejectDrag();
          } catch (IOException ioe) {
@@ -94,7 +98,8 @@ class TwoDDropListener implements DropTargetListener {
       // dragEnter is not called for every entry, so re-add the furniture if it
       // was deleted from coords by dragExit. This will do nothing if already added
       twoDPanel.getCoords().addFurniture(inProgress);
-      twoDPanel.getCoords().moveFurniture(inProgress, e.getLocation());
+      Point p = scalePoint(e.getLocation(), twoDPanel.getZoomScale());
+      twoDPanel.getCoords().moveFurniture(inProgress, p);
       e.acceptDrag(e.getDropAction());
    }
 
@@ -107,7 +112,8 @@ class TwoDDropListener implements DropTargetListener {
          e.dropComplete(false);
       } else {
          e.acceptDrop(acceptableActions); // if you give ACTION_COPY_OR_MOVE, then source will receive MOVE!
-         twoDPanel.getCoords().moveFurniture(inProgress, e.getLocation());
+         Point p = scalePoint(e.getLocation(), twoDPanel.getZoomScale());
+         twoDPanel.getCoords().moveFurniture(inProgress, p);
          e.dropComplete(true);
       }
 
@@ -122,5 +128,12 @@ class TwoDDropListener implements DropTargetListener {
       } else {
          e.acceptDrag(e.getDropAction());
       }
+   }
+
+   private Point scalePoint(Point p, double zoomScale) {
+      Point val = new Point();
+      val.setLocation(Math.round(p.getLocation().x / zoomScale),
+         Math.round(p.getLocation().y / zoomScale));
+      return val;
    }
 }

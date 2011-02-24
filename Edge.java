@@ -20,14 +20,14 @@ public class Edge {
    /** Creates a new edge from the given vertices. Doesn't add it to the coordStore.
     *  If null is given for a vertex then that vertex will be made at 0,0,0
     *  If ctrl is null the ctrl point will be at the middle, otherwise it is set */
-   Edge(Coords.Vertex v1, Coords.Vertex v2, Point ctrl, double zoomScale) {
+   Edge(Coords.Vertex v1, Coords.Vertex v2, Point ctrl) {
       if (v1 == null || v2 == null) throw new IllegalArgumentException("null vertex");
 
       this.v1 = v1;
       this.v2 = v2;
 
-      if (ctrl == null) resetCtrlPositionToHalfway(zoomScale);
-      else setCtrl(ctrl, zoomScale);
+      if (ctrl == null) resetCtrlPositionToHalfway();
+      else setCtrl(ctrl);
    }
 
    /** Returns the vertex at one end of this line */
@@ -43,36 +43,36 @@ public class Edge {
    /** Updates v1, refuses to update if you give it null. Also updates the ctrl
     *  point to halfway between the two points. When a new line is drawn this is
     *  called, and the new line has ctrl point 0,0 so it should be updated. */
-   public void setV1(Coords.Vertex v1, double zoomScale) {
+   public void setV1(Coords.Vertex v1) {
       if (v1 == null) return;
 
       this.v1 = v1;
-      resetCtrlPositionToHalfway(zoomScale);
+      resetCtrlPositionToHalfway();
    }
 
    /** Updates v2, refuses to update if you give it null. Also updates the ctrl
     *  point to halfway between the two points. When a new line is drawn this is
     *  called, and the new line has ctrl point 0,0 so it should be updated. */
-   public void setV2(Coords.Vertex v2, double zoomScale) {
+   public void setV2(Coords.Vertex v2) {
       if (v2 == null) return;
 
       this.v2 = v2;
-      resetCtrlPositionToHalfway(zoomScale);
+      resetCtrlPositionToHalfway();
    }
 
    /** Returns true if the point lies within the coordinates of the control point */
-   public boolean curveCtrlContains(Point p, double zoomScale) {
+   public boolean curveCtrlContains(Point p) {
       Point temp = new Point();
-      temp.setLocation(p.getX()*zoomScale, p.getY()*zoomScale);
+      temp.setLocation(p.getX(), p.getY());
       return curveCtrl.contains(temp);
    }
 
    /** Use setEdgeCtrl() in Coords! Updates ctrl, refuses to update if you give it null */
-   public final void setCtrl(Point ctrl, double zoomScale) {
+   public final void setCtrl(Point ctrl) {
       if (ctrl == null) return;
 
       this.ctrl.setLocation(ctrl.getX(), ctrl.getY());
-      recalcTopDownView(zoomScale);
+      recalcTopDownView();
    }
 
    /** Returns the x coordinate of the ctrl point */
@@ -86,19 +86,19 @@ public class Edge {
    }
 
    /** Places the ctrl point halfway between v1 and v2 */
-   public final void resetCtrlPositionToHalfway(double zoomScale) {
+   public final void resetCtrlPositionToHalfway() {
       ctrl.setLocation( ( v1.getX() + v2.getX() ) / 2, ( v1.getY() + v2.getY() ) / 2 );
-      recalcTopDownView(zoomScale);
+      recalcTopDownView();
    }
 
    /** Keeps the top down (2D) view of this line up to date */
-   public final void recalcTopDownView(double zoomScale) {
-      topDownViewCurve.setCurve(zoomScale*v1.getX(), zoomScale*v1.getY(), zoomScale*ctrl.getX(), zoomScale*ctrl.getY(), zoomScale*v2.getX(), zoomScale*v2.getY());
+   public final void recalcTopDownView() {
+      topDownViewCurve.setCurve(v1.getX(), v1.getY(), ctrl.getX(), ctrl.getY(), v2.getX(), v2.getY());
 
-      curveCtrl.setFrame(zoomScale*ctrl.getX() - (curveCtrlSize/2), zoomScale*ctrl.getY() - (curveCtrlSize/2), curveCtrlSize, curveCtrlSize);
+      curveCtrl.setFrame(ctrl.getX() - (curveCtrlSize/2), ctrl.getY() - (curveCtrlSize/2), curveCtrlSize, curveCtrlSize);
 
-      tangent1.setLine(zoomScale*v1.getX(), zoomScale*v1.getY(), zoomScale*ctrl.getX(), zoomScale*ctrl.getY());
-      tangent2.setLine(zoomScale*v2.getX(), zoomScale*v2.getY(), zoomScale*ctrl.getX(), zoomScale*ctrl.getY());
+      tangent1.setLine(v1.getX(), v1.getY(), ctrl.getX(), ctrl.getY());
+      tangent2.setLine(v2.getX(), v2.getY(), ctrl.getX(), ctrl.getY());
    }
 
    /** Draws the 2D representation of this line on the given Graphics canvas */
@@ -125,9 +125,9 @@ public class Edge {
    }
 
    /** Writes the length of this edge next to it on the given graphics canvas */
-   public void paintLengthText(Graphics2D g2, double zoomScale) {
-      int x = Math.round((int) (v1.getX()*zoomScale + v2.getX()*zoomScale) / 2);
-      int y = Math.round((int) (v1.getY()*zoomScale + v2.getY()*zoomScale) / 2);
+   public void paintLengthText(Graphics2D g2) {
+      int x = Math.round((int) (v1.getX() + v2.getX()) / 2);
+      int y = Math.round((int) (v1.getY() + v2.getY()) / 2);
 
       //Font sanSerifFont = new Font("SanSerif", Font.PLAIN, 12);
       //g2.setFont(sanSerifFont);

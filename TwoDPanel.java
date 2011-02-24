@@ -12,8 +12,9 @@ import javax.swing.event.*;
  *
  *  Future bug to watch out for: If we add a curve on drag tool to a different
  *  mouse button than the line drag tool then you can draw both at once. */
-class TwoDPanel extends JPanel implements KeyListener, Scrollable,
-      MouseListener, MouseMotionListener, CoordsChangeListener, ChangeListener {
+class TwoDPanel extends JPanel implements ChangeListener {
+   public static final double MIN_ZOOM_SCALE = 0.1;
+   public static final double MAX_ZOOM_SCALE = 2.0;
    private double zoomScale = 1.0;
    private DesignButtons designButtons;
    private Coords coords;
@@ -27,6 +28,7 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
       if (file == null && nameIfNullFile == null) {
          throw new IllegalArgumentException("If file is null, must give nameIfNullFile");
       }
+      if (designButtons == null) throw new IllegalArgumentException("null designbuttons");
 
       this.designButtons = designButtons;
 
@@ -34,16 +36,16 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
       setPreferredSize(new Dimension(2000, 1000));
       setFocusable(true);
 
-      TwoDDropListener twoDDropListener = new TwoDDropListener(this);
-      DropTarget dropTarget = new DropTarget(this, TwoDDropListener.acceptableActions, twoDDropListener, false);
+      DropTarget dropTarget = new DropTarget(this,
+         TwoDDropListener.acceptableActions, new TwoDDropListener(this), false);
       dropTarget.setActive(true);
 
       coords = file == null ? new Coords(nameIfNullFile) : FileManager.load(file);
-      coords.addCoordsChangeListener(this);
+      coords.addCoordsChangeListener(new TwoDPanelCoordsChangeListener());
 
-      addKeyListener(this);
-      addMouseListener(this);
-      addMouseMotionListener(this);
+      addKeyListener(new TwoDPanelKeyListener());
+      addMouseListener(new TwoDPanelMouseListener());
+      addMouseMotionListener(new TwoDPanelMouseMotionListener());
    }
 
    /** Gets the coords being displayed on this JPanel */
@@ -57,25 +59,9 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
       revalidate();
    }
 
-   /** Returns the current zoom multiplier for x axis 1.0 is normal */
-   public void setZoomScale(double scale) {
-      if( scale == 0 )
-         scale = 0.05;
-      else
-         zoomScale = scale;
-
-      coords.setZoomScale(scale);
-      repaint();
-   }
-
    /** Returns the current zoom multiplier for y axis 1.0 is normal */
    public double getZoomScale() {
       return zoomScale;
-   }
-
-   /** Called when the something changes in the coordinate system */
-   public void coordsChangeOccurred(CoordsChangeEvent e) {
-      repaint();
    }
 
    /** Draws grid, objects and vertices, highlights currently aimed at vertex */
@@ -86,22 +72,34 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
               RenderingHints.VALUE_ANTIALIAS_ON);
 
-      if (designButtons.isGridOn()) coords.drawGrid(g2, getWidth(), getHeight());
+      int vertexDiameter = 10;
+      float lineWidth = 1;
+
+      BasicStroke lineStroke = new BasicStroke(lineWidth / (float) zoomScale);
+      g2.setStroke(lineStroke);
+
+      g2.scale(zoomScale, zoomScale);
+      
+      if (designButtons.isGridOn()) {
+         coords.drawGrid(g2,
+            (int) Math.round(getWidth() / zoomScale), // if zoomScale gets small, make the grid big.
+            (int) Math.round(getHeight() / zoomScale));
+      }
 
       coords.paintEdges(g2, designButtons.isCurveTool());
-      coords.paintVertices(g2);
+      coords.paintVertices(g2, (int) Math.round(vertexDiameter / zoomScale));
       coords.paintFurniture(g2);
 
-      if (dragEdge != null) dragEdge.paintLengthText(g2, zoomScale);
+      if (dragEdge != null) dragEdge.paintLengthText(g2);
 
       if (hoverVertex != null) {
          g2.setColor(Color.red);
-         hoverVertex.paint(g2);
+         hoverVertex.paint(g2, (int) Math.round(vertexDiameter / zoomScale));
       }
 
       if (selectVertex != null && designButtons.isSelectTool()) {
          g2.setColor(Color.blue);
-         selectVertex.paint(g2);
+         selectVertex.paint(g2, (int) Math.round(vertexDiameter / zoomScale));
       }
    }
 
@@ -110,7 +108,7 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
    private void lineDragStarted(Coords coordStore, Point p, boolean snapToGrid) {
       if (p == null) return;
 
-      Coords.Vertex v = new Coords.Vertex(p.x, p.y, 0, zoomScale);
+      Coords.Vertex v = new Coords.Vertex(p.x, p.y, 0);
       dragEdge = coordStore.newEdge(v, v, snapToGrid);
    }
 
@@ -152,183 +150,134 @@ class TwoDPanel extends JPanel implements KeyListener, Scrollable,
       coordStore.set(selectVertex, p.x, p.y, 0, snapToGrid);
    }
 
-   /** Invoked when a mouse button has been pressed on a component. */
-   public void mousePressed(MouseEvent e) {
-      if (e.getButton() == MouseEvent.BUTTON1) {
+   private class TwoDPanelMouseListener implements MouseListener {
+      /** Invoked when a mouse button has been pressed on a component. */
+      public void mousePressed(MouseEvent e) {
+         if (e.getButton() == MouseEvent.BUTTON1) {
+            Point p = new Point();
+            p.setLocation(e.getPoint().getX() / zoomScale, e.getPoint().getY() / zoomScale);
+
+            if (designButtons.isLineTool()) {
+               lineDragStarted(coords, p, designButtons.isGridOn());
+               setCursor(new Cursor(Cursor.HAND_CURSOR));
+               // repaint(); - done by the coordStore change listener if anything changes
+
+            } else if (designButtons.isSelectTool()) {
+               selectVertex = coords.vertexAt(p);
+               requestFocus(); // makes the keys work if the user clicked on a vertex and presses delete
+               repaint(); // gets rid of the blue selected vertex
+
+            } else if (designButtons.isCurveTool()) {
+               dragEdge = coords.ctrlAt(p);
+
+               //if (dragEdge != null)
+               //   dragEdge.setCurve();
+               //else
+               //   dragEdge = null;
+            }
+
+            // other tools go here
+         }
+      }
+
+      /** Invoked when a mouse button has been released on a component. */
+      public void mouseReleased(MouseEvent e) {
+         if (e.getButton() == MouseEvent.BUTTON1) {
+            lineDragFinished();
+
+            setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+         }
+      }
+
+      /** Invoked when the mouse button has been clicked (pressed and released) on a component. */
+      public void mouseClicked(MouseEvent e) {
+      }
+
+      /** Invoked when the mouse enters a component. */
+      public void mouseEntered(MouseEvent e) {
+      }
+
+      /** Invoked when the mouse exits a component. */
+      public void mouseExited(MouseEvent e) {
+      }
+   }
+
+   private class TwoDPanelMouseMotionListener implements MouseMotionListener {
+      /** Invoked when a mouse button is pressed on a component and then dragged. */
+      public void mouseDragged(MouseEvent e) {
          Point p = new Point();
-         p.setLocation(e.getX()/zoomScale, e.getY()/zoomScale);
+         p.setLocation(e.getPoint().getX() / zoomScale, e.getPoint().getY() / zoomScale);
 
          if (designButtons.isLineTool()) {
-            lineDragStarted(coords, p, designButtons.isGridOn());
-            setCursor(new Cursor(Cursor.HAND_CURSOR));
-            // repaint(); - done by the coordStore change listener if anything changes
-
+            lineDragEvent(coords, dragEdge, p, e.isShiftDown(), designButtons.isGridOn());
          } else if (designButtons.isSelectTool()) {
-            selectVertex = coords.vertexAt(p);
-            requestFocus(); // makes the keys work if the user clicked on a vertex and presses delete
-            repaint(); // gets rid of the blue selected vertex
-            
+            vertexDragEvent(coords, selectVertex, p, designButtons.isGridOn());
          } else if (designButtons.isCurveTool()) {
-            dragEdge = coords.ctrlAt(p);
-
-            //if (dragEdge != null)
-            //   dragEdge.setCurve();
-            //else
-            //   dragEdge = null;
+            if (dragEdge != null)
+               coords.setEdgeCtrl(dragEdge, p);
          }
 
-         // other tools go here
+         // repaint(); - done by the coordStore change listener if anything changes
+      }
+
+      /** Invoked when the mouse cursor has been moved onto a component but no buttons have been pushed. */
+      public void mouseMoved(MouseEvent e) {
+         Point p = new Point();
+         p.setLocation(e.getPoint().getX() / zoomScale, e.getPoint().getY() / zoomScale);
+
+         Coords.Vertex before = hoverVertex;
+         hoverVertex = coords.vertexAt(p);
+         if (before != hoverVertex) repaint();
       }
    }
 
-   /** Invoked when a mouse button has been released on a component. */
-   public void mouseReleased(MouseEvent e) {
-      if (e.getButton() == MouseEvent.BUTTON1) {
-         lineDragFinished();
+   private class TwoDPanelKeyListener implements KeyListener {
+      /** Invoked when a key is pressed and released */
+      public void keyTyped(KeyEvent kevt) {
+      }
 
-         setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+      /** Invoked when a key is pressed */
+      public void keyPressed(KeyEvent kevt) {
+         int c = kevt.getKeyCode();
+
+         if ((c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE) && designButtons.isSelectTool()) {
+            coords.delete(selectVertex);
+
+            // the vertex currently being hovered over will only update if the person
+            // moves the mouse. If they don't move the mouse and the vertex has been
+            // deleted, then it will stay behind in red unless this is done!
+            if (!coords.exists(hoverVertex)) hoverVertex = null;
+
+            selectVertex = null;
+            repaint(); // removes the blue selected vertex colour
+         }
+      }
+
+      /** Invoked when a key is released */
+      public void keyReleased(KeyEvent kevt) {
       }
    }
 
-   /** Invoked when the mouse button has been clicked (pressed and released) on a component. */
-   public void mouseClicked(MouseEvent e) {
-   }
-
-   /** Invoked when the mouse enters a component. */
-   public void mouseEntered(MouseEvent e) {
-   }
-
-   /** Invoked when the mouse exits a component. */
-   public void mouseExited(MouseEvent e) {
-   }
-
-   /** Invoked when a mouse button is pressed on a component and then dragged. */
-   public void mouseDragged(MouseEvent e) {
-      Point p = new Point();
-      p.setLocation(e.getX()/zoomScale, e.getY()/zoomScale);
-
-      if (designButtons.isLineTool()) {
-         lineDragEvent(coords, dragEdge, p, e.isShiftDown(), designButtons.isGridOn());
-      } else if (designButtons.isSelectTool()) {
-         vertexDragEvent(coords, selectVertex, p, designButtons.isGridOn());
-      } else if (designButtons.isCurveTool()) {
-         if (dragEdge != null)
-            coords.setEdgeCtrl(dragEdge, p);
+   private class TwoDPanelCoordsChangeListener implements CoordsChangeListener {
+      /** Called when the something changes in the coordinate system */
+      public void coordsChangeOccurred(CoordsChangeEvent e) {
+         repaint();
       }
-
-      // repaint(); - done by the coordStore change listener if anything changes
-   }
-
-   /** Invoked when the mouse cursor has been moved onto a component but no buttons have been pushed. */
-   public void mouseMoved(MouseEvent e) {
-      Point p = new Point();
-      p.setLocation(e.getX()/zoomScale, e.getY()/zoomScale);
-
-      Coords.Vertex before = hoverVertex;
-      hoverVertex = coords.vertexAt(p);
-      if (before != hoverVertex) repaint();
-   }
-
-   /** Returns the preferred size of the viewport for a view component. For
-    * example the preferredSize of a JList component is the size required to
-    * accommodate all of the cells in its list however the value of
-    * preferredScrollableViewportSize is the size required for JList.getVisibleRowCount()
-    * rows. A component without any properties that would effect the viewport
-    * size should just return getPreferredSize() here. */
-   public Dimension getPreferredScrollableViewportSize() {
-      int width = 1;//400;
-      int height = 1;//180;
-
-
-      return new Dimension(width, height);
-      //return getSize();
-   }
-
-   /** Components that display logical rows or columns should compute the scroll
-    * increment that will completely expose one block of rows or columns,
-    * depending on the value of orientation.
-    *
-    * Scrolling containers, like JScrollPane, will use this method each time the
-    * user requests a block scroll. */
-   public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
-      // visibleRect - The view area visible within the viewport
-      // orientation - Either SwingConstants.VERTICAL or SwingConstants.HORIZONTAL.
-      // direction - Less than zero to scroll up/left, greater than zero for down/right.
-
-      return 150;
-   }
-
-   /** Return true if a viewport should always force the height of this Scrollable
-    * to match the height of the viewport. For example a columnar text view that
-    * flowed text in left to right columns could effectively disable vertical
-    * scrolling by returning true here.
-    *
-    * Scrolling containers, like JViewport, will use this method each time they
-    * are validated. */
-   public boolean getScrollableTracksViewportHeight() {
-
-      return false;
-   }
-
-   /** Return true if a viewport should always force the width of this Scrollable
-    * to match the width of the viewport. For example a normal text view that
-    * supported line wrapping would return true here, since it would be undesirable
-    * for wrapped lines to disappear beyond the right edge of the viewport. Note
-    * that returning true for a Scrollable whose ancestor is a JScrollPane
-    * effectively disables horizontal scrolling.
-    *
-    * Scrolling containers, like JViewport, will use this method each time they
-    * are validated. */
-   public boolean getScrollableTracksViewportWidth() {
-
-      return false;
-   }
-
-   /** Components that display logical rows or columns should compute the scroll
-    * increment that will completely expose one new row or column, depending on
-    * the value of orientation. Ideally, components should handle a partially
-    * exposed row or column by returning the distance required to completely
-    * expose the item.
-    *
-    * Scrolling containers, like JScrollPane, will use this method each time the
-    * user requests a unit scroll. */
-   public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
-      // visibleRect - The view area visible within the viewport
-      // orientation - Either SwingConstants.VERTICAL or SwingConstants.HORIZONTAL.
-      // direction - Less than zero to scroll up/left, greater than zero for down/right.
-
-      return 15;
-   }
-
-   /** Invoked when a key is pressed and released */
-   public void keyTyped(KeyEvent kevt) {
-   }
-
-   /** Invoked when a key is pressed */
-   public void keyPressed(KeyEvent kevt) {
-      int c = kevt.getKeyCode();
-
-      if ((c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE) && designButtons.isSelectTool()) {
-         coords.delete(selectVertex);
-
-         // the vertex currently being hovered over will only update if the person
-         // moves the mouse. If they don't move the mouse and the vertex has been
-         // deleted, then it will stay behind in red unless this is done!
-         if (!coords.exists(hoverVertex)) hoverVertex = null;
-
-         selectVertex = null;
-         repaint(); // removes the blue selected vertex colour
-      }
-   }
-
-   /** Invoked when a key is released */
-   public void keyReleased(KeyEvent kevt) {
    }
 
    public void stateChanged(ChangeEvent e) {
       if (e.getSource() instanceof JSlider) {
          JSlider source = (JSlider) e.getSource();
-         setZoomScale((double) source.getValue()/10);
+         setZoomScale((double) source.getValue() / 10);
       }
+   }
+
+   /** Returns the current zoom multiplier for x axis 1.0 is normal */
+   private void setZoomScale(double scale) {
+      if (scale <= MIN_ZOOM_SCALE) zoomScale = MIN_ZOOM_SCALE;
+      else if (scale >= MAX_ZOOM_SCALE) zoomScale = MAX_ZOOM_SCALE;
+      else zoomScale = scale;
+
+      repaint();
    }
 }

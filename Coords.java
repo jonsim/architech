@@ -17,35 +17,34 @@ public class Coords {
     */
    public static class Vertex {
       private int diameter = 10;
-
       private final Loc3f p = new Loc3f(0,0,0);
       private final LinkedList<Edge> edgeUses = new LinkedList<Edge>();
       private final Ellipse2D.Float topDownView = new Ellipse2D.Float();
 
       /** Convenience: Creates a blank, unused vertex at 0,0,0 */
-      Vertex(double zoomScale) {
-         this(0,0,0,zoomScale);
+      Vertex() {
+         this(0,0,0);
       }
 
       /** Convenience: does no rounding, simply casts the doubles back down to float */
-      Vertex(double x, double y, double z, double zoomScale) {
-         this((float) x, (float) y, (float) z, zoomScale);
+      Vertex(double x, double y, double z) {
+         this((float) x, (float) y, (float) z);
       }
 
       /** Creates and initialises an unused vertex at the given coordinates */
-      Vertex(float x, float y, float z, double zoomScale) {
-         set(x, y, z, zoomScale);
+      Vertex(float x, float y, float z) {
+         set(x, y, z);
       }
 
       /** Sets this vertex's points to the new ones and update anything connected */
-      private void set(float x, float y, float z, double zoomScale) {
+      private void set(float x, float y, float z) {
          p.set(x, y, z);
-         recalcTopDownView(zoomScale);
+         recalcTopDownView();
 
          // update all the edges, simply calling the set() method will update them
          ListIterator<Edge> ite = edgeUses.listIterator();
          while (ite.hasNext()) {
-            ite.next().recalcTopDownView(zoomScale);
+            ite.next().recalcTopDownView();
          }
       }
 
@@ -78,26 +77,29 @@ public class Coords {
       }
 
       /** Recalculates the size and location of the topDownView representation */
-      private void recalcTopDownView(double zoomScale) {
-         topDownView.setFrame(zoomScale*p.x() - diameter / 2, zoomScale*p.y() - diameter / 2, diameter, diameter);
+      private void recalcTopDownView() {
+         topDownView.setFrame(p.x() - diameter / 2, p.y() - diameter / 2, diameter, diameter);
       }
 
       /** Returns true if the vertex at its current diameter contains the point */
-      public boolean contains(Point p, double zoomScale) {
+      public boolean contains(Point p) {
          Point temp = new Point();
-         temp.setLocation(p.getX()*zoomScale, p.getY()*zoomScale);
+         temp.setLocation(p.getX(), p.getY());
          return topDownView.contains(temp);
       }
 
       /** Draws the vertex at its current diameter, and the current graphics colour */
-      public void paint(Graphics2D g2) {
+      public void paint(Graphics2D g2, int diameter) {
+         this.diameter = diameter;
+         recalcTopDownView();
+
          g2.fill(topDownView);
       }
 
       /** Takes all the edges that are "in use" by the given vertex and adds
        *  them to the current vertex (if not already added). It updates the
        *  vertex(s) remember by edges/objects etc. to this (the new) vertex */
-      private void addUsesCutFrom(Vertex v, double zoomScale) {
+      private void addUsesCutFrom(Vertex v) {
          if (v == null || this == v) return;
 
          ListIterator<Edge> vIte = v.edgeUses.listIterator();
@@ -105,9 +107,9 @@ public class Coords {
             Edge e = vIte.next();
 
             if (e.getV1() == v) {
-               e.setV1(this, zoomScale);
+               e.setV1(this);
             } else if (e.getV2() == v) {
-               e.setV2(this, zoomScale);
+               e.setV2(this);
             } else Main.showFatalExceptionTraceWindow(new Exception("Never Happen Case"));
 
             this.setUse(e);
@@ -157,7 +159,6 @@ public class Coords {
    private final LinkedList<Edge> edges = new LinkedList<Edge>();
    private final LinkedList<Furniture> furniture = new LinkedList<Furniture>();
    private int gridWidth = 60; // makes grid lines at 0,60,120,...
-   private double zoomScale = 1.0;
 
    /** Creates a blank coordinate system */
    Coords(String associatedSaveName) {
@@ -181,7 +182,7 @@ public class Coords {
             throw new IllegalArgumentException("Vertices array needs to be of size n by 3");
          }
 
-         vertexA[i] = new Vertex(vertices[i][0],vertices[i][1],vertices[i][2],zoomScale);
+         vertexA[i] = new Vertex(vertices[i][0], vertices[i][1], vertices[i][2]);
          this.vertices.add(vertexA[i]);
       }
 
@@ -201,7 +202,7 @@ public class Coords {
          Vertex v1 = vertexA[v1Index];
          Vertex v2 = vertexA[v2Index];
 
-         Edge e = new Edge(v1, v2, ctrl, zoomScale);
+         Edge e = new Edge(v1, v2, ctrl);
          v1.setUse(e);
          v2.setUse(e);
          this.edges.add(e);
@@ -233,7 +234,7 @@ public class Coords {
    /** Moves the furniture item to the new location */
    public void moveFurniture(Furniture f, Point newCenter) {
       if (f == null || !furniture.contains(f)) return;
-      f.set(newCenter, zoomScale);
+      f.set(newCenter);
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_CHANGED, f));
    }
 
@@ -249,7 +250,7 @@ public class Coords {
       v1 = addVertex(v1.getX(), v1.getY(), v1.getZ(), null, snapToGrid);
       v2 = addVertex(v2.getX(), v2.getY(), v2.getZ(), null, snapToGrid);
 
-      Edge e = new Edge(v1, v2, null, zoomScale);
+      Edge e = new Edge(v1, v2, null);
       v1.setUse(e);
       v2.setUse(e);
 
@@ -276,7 +277,7 @@ public class Coords {
 
       while (ite.hasNext()) {
          Vertex v = ite.next();
-         if (v.contains(p, zoomScale)) return v;
+         if (v.contains(p)) return v;
       }
       
       return null;
@@ -289,7 +290,7 @@ public class Coords {
 		
       while (ite.hasNext()) {
          Edge e = ite.next();
-         if (e.curveCtrlContains(p, zoomScale)) return e;
+         if (e.curveCtrlContains(p)) return e;
       }
 		
       return null;
@@ -319,12 +320,12 @@ public class Coords {
    }
 
    /** Draws the small vertex circles on the given Graphics canvas */
-   public void paintVertices(Graphics2D g2) {
+   public void paintVertices(Graphics2D g2, int diameter) {
       g2.setColor(Color.BLACK);
 
       ListIterator<Vertex> ite = vertices.listIterator();
       while (ite.hasNext()) {
-         ite.next().paint(g2);
+         ite.next().paint(g2, diameter);
       }
    }
 
@@ -355,13 +356,13 @@ public class Coords {
       Vertex vAlt = vertexInUse(x, y, z);
 
       if (vAlt != null && vAlt != v) {
-         v.addUsesCutFrom(vAlt, zoomScale);
+         v.addUsesCutFrom(vAlt);
          vertices.remove(vAlt);
       }
 
       // if the vertex is currently snapped, it might not be changing position, don't fire events
       if (!(v.p.x()==x && v.p.y()==y && v.p.z()==z)) {
-         v.set(x, y, z, zoomScale);
+         v.set(x, y, z);
 
          // fire a shit load of events
          Edge[] affectedEdges = v.edgeUses.toArray(new Edge[0]);
@@ -369,25 +370,6 @@ public class Coords {
             fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
          }
       }
-   }
-
-   public void setZoomScale(double scale) {
-      zoomScale = scale;
-      recalcAll();
-   }
-
-   public void recalcAll() {
-      ListIterator<Edge> iteE = edges.listIterator();
-      while (iteE.hasNext())
-         iteE.next().recalcTopDownView(zoomScale);
-      
-      ListIterator<Vertex> iteV = vertices.listIterator();
-      while (iteV.hasNext())
-         iteV.next().recalcTopDownView(zoomScale);
-      
-      ListIterator<Furniture> iteF = furniture.listIterator();
-      while (iteF.hasNext())
-         iteF.next().recalcRectangle(zoomScale);
    }
 
    /** Updates the given vertex so that it no longer remembers Object o as something
@@ -434,7 +416,7 @@ public class Coords {
 
       } else {
          // vertex doesn't exist yet
-         Vertex newV = new Vertex(x, y, z, zoomScale);
+         Vertex newV = new Vertex(x, y, z);
          newV.setUse(useFor); // will do nothing if useFor is null
          vertices.add(newV);
          return newV;
@@ -457,9 +439,9 @@ public class Coords {
       boolean fireChangeEventNecessary = !toMove.equals(newV);
 
       if (isV1) {
-         e.setV1(newV, zoomScale);
+         e.setV1(newV);
       } else {
-         e.setV2(newV, zoomScale);
+         e.setV2(newV);
       }
 
       if (fireChangeEventNecessary) {
@@ -508,7 +490,7 @@ public class Coords {
          throw new IllegalArgumentException("null parameter");
       }
       
-      dragEdge.setCtrl(loc, zoomScale);
+      dragEdge.setCtrl(loc);
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, dragEdge));
    }
 
@@ -516,15 +498,15 @@ public class Coords {
    public void drawGrid(Graphics2D g2, int width, int height) {
       g2.setColor(Color.LIGHT_GRAY);
 
-      for (int i = (int) (gridWidth*zoomScale); i < width; i += gridWidth*zoomScale) {
+      for (int i = (int) (gridWidth); i < width; i += gridWidth) {
          g2.drawLine(i, 0, i, height);
       }
 
-      for (int i = (int) (gridWidth*zoomScale); i < height; i += gridWidth*zoomScale) {
+      for (int i = (int) (gridWidth); i < height; i += gridWidth) {
          g2.drawLine(0, i, width, i);
       }
    }
-
+   
    //-SAVING-STUFF--------------------------------------------------------------
 
    /** Returns true if the coords were modified since it was created, or if save
@@ -582,9 +564,6 @@ public class Coords {
     *  associated one, this coords instance has a new associated file set */
    private void save(File saveAs, boolean updateSaveRequired, boolean updateAssociatedSave) throws IOException {
       // make the list of vertices that will be saved
-      double temp = zoomScale;
-      setZoomScale(1.0);
-
       Vertex[] vArray = vertices.toArray(new Vertex[0]);
       float[][] saveVerts = new float[vArray.length][3];
       for (int i=0; i < vArray.length; i++) {
@@ -619,8 +598,6 @@ public class Coords {
          associatedSaveName = saveAs.getName();
          associatedSave = saveAs;
       }
-
-      setZoomScale(temp);
    }
 
    /** Returns the index in vArray that v is at, or -1 if it is not found */

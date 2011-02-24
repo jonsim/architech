@@ -34,11 +34,11 @@ public class FrontEnd implements WindowListener, ChangeListener {
       main.viewport3D.getCanvas().setMinimumSize(new Dimension(0,0));
 
       try {
-         addTab(new File("testSave.atech"), null);
+         addTab(new File("testSave.atech"));
          stateChanged(new ChangeEvent(tabbedPane));
       } catch (Exception e) {
          // FAILED TO LOAD, NOTIFY USER
-         e.printStackTrace();
+         addTab("New File");
       }
 
       tabbedPane.addChangeListener(this);
@@ -65,12 +65,24 @@ public class FrontEnd implements WindowListener, ChangeListener {
    }
 
    /** Creates a new tab and registers viewport3D as a listener for it */
-   private void addTab(File file, String title) throws Exception {
-      TwoDScrollPane newTab = new TwoDScrollPane(file, title, designButtons, main.viewport3D);
+   private void addTab(File file) throws Exception {
+      TwoDScrollPane newTab = new TwoDScrollPane(file, null, designButtons, main.viewport3D);
       tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
       tabbedPane.setSelectedComponent(newTab);
    }
 
+   /** Creates a new tab and registers viewport3D as a listener for it */
+   private void addTab(String title) {
+      try {
+         TwoDScrollPane newTab = new TwoDScrollPane(null, title, designButtons, main.viewport3D);
+         tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
+         tabbedPane.setSelectedComponent(newTab);
+      } catch (Exception e) {
+         System.err.println("Never Happen Case");
+      }
+   }
+
+   /** Removes the tab and unregisters viewport3D as a listener for it */
    private void removeTab(TwoDScrollPane tab) {
       if (tab == null) return;
       tabbedPane.remove(tab);
@@ -201,11 +213,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
 
    /** Creates a blank panel and adds a tab with the new file */
    public void newCoords() {
-      try {
-         addTab(null, "New File");
-      } catch (Exception e) {
-         // NEVER HAPPEN CASE
-      }
+      addTab("New File");
    }
 
    /** Asks the user to specify a file and then loads it into a new tab */
@@ -214,9 +222,9 @@ public class FrontEnd implements WindowListener, ChangeListener {
       if (toOpen == null) return;
 
       try {
-         addTab(toOpen, null);
+         addTab(toOpen);
       } catch (Exception e) {
-         // FAILED TO LOAD, NOTIFY USER
+         // FILE FAILED TO LOAD, NOTIFY USER
       }
    }
 
