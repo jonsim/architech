@@ -15,7 +15,24 @@ public class FrontEnd implements WindowListener, ChangeListener {
 
    private final JFrame window = new JFrame(WINDOW_TITLE);
    private final JSplitPane TwoDandThreeD = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
-   private final JTabbedPane tabbedPane = new JTabbedPane();
+   private final JTabbedPane tabbedPane = new JTabbedPane() {
+      @Override
+      public void remove(Component tab) {
+         super.remove(tab);
+         if (tab instanceof TwoDScrollPane) {
+            // unregister the listener and tell 3D to forget about the walls so
+            // that the memory will be freed
+            ((TwoDScrollPane) tab).getCoords().removeCoordsChangeListener(main.viewport3D);
+            main.viewport3D.tabRemoved(((TwoDScrollPane) tab).getCoords());
+         }
+      }
+
+      @Override
+      public void remove(int index) {
+         Component tab = this.getComponentAt(index);
+         this.remove(tab);
+      }
+   };
    private FrontEndMenu frontEndMenu;
    private DesignButtons designButtons;
    private Main main;
@@ -69,6 +86,9 @@ public class FrontEnd implements WindowListener, ChangeListener {
       TwoDScrollPane newTab = new TwoDScrollPane(file, null, designButtons, main.viewport3D);
       tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
       tabbedPane.setSelectedComponent(newTab);
+
+      int i = tabbedPane.indexOfComponent(newTab);
+      tabbedPane.setTabComponentAt(i, new ButtonTabComponent(tabbedPane));
    }
 
    /** Creates a new tab and registers viewport3D as a listener for it */
@@ -77,16 +97,12 @@ public class FrontEnd implements WindowListener, ChangeListener {
          TwoDScrollPane newTab = new TwoDScrollPane(null, title, designButtons, main.viewport3D);
          tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
          tabbedPane.setSelectedComponent(newTab);
+
+         int i = tabbedPane.indexOfComponent(newTab);
+         tabbedPane.setTabComponentAt(i, new ButtonTabComponent(tabbedPane));
       } catch (Exception e) {
          System.err.println("Never Happen Case");
       }
-   }
-
-   /** Removes the tab and unregisters viewport3D as a listener for it */
-   private void removeTab(TwoDScrollPane tab) {
-      if (tab == null) return;
-      tabbedPane.remove(tab);
-      tab.getCoords().removeCoordsChangeListener(main.viewport3D);
    }
 
    /** calls requestFocusToCurrentTwoDScrollPane on the open tab if there is one */
@@ -311,7 +327,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
    private boolean quit() {
       while (tabbedPane.getTabCount() > 0) {
          TwoDScrollPane tab = getCurrentTab();
-         if (quitTab(tab)) removeTab(tab);
+         if (quitTab(tab)) tabbedPane.remove(tab);
          else return false; // the user cancelled the quit operation on a tab
       }
 

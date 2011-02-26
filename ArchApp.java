@@ -41,7 +41,6 @@ public class ArchApp extends Application {
     private Node guiNode = new Node("Gui Node");
     private final Object syncLockObject = new Object();
 
-    private float secondCounter = 0.0f;
     private BitmapText fpsText;
     private BitmapFont guiFont;
     private StatsView statsView;
@@ -426,12 +425,29 @@ public class ArchApp extends Application {
          }
       }
 
-      public void tabChanged(Coords newTab) {
+      /** Public function to prepare edges for the given coords. If these coords
+       *  havn't been seen before then new objects will be created for it. */
+      void tabChanged(Coords newTab) {
          if (!isInitComplete) return;
          tabChangedIgnoreInitComplete(newTab);
 
          // Stops you having to click to update the 3D (for tab changes)
          ((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
+      }
+
+      /** This should be called after the given Coords is no longer used i.e.
+       *  immediately after, not immediately before deletion. It forgets about
+       *  the edges. If called before, then the entry might be recreated */
+      void tabRemoved(Coords tab) {
+         HashMap<Edge, WallGeometry> edges = tabEdgeGeometry.remove(tab);
+         if (edges != null) {
+            edges.clear();
+         }
+
+         HashMap<Furniture, Spatial> furniture = tabFurnitureSpatials.remove(tab);
+         if (furniture != null) {
+            furniture.clear();
+         }
       }
 
       /** Adds the given edge. Returns if Coords c is not known yet or if e is already

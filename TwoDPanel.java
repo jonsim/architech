@@ -8,10 +8,7 @@ import javax.swing.event.*;
 /** This class holds the panel for the 2D view, it extends JPanel so has repaint()
  *  and all the other methods to do with JPanel. It draws the vertices and edges
  *  from the coordinate system as required and responds to button pressed from
- *  the DesignButtons class.
- *
- *  Future bug to watch out for: If we add a curve on drag tool to a different
- *  mouse button than the line drag tool then you can draw both at once. */
+ *  the DesignButtons class. */
 class TwoDPanel extends JPanel implements ChangeListener {
    public static final double MIN_ZOOM_SCALE = 0.1;
    public static final double MAX_ZOOM_SCALE = 2.0;

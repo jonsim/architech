@@ -61,6 +61,12 @@ public class Viewport3D implements CoordsChangeListener {
       canvasApplication.tabChanged(coords);
    }
 
+   /** Forgets about the edges in the coords. If the coords is added again using
+    *  tabChanged, then it will recreate edges, so call when its not needed anymore */
+   public void tabRemoved(Coords coords) {
+      canvasApplication.tabRemoved(coords);
+   }
+
    public void coordsChangeOccurred(CoordsChangeEvent e) {
       if (e.isEdgeRelated()) {
          Edge hasChanged = e.getEdgeChanges();
