@@ -19,11 +19,12 @@ class TwoDPanel extends JPanel implements ChangeListener {
    private Coords.Vertex hoverVertex, selectVertex;
    private Edge dragEdge;
 
-   private Furniture hoverFurniture, selectFurniture;
+   public Furniture selectFurniture;
    private double deltaX, deltaY;
    private double rotation;
-   private boolean isCollision = false;
+   public boolean isCollision = false;
    private Point revertPoint;
+   private double revertRotation = 0;
 
    /** If file is null creates a blank coords with the tab name nameIfNullFile,
     *  otherwise it tries to open the given file and load a coords from it, if
@@ -106,16 +107,13 @@ class TwoDPanel extends JPanel implements ChangeListener {
          selectVertex.paint(g2, (int) Math.round(vertexDiameter / zoomScale));
       }
 
-      if(hoverFurniture != null && designButtons.isSelectTool()) {
-         g2.setColor(Color.green);
-         hoverFurniture.paint(g2);
-      }
-
-      if(selectFurniture != null && designButtons.isSelectTool()) {
-         if(isCollision) {
-           g2.setColor(Color.red);
-           selectFurniture.paint(g2);
-         }
+      if(selectFurniture != null) {
+	     if(isCollision) {
+		    g2.setColor(Color.red);
+		 } else if(designButtons.isSelectTool()){
+            g2.setColor(Color.green);
+		 }
+         selectFurniture.paint(g2);
       }
    }
 
@@ -186,6 +184,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
 			if(selectFurniture != null) {
 				revertPoint = new Point();
 				revertPoint.setLocation(selectFurniture.getRotationCenter());
+				revertRotation = selectFurniture.getRotation();
 			}
 
 
@@ -214,12 +213,13 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
             setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 
-		 if(selectFurniture != null && isCollision) {
-			coords.moveFurniture(selectFurniture, revertPoint);
-			isCollision = false;
-			selectFurniture = null;
-			repaint(); // go from green to blue
-		 }
+		    if(selectFurniture != null && isCollision) {
+		       coords.moveFurniture(selectFurniture, revertPoint);
+			   coords.rotateFurniture(selectFurniture, revertRotation);
+			   isCollision = false;
+			   selectFurniture = null;
+			   repaint(); // go from green to blue
+		    }
          }
       }
 
@@ -255,11 +255,12 @@ class TwoDPanel extends JPanel implements ChangeListener {
 				if(deltaX == 0) rotation = (deltaY >= 0) ? Math.PI/2: -Math.PI/2;
 				else rotation = Math.atan2(deltaY, deltaX);
 				coords.rotateFurniture(selectFurniture, rotation);
+				isCollision = coords.detectCollisions(selectFurniture);
 			} else {
 				coords.moveFurniture(selectFurniture, p);
 				isCollision = coords.detectCollisions(selectFurniture);
 			}
-            }
+         }
 
          } else if (designButtons.isCurveTool()) {
             if (dragEdge != null)
@@ -276,11 +277,10 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
          Coords.Vertex before = hoverVertex;
          hoverVertex = coords.vertexAt(p);
-         if (before != hoverVertex) repaint();
 
-         Furniture beforeF = hoverFurniture;
-         hoverFurniture = coords.furnitureAt(p.getX(), p.getY());
-         if (before != hoverVertex || beforeF != hoverFurniture) repaint();
+         Furniture beforeF = selectFurniture;
+         selectFurniture = coords.furnitureAt(p.getX(), p.getY());
+         if (before != hoverVertex || beforeF != selectFurniture) repaint();
       }
    }
 

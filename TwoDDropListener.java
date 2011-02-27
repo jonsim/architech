@@ -55,6 +55,7 @@ class TwoDDropListener implements DropTargetListener {
       if ((e.getSourceActions() & acceptableActions) == 0) return false;
 
       if (chooseDropFlavor(e) == null) return false;
+	  if (twoDPanel.getCoords().detectCollisions(inProgress) == true) return false;
 
       return true;
    }
@@ -98,6 +99,9 @@ class TwoDDropListener implements DropTargetListener {
       // dragEnter is not called for every entry, so re-add the furniture if it
       // was deleted from coords by dragExit. This will do nothing if already added
       twoDPanel.getCoords().addFurniture(inProgress);
+	  twoDPanel.selectFurniture = inProgress;
+	  twoDPanel.isCollision = twoDPanel.getCoords().detectCollisions(inProgress);
+	  twoDPanel.repaint();
       Point p = scalePoint(e.getLocation(), twoDPanel.getZoomScale());
       twoDPanel.getCoords().moveFurniture(inProgress, p);
       e.acceptDrag(e.getDropAction());
