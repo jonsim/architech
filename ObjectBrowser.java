@@ -43,6 +43,9 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    private int itemType = -1;
    private int currentLibrary = -1;
    private int categoryIndex = -1;
+   private JTextArea description;
+   private JScrollPane libraryScroller;
+   private JScrollPane descriptionScroller;
 
 	ObjectBrowser(Main main) {
 		this.main = main;
@@ -59,27 +62,52 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		ConnectSQL();
 		AddLibrary();
 		currentCategory = -1;
+		addDescriptionPane();
+		picInitialise();
 		SQLStatement("select COUNT(*) from TYPE", "count");
+	}
+	
+	private void addDescriptionPane() {
+		description = new JTextArea();
+		description.setFont(f);
+		description.setLineWrap(true);
+		description.setWrapStyleWord(true);
+		description.setEditable(false);
+		descriptionScroller = new JScrollPane(description);
+		descriptionScroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		GridBagConstraints c;
+		Insets top_left_bottom_right = new Insets(10,10,10,10);
+		c = FrontEnd.buildGBC(0, 1, 0.5, 0.5, GridBagConstraints.CENTER, top_left_bottom_right);
+		c.weighty = 15;
+		c.fill = GridBagConstraints.BOTH;
+		pane.add(descriptionScroller, c);
+		pane.revalidate();
 	}
 	
 	private void AddLibrary() {
 		library = new JList(fields);
 		library.setFont(f);
 		library.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		libraryScroller = new JScrollPane(library);
+		libraryScroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		Insets top_left_bottom_right = new Insets(10,10,10,10);
 		GridBagConstraints c;
 		c = FrontEnd.buildGBC(0, 0, 0.5, 0.5, GridBagConstraints.NORTHWEST, top_left_bottom_right);
-		pane.add(library, c);
+		c.weighty = 45;
+		c.fill = GridBagConstraints.BOTH;
+		pane.add(libraryScroller, c);
 		listSelectionListener = new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent listSelectionEvent) {
 				int index = library.getSelectedIndex();
 				boolean adjust = listSelectionEvent.getValueIsAdjusting();
 				if(!adjust) {
-					if(index >= 0 && index < fields.size())//{} //showImage(fields.get(index));
-						//if (currentLibrary == 2)
-						//{
-							showImage(fields.get(index), typeName);
-						//}
+					if(index >= 0 && index < fields.size()) {
+						typeName = fields.get(index).toString();
+						Object obj = fields.get(index);
+						typeID = getTypeID(typeName);
+						setDescription(typeName);
+						showImage(obj,typeID);			
+					}
 				}
 			}
 		};
@@ -128,6 +156,22 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void setDescription(String objectName) {
+		if(currentLibrary == 2) {
+			try {
+				int ID = getID(objectName);
+				statement = connection.prepareStatement("select * from ITEM where ID=" + ID);
+				rs = statement.executeQuery();
+				if(rs.next()) {
+					description.setText(rs.getString("Description"));
+					description.setCaretPosition(0);
+				} else description.setText("");
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		} else description.setText("");
 	}
 	
 	private void getDimensions(int itemTypeID) {
@@ -195,7 +239,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			typeName = fields.get(index).toString();
 			index++;
 		}
-		if(index > 0 && currentType == -1) {
+		if(index > 0 && currentType == -1 && !typeName.equals(dashedSeparator)) {
 			library.addListSelectionListener(listSelectionListener);
 			int typeIndex = getTypeID(typeName);
 			currentType = index;
@@ -204,6 +248,8 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			currentLibrary = 2;
 			fields.addElement(dashedSeparator);
 			fields.addElement(backButtonText);
+			library.setSelectedIndex(-1);
+			library.ensureIndexIsVisible(0);
 			pane.revalidate();
 		}
 	}
@@ -221,7 +267,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			categoryIndex = index;
 			fields.addElement(dashedSeparator);
 			fields.addElement(backButtonText);
-			picInitialise();/////////////////////////////////////////
+			library.setSelectedIndex(-1);
 			pane.revalidate();
 		}
 	}
@@ -231,10 +277,9 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			library.removeListSelectionListener(listSelectionListener);
 			currentCategory = -1;
 			fields.clear();
-			pane.remove(picLabel);////////////////////////////////////
 			SQLStatement("select * from CATEGORIES", "Category");
 			currentLibrary = 0;
-			pane.remove(picLabel);
+			library.setSelectedIndex(-1);
 			pane.revalidate();
 		}
 	}
@@ -245,13 +290,12 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			typeID = -1;
 			currentType = -1;
 			fields.clear();
-			pane.remove(picLabel);////////////////////////////////////
 			SQLStatement("select * from TYPE where Category1="+categoryIndex+
 				" or Category2="+categoryIndex+" or Category3="+categoryIndex, "Type");
 			currentLibrary = 1;
 			fields.addElement(dashedSeparator);
 			fields.addElement(backButtonText);
-			pane.remove(picLabel);
+			library.setSelectedIndex(-1);
 			pane.revalidate();
 		}
 	}
@@ -259,30 +303,37 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 	private String getModel(Object object) {
 		String model = null;
 		if(library.getSelectedIndex() >= 0 && currentType > 0) {
-			pane.remove(picLabel);
+			//pane.remove(picLabel);
 			try {
 				if(object != dashedSeparator && object != backButtonText) {
 					String request = "select * from ITEM where Name='"+object+"'";
-					//System.out.println("OBJNAME: "+object);
+					System.out.println("OBJNAME: "+object);
 					statement = connection.prepareStatement(request);
 					rs = statement.executeQuery();
 					//System.out.println("Type Name ===== "+typeName);
 					if(rs.next()) {
 						model = rs.getString("Model");	
-						//System.out.println("MODEL: "+model);				
+						System.out.println("MODEL: "+model);				
 					} 
 				}
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
-		//System.out.println("ObjPath - - - - "+model);
+		System.out.println("ObjPath - - - - "+model);
 		return model;
 	}
 	
 	private void showImage(Object object, Object typeName) {
 		if(library.getSelectedIndex() >= 0 && currentType > 0) {
+			Insets top_left_bottom_right = new Insets(10,10,10,10);
+			GridBagConstraints gbc;
+			gbc = FrontEnd.buildGBC(0, 2, 0.5, 0.5, GridBagConstraints.CENTER, top_left_bottom_right);
+			gbc.weighty = 40;
+			JLabel blankLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"blank.png") ));
+			pane.add(blankLabel, gbc);
 			pane.remove(picLabel);
+			pane.revalidate();
 			try {
 				BufferedImage myPicture;
 				if(object == dashedSeparator || object == backButtonText) {
@@ -291,7 +342,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 					String request = "select * from ITEM where Type='" + typeName + "' AND Name='"+object+"'";
 					statement = connection.prepareStatement(request);
 					rs = statement.executeQuery();
-					//System.out.println("Type Name ===== "+typeName);
+					System.out.println("Type Name ===== "+typeName);
 					if(rs.next()) {
 						String image = rs.getString("Image");
 						if (image.equals("none")==true)
@@ -309,10 +360,8 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
-			Insets top_left_bottom_right = new Insets(10,10,10,10);
-			GridBagConstraints gbc;
-			gbc = FrontEnd.buildGBC(0, 0, 0.5, 0.5, GridBagConstraints.SOUTH, top_left_bottom_right);
 			pane.add(picLabel, gbc);
+			pane.remove(blankLabel);
 			pane.revalidate();
 		}
 	}
@@ -322,7 +371,8 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"blank.png") ));
 			Insets top_left_bottom_right = new Insets(10,10,10,10);
 			GridBagConstraints gbc;
-			gbc = FrontEnd.buildGBC(0, 0, 0.5, 0.5, GridBagConstraints.SOUTH, top_left_bottom_right);
+			gbc = FrontEnd.buildGBC(0, 2, 0.5, 0.5, GridBagConstraints.CENTER, top_left_bottom_right);
+			gbc.weighty = 40;
 			pane.add(picLabel, gbc);
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -343,9 +393,41 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		}
 	}
 	
-	public void deleteObject(String Object) {
-		if(currentCategory > 0) {
-			// I'll sort this out later
+	public void deleteObject() {
+		if(currentType > 0 && library.getSelectedIndex() != -1) {
+			String object = library.getSelectedValue().toString();
+			if(!object.equals(dashedSeparator) && !object.equals(backButtonText)) {
+				JFrame window = new JFrame("Delete");
+				int choice = JOptionPane.showConfirmDialog(window,
+				"Confirm Delete of Item \"" + object + "\"", "Delete", JOptionPane.YES_NO_OPTION);
+				if(choice == JOptionPane.YES_OPTION) {
+					try {
+						statement = connection.prepareStatement("DELETE FROM ITEM WHERE Name='" + object + "'");
+						int delete = statement.executeUpdate();
+						int typeIndex = getTypeID(typeName);
+						fields.clear();
+						SQLStatement("select * from ITEM where Type="+ typeIndex, "Name");
+						currentLibrary = 2;
+						fields.addElement(dashedSeparator);
+						fields.addElement(backButtonText);
+						library.setSelectedIndex(-1);
+						Insets top_left_bottom_right = new Insets(10,10,10,10);
+						GridBagConstraints gbc;
+						gbc = FrontEnd.buildGBC(0, 2, 0.5, 0.5, GridBagConstraints.CENTER, top_left_bottom_right);
+						gbc.weighty = 40;
+						JLabel blankLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"blank.png") ));
+						pane.add(blankLabel, gbc);
+						pane.remove(picLabel);
+						picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"blank.png")));
+						pane.add(picLabel, gbc);
+						pane.remove(blankLabel);
+						pane.revalidate();
+					} catch(Exception e) {
+						e.printStackTrace();
+					}
+					window.dispose();
+				} else window.dispose();
+			}
 		}
 	}
 
@@ -373,43 +455,44 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 	public void keyTyped(KeyEvent e) {}
 
     public void keyPressed(KeyEvent e) {
-			if(e.getKeyCode() == 10) {
-				int index = library.getSelectedIndex();
-				if (currentLibrary == 0)
-				{
-					selectCategory();
-				}
-				else if (currentLibrary == 1)
-				{
-					selectType();
-		 		 	toCategories();
-					//toType();
-				}
-				if (currentLibrary == 2)
-				{
-					toType();
-		  		//toCategories();
-				}
+		if(e.getKeyCode() == 10) {
+			int index = library.getSelectedIndex();
+			if(currentLibrary == 0)
+			{
+				selectCategory();
 			}
+			else if(currentLibrary == 1)
+			{
+				toCategories();
+				selectType();
+				//toType();
+			}
+			if(currentLibrary == 2)
+			{
+				toType();
+		 		//toCategories();
+			}
+		} else if(e.getKeyCode() == KeyEvent.VK_DELETE) {
+			deleteObject();
+		}
     }
-
     public void keyReleased(KeyEvent e) {}
 
 	public void mousePressed(MouseEvent e) {
 		if(currentCategory > 0) {
 			int index = library.locationToIndex(e.getPoint());
-			objectName = fields.get(index).toString();////////////
-//System.out.println("Object Name = " + objectName);			
+			objectName = fields.get(index).toString();
+System.out.println("Object Name = " + objectName);			
 			getDimensions(getItemType(objectName));
 			String test = getModel(objectName);
-			//System.out.println("ObjPath - - - - - - - - - - "+test);
+			System.out.println("ObjPath - - - - - - - - - - "+test);
 			if(draggedObject != null) {
-				//System.out.println("Object Name = " + draggedObject.Name);
-				////System.out.println("X = " + draggedObject.X + " m");
-				//System.out.println("Y = " + draggedObject.Y + " m");
-				//System.out.println("Z = " + draggedObject.Z + " m");
+				System.out.println("Object Name = " + draggedObject.Name);
+				System.out.println("X = " + draggedObject.X + " m");
+				System.out.println("Y = " + draggedObject.Y + " m");
+				System.out.println("Z = " + draggedObject.Z + " m");
 			} else if(!objectName.equals(dashedSeparator) && !objectName.equals(backButtonText)) {
-				//System.out.println("Object '" + objectName + "' Not Found In Database 'TYPE'");
+				System.out.println("Object '" + objectName + "' Not Found In Database 'TYPE'");
 			}
 		}
 	}
@@ -419,23 +502,14 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 	}
 
 	public void mouseClicked(MouseEvent e) {
-		int index = library.getSelectedIndex();
-		typeName = fields.get(index).toString();
-		Object obj = fields.get(index);
-		typeID = getTypeID(typeName);
-		//System.out.println("TYPE ID === "+typeID);
-		if(obj != dashedSeparator || obj != backButtonText) 
-		{ 
-				showImage(obj,typeID);			
-		}
-		if(e.getClickCount() == 2) {
+		if(e.getClickCount()%2 == 0) {
 			if (currentLibrary == 0)
 			{
 				selectCategory();
 			}
 			if (currentLibrary == 1)
 			{
-		  	toCategories();
+				toCategories();
 				selectType();
 			}
 			if (currentLibrary == 2)

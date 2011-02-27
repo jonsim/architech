@@ -15,8 +15,15 @@ class TwoDPanel extends JPanel implements ChangeListener {
    private double zoomScale = 1.0;
    private DesignButtons designButtons;
    private Coords coords;
+   
    private Coords.Vertex hoverVertex, selectVertex;
    private Edge dragEdge;
+
+   private Furniture hoverFurniture, selectFurniture;
+   private double deltaX, deltaY;
+   private double rotation;
+   private boolean isCollision = false;
+   private Point revertPoint;
 
    /** If file is null creates a blank coords with the tab name nameIfNullFile,
     *  otherwise it tries to open the given file and load a coords from it, if
@@ -98,6 +105,18 @@ class TwoDPanel extends JPanel implements ChangeListener {
          g2.setColor(Color.blue);
          selectVertex.paint(g2, (int) Math.round(vertexDiameter / zoomScale));
       }
+
+      if(hoverFurniture != null && designButtons.isSelectTool()) {
+         g2.setColor(Color.green);
+         hoverFurniture.paint(g2);
+      }
+
+      if(selectFurniture != null && designButtons.isSelectTool()) {
+         if(isCollision) {
+           g2.setColor(Color.red);
+           selectFurniture.paint(g2);
+         }
+      }
    }
 
    /** if the user clicks and drags with the line tool on, call this, it will
@@ -161,16 +180,27 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
             } else if (designButtons.isSelectTool()) {
                selectVertex = coords.vertexAt(p);
+
+
+			selectFurniture = coords.furnitureAt(p.getX(), p.getY());
+			if(selectFurniture != null) {
+				revertPoint = new Point();
+				revertPoint.setLocation(selectFurniture.getRotationCenter());
+			}
+
+
+
                requestFocus(); // makes the keys work if the user clicked on a vertex and presses delete
                repaint(); // gets rid of the blue selected vertex
 
+
+
+
+
+
+
             } else if (designButtons.isCurveTool()) {
                dragEdge = coords.ctrlAt(p);
-
-               //if (dragEdge != null)
-               //   dragEdge.setCurve();
-               //else
-               //   dragEdge = null;
             }
 
             // other tools go here
@@ -183,6 +213,13 @@ class TwoDPanel extends JPanel implements ChangeListener {
             lineDragFinished();
 
             setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+
+		 if(selectFurniture != null && isCollision) {
+			coords.moveFurniture(selectFurniture, revertPoint);
+			isCollision = false;
+			selectFurniture = null;
+			repaint(); // go from green to blue
+		 }
          }
       }
 
@@ -207,8 +244,23 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
          if (designButtons.isLineTool()) {
             lineDragEvent(coords, dragEdge, p, e.isShiftDown(), designButtons.isGridOn());
+
          } else if (designButtons.isSelectTool()) {
             vertexDragEvent(coords, selectVertex, p, designButtons.isGridOn());
+
+		 if(selectFurniture != null) {
+		    if(e.isControlDown()) {
+				deltaX = p.getX() - selectFurniture.getRotationCenterX();
+				deltaY = p.getY() - selectFurniture.getRotationCenterY();
+				if(deltaX == 0) rotation = (deltaY >= 0) ? Math.PI/2: -Math.PI/2;
+				else rotation = Math.atan2(deltaY, deltaX);
+				coords.rotateFurniture(selectFurniture, rotation);
+			} else {
+				coords.moveFurniture(selectFurniture, p);
+				isCollision = coords.detectCollisions(selectFurniture);
+			}
+            }
+
          } else if (designButtons.isCurveTool()) {
             if (dragEdge != null)
                coords.setEdgeCtrl(dragEdge, p);
@@ -225,6 +277,10 @@ class TwoDPanel extends JPanel implements ChangeListener {
          Coords.Vertex before = hoverVertex;
          hoverVertex = coords.vertexAt(p);
          if (before != hoverVertex) repaint();
+
+         Furniture beforeF = hoverFurniture;
+         hoverFurniture = coords.furnitureAt(p.getX(), p.getY());
+         if (before != hoverVertex || beforeF != hoverFurniture) repaint();
       }
    }
 

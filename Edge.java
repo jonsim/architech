@@ -11,7 +11,7 @@ public class Edge {
    private Coords.Vertex v1;
    private Coords.Vertex v2;
    private final Point2D.Float ctrl = new Point2D.Float();
-   private final QuadCurve2D.Float topDownViewCurve = new QuadCurve2D.Float();
+   public final QuadCurve2D.Float topDownViewCurve = new QuadCurve2D.Float();
    private final static int curveCtrlSize = 6;
    private final Ellipse2D.Float curveCtrl = new Ellipse2D.Float();
    private final Line2D.Float tangent1 = new Line2D.Float();

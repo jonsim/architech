@@ -1,7 +1,7 @@
 import java.awt.*;
-import java.awt.geom.Ellipse2D;
 import java.util.*;
 import java.io.*;
+import java.awt.geom.*;
 
 /** This is the class that holds all the coordinates, vertices, edges, planes
  *  etc. for one "design". If there are two designs loaded, i.e. in tabs, just
@@ -238,6 +238,56 @@ public class Coords {
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_CHANGED, f));
    }
 
+   public boolean detectCollisions(Furniture f) {
+	  Point topLeft = new Point();
+	  Point topRight = new Point();
+	  Point bottomLeft = new Point();
+	  Point bottomRight = new Point();
+      AffineTransform edgeXForm = new AffineTransform();
+	  edgeXForm.rotate(-f.getRotation(), f.getRotationCenterX(), f.getRotationCenterY());
+	  ListIterator<Edge> edgeIterator = edges.listIterator();
+      while(edgeIterator.hasNext()) {
+         Edge e = edgeIterator.next();
+		 edgeXForm.createTransformedShape(e.topDownViewCurve);
+		 if(edgeXForm.createTransformedShape(e.topDownViewCurve).intersects(f.rectangle.getBounds())) {
+			return true;
+		 }
+      }
+	  ListIterator<Furniture> furnitureIterator = furniture.listIterator();
+      while(furnitureIterator.hasNext()) {
+         Furniture fur = furnitureIterator.next();
+		 if(fur != f) {
+			topLeft = fur.getTopLeft();
+			topRight = fur.getTopRight();
+			bottomLeft = fur.getBottomLeft();
+			bottomRight = fur.getBottomRight();
+			if(pointIsOverFurniture(f, topLeft.getX(), topLeft.getY()) ||
+			   pointIsOverFurniture(f, topRight.getX(), topRight.getY()) ||
+			   pointIsOverFurniture(f, bottomLeft.getX(), bottomLeft.getY()) ||
+			   pointIsOverFurniture(f, bottomRight.getX(), bottomRight.getY())) {
+				return true;
+			}
+			topLeft = f.getTopLeft();
+			topRight = f.getTopRight();
+			bottomLeft = f.getBottomLeft();
+			bottomRight = f.getBottomRight();
+			if(pointIsOverFurniture(fur, topLeft.getX(), topLeft.getY()) ||
+			   pointIsOverFurniture(fur, topRight.getX(), topRight.getY()) ||
+			   pointIsOverFurniture(fur, bottomLeft.getX(), bottomLeft.getY()) ||
+			   pointIsOverFurniture(fur, bottomRight.getX(), bottomRight.getY())) {
+				return true;
+			}
+	     }
+      }
+	  return false;
+   }
+
+   public void rotateFurniture(Furniture f, double radians) {
+	  if(f == null || !furniture.contains(f)) return;
+	  f.setRotation(radians);
+        fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_CHANGED, f));
+   }
+
    /** Removes the furniture item */
    public void delete(Furniture f) {
       if (f == null || !furniture.contains(f)) return;
@@ -269,7 +319,32 @@ public class Coords {
    public Furniture[] getFurniture(){
       return furniture.toArray(new Furniture[0]);
    }
-   
+
+   private boolean pointIsOverFurniture(Furniture f, double pointX, double pointY) {
+      pointX -= f.getRotationCenterX();
+      pointY -= f.getRotationCenterY();
+      double hypotenuse = Math.sqrt(Math.pow(pointX, 2) + Math.pow(pointY, 2));
+      double initialRotation;
+      if(pointX == 0) initialRotation = (pointY >= 0) ? Math.PI/2: -Math.PI/2;
+      else initialRotation = Math.atan2(pointY, pointX);
+      double finalRotation = initialRotation - f.getRotation();
+      double endX = hypotenuse * Math.cos(finalRotation);
+      double endY = hypotenuse * Math.sin(finalRotation);
+      if(endX <= f.getWidth()/2  && endX >= -f.getWidth()/2 &&
+         endY <= f.getHeight()/2 && endY >= -f.getHeight()/2) {
+            return true;
+      }
+      return false;
+   }
+
+   public Furniture furnitureAt(double MouseX, double MouseY) {
+      ListIterator<Furniture> ite = furniture.listIterator();
+      while(ite.hasNext()) {
+            Furniture f = ite.next();
+            if(pointIsOverFurniture(f, MouseX, MouseY)) return f;
+      }
+      return null;
+   }
 
    /** returns the vertex that the Point p lies within, or null if none */
    public Vertex vertexAt(Point p) {
@@ -520,6 +595,7 @@ public class Coords {
       return associatedSave;
    }
 
+   /** Returns the canonical save file path if there is a save file or the name if there is none set */
    public String getAssociatedSaveFileAsString() {
       if (associatedSave == null) return associatedSaveName;
 
