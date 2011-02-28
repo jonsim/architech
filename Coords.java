@@ -243,15 +243,30 @@ public class Coords {
 	  Point topRight = new Point();
 	  Point bottomLeft = new Point();
 	  Point bottomRight = new Point();
-      AffineTransform edgeXForm = new AffineTransform();
-	  edgeXForm.rotate(-f.getRotation(), f.getRotationCenterX(), f.getRotationCenterY());
 	  ListIterator<Edge> edgeIterator = edges.listIterator();
+	  double y1;
+      double y2;
+      double x1;
+      double x2;
+	  double eqn[] = new double[3];
+	  double ctrlY;
+      double ctrlX;
       while(edgeIterator.hasNext()) {
          Edge e = edgeIterator.next();
-		 edgeXForm.createTransformedShape(e.topDownViewCurve);
-		 if(edgeXForm.createTransformedShape(e.topDownViewCurve).intersects(f.rectangle.getBounds())) {
-			return true;
-		 }
+		 QuadCurve2D quadCurve = new QuadCurve2D.Float();
+		 quadCurve = rotateQuad(e.topDownViewCurve, -f.getRotation(), f.getRotationCenterX(), f.getRotationCenterY());
+         x1 = quadCurve.getX1();
+         x2 = quadCurve.getX2();
+		 y1 = quadCurve.getY1();
+         y2 = quadCurve.getY2();
+         ctrlX = quadCurve.getCtrlX();
+		 ctrlY = quadCurve.getCtrlY();
+		 if(intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY()-f.getHeight()/2, x1, ctrlX, x2, f.getRotationCenterX()-f.getWidth()/2, f.getRotationCenterX()+f.getWidth()/2) ||
+		    intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY()+f.getHeight()/2, x1, ctrlX, x2, f.getRotationCenterX()-f.getWidth()/2, f.getRotationCenterX()+f.getWidth()/2) ||
+			intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX()-f.getWidth()/2, y1, ctrlY, y2, f.getRotationCenterY()-f.getHeight()/2, f.getRotationCenterY()+f.getHeight()/2) ||
+			intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX()+f.getWidth()/2, y1, ctrlY, y2, f.getRotationCenterY()-f.getHeight()/2, f.getRotationCenterY()+f.getHeight()/2)) {
+				return true;
+		}
       }
 	  ListIterator<Furniture> furnitureIterator = furniture.listIterator();
       while(furnitureIterator.hasNext()) {
@@ -281,6 +296,89 @@ public class Coords {
       }
 	  return false;
    }
+   
+   private QuadCurve2D.Float rotateQuad(QuadCurve2D quadCurve, double rotation, double centreX, double centreY) {
+	double x1 = quadCurve.getX1();
+	double x2 = quadCurve.getX2();
+	double y1 = quadCurve.getY1();
+	double y2 = quadCurve.getY2();
+	double ctrlX = quadCurve.getCtrlX();
+	double ctrlY = quadCurve.getCtrlY();
+	Point start = rotatePoint(rotation, x1, y1, centreX, centreY);
+	Point end = rotatePoint(rotation, x2, y2, centreX, centreY);
+	Point ctrl = rotatePoint(rotation, ctrlX, ctrlY, centreX, centreY);
+	return new QuadCurve2D.Float((float)start.getX(), (float)start.getY(),
+								 (float)ctrl.getX(), (float)ctrl.getY(),
+								 (float)end.getX(), (float)end.getY());
+  }
+  
+   private Point rotatePoint(double rotation, double pointX, double pointY, double centreX, double centreY) {
+      pointX -= centreX;
+	  pointY -= centreY;
+      double hypotenuse = Math.sqrt(Math.pow(pointX, 2) + Math.pow(pointY, 2));
+      double initialRotation;
+      if (pointX == 0) {
+         initialRotation = (pointY >= 0) ? Math.PI / 2 : -Math.PI / 2;
+      } else {
+         initialRotation = Math.atan2(pointY, pointX);
+      }
+      double finalRotation = initialRotation + rotation;
+      double endX = hypotenuse * Math.cos(finalRotation);
+      double endY = hypotenuse * Math.sin(finalRotation);
+	  endX += centreX;
+	  endY += centreY;
+      Point p = new Point();
+      p.setLocation(endX, endY);
+      return p;
+   }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////// 
+////// CODE BELOW FOUND ON : http://www.codng.com/2005/07/intersecting-quadcurve2d-part-ii.html //////
+////////////////////////////////////// Author : Juan Cruz Nores //////////////////////////////////////
+   private boolean intersectsLine(double[] eqn, double p0, double p1, double p2, double c,
+                                   double pb0, double pb1, double pb2,
+                                   double from, double to) {
+        eqn[2] = p0 - 2*p1 + p2;
+        eqn[1] = 2*p1-2*p0;
+        eqn[0] = p0 - c;
+        int nRoots = QuadCurve2D.solveQuadratic(eqn);
+        boolean result;
+        switch(nRoots) {
+			case 1:
+				result = (eqn[0] >= 0) && (eqn[0] <= 1);
+				if(result) {
+					double intersection = evalQuadraticCurve(pb0,pb1,pb2,eqn[0]);
+					result = (intersection >= from) && (intersection <= to);
+				}
+				break;
+			case 2:
+				result = (eqn[0] >= 0) && (eqn[0] <= 1);
+				if(result) {
+					double intersection = evalQuadraticCurve(pb0,pb1,pb2,eqn[0]);
+					result = (intersection >= from) && (intersection <= to);
+				}
+				if(!result) {
+					result = (eqn[1] >= 0) && (eqn[1] <= 1);
+					if(result) {
+						double intersection = evalQuadraticCurve(pb0,pb1,pb2,eqn[1]);
+						result = (intersection >= from) && (intersection <= to);
+					}
+				}
+				break;
+			default:
+				result = false;
+		}
+		return result;
+    }
+   
+   public double evalQuadraticCurve(double c1, double ctrl, double c2, double t) {
+        double u = 1 - t;
+        double res = c1 * u * u + 2 * ctrl * t * u + c2 * t * t;
+        return res;
+    }
+////// CODE ABOVE FOUND ON : http://www.codng.com/2005/07/intersecting-quadcurve2d-part-ii.html //////
+////////////////////////////////////// Author : Juan Cruz Nores //////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
    public void rotateFurniture(Furniture f, double radians) {
 	  if(f == null || !furniture.contains(f)) return;
@@ -318,6 +416,15 @@ public class Coords {
    /** returns an array containing all the Furniture in the current design */
    public Furniture[] getFurniture(){
       return furniture.toArray(new Furniture[0]);
+   }
+   
+   public boolean edgeFurnitureCollision(double pointX, double pointY) {
+	  ListIterator<Furniture> furnitureIterator = furniture.listIterator();
+      while(furnitureIterator.hasNext()) {
+         Furniture f = furnitureIterator.next();
+		 if(pointIsOverFurniture(f, pointX, pointY)) return true;
+	  }
+	  return false;
    }
 
    private boolean pointIsOverFurniture(Furniture f, double pointX, double pointY) {

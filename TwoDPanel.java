@@ -4,6 +4,7 @@ import java.awt.dnd.DropTarget;
 import java.io.*;
 import javax.swing.*;
 import javax.swing.event.*;
+import java.util.*;
 
 /** This class holds the panel for the 2D view, it extends JPanel so has repaint()
  *  and all the other methods to do with JPanel. It draws the vertices and edges
@@ -172,8 +173,10 @@ class TwoDPanel extends JPanel implements ChangeListener {
             p.setLocation(e.getPoint().getX() / zoomScale, e.getPoint().getY() / zoomScale);
 
             if (designButtons.isLineTool()) {
-               lineDragStarted(coords, p, designButtons.isGridOn());
-               setCursor(new Cursor(Cursor.HAND_CURSOR));
+			   if (!coords.edgeFurnitureCollision(p.getX(), p.getY())) {
+				  lineDragStarted(coords, p, designButtons.isGridOn());
+                  setCursor(new Cursor(Cursor.HAND_CURSOR));
+			   }
                // repaint(); - done by the coordStore change listener if anything changes
 
             } else if (designButtons.isSelectTool()) {
@@ -209,7 +212,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
       /** Invoked when a mouse button has been released on a component. */
       public void mouseReleased(MouseEvent e) {
          if (e.getButton() == MouseEvent.BUTTON1) {
-            lineDragFinished();
+			lineDragFinished();
 
             setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 
@@ -246,21 +249,23 @@ class TwoDPanel extends JPanel implements ChangeListener {
             lineDragEvent(coords, dragEdge, p, e.isShiftDown(), designButtons.isGridOn());
 
          } else if (designButtons.isSelectTool()) {
-            vertexDragEvent(coords, selectVertex, p, designButtons.isGridOn());
-
-		 if(selectFurniture != null) {
-		    if(e.isControlDown()) {
-				deltaX = p.getX() - selectFurniture.getRotationCenterX();
-				deltaY = p.getY() - selectFurniture.getRotationCenterY();
-				if(deltaX == 0) rotation = (deltaY >= 0) ? Math.PI/2: -Math.PI/2;
-				else rotation = Math.atan2(deltaY, deltaX);
-				coords.rotateFurniture(selectFurniture, rotation);
-				isCollision = coords.detectCollisions(selectFurniture);
+			if(selectVertex != null) {
+               vertexDragEvent(coords, selectVertex, p, designButtons.isGridOn());
 			} else {
-				coords.moveFurniture(selectFurniture, p);
-				isCollision = coords.detectCollisions(selectFurniture);
-			}
-         }
+		       if(selectFurniture != null) {
+		          if(e.isControlDown()) {
+				      deltaX = p.getX() - selectFurniture.getRotationCenterX();
+   				      deltaY = p.getY() - selectFurniture.getRotationCenterY();
+				      if(deltaX == 0) rotation = (deltaY >= 0) ? Math.PI/2: -Math.PI/2;
+				      else rotation = Math.atan2(deltaY, deltaX);
+				      coords.rotateFurniture(selectFurniture, rotation);
+			          isCollision = coords.detectCollisions(selectFurniture);
+			      } else {
+				      coords.moveFurniture(selectFurniture, p);
+				      isCollision = coords.detectCollisions(selectFurniture);
+			      }
+               }
+		    }
 
          } else if (designButtons.isCurveTool()) {
             if (dragEdge != null)
@@ -277,9 +282,14 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
          Coords.Vertex before = hoverVertex;
          hoverVertex = coords.vertexAt(p);
-
-         Furniture beforeF = selectFurniture;
-         selectFurniture = coords.furnitureAt(p.getX(), p.getY());
+		 
+		 
+		 Furniture beforeF = selectFurniture;
+		 if(hoverVertex == null) {
+			selectFurniture = coords.furnitureAt(p.getX(), p.getY());
+		 } else {
+			selectFurniture = null;
+		 }
          if (before != hoverVertex || beforeF != selectFurniture) repaint();
       }
    }
