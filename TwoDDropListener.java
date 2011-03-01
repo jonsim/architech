@@ -120,7 +120,7 @@ class TwoDDropListener implements DropTargetListener {
          twoDPanel.getCoords().moveFurniture(inProgress, p);
          e.dropComplete(true);
       }
-
+	  
       inProgress = null;
    }
 

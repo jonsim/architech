@@ -135,6 +135,10 @@ public class Coords {
          if (v == null) return false;
          return equalsLocation(v.p.x(), v.p.y(), v.p.z());
       }
+	  
+	  public LinkedList<Edge> getEdges() {
+		 return edgeUses;
+	  }
 
       /** @see Coords.Vertex.equalsLocation */
       @Override
@@ -236,6 +240,42 @@ public class Coords {
       if (f == null || !furniture.contains(f)) return;
       f.set(newCenter);
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_CHANGED, f));
+   }
+   
+   public boolean detectVertexCollisions(Vertex v) {
+	  Edge e;
+	  Furniture f;
+	  ListIterator<Edge> edgeIterator = v.edgeUses.listIterator();
+	  ListIterator<Furniture> furnitureIterator = furniture.listIterator();
+	  double y1;
+      double y2;
+      double x1;
+      double x2;
+	  double eqn[] = new double[3];
+	  double ctrlY;
+      double ctrlX;
+	  while(edgeIterator.hasNext()) {
+         e = edgeIterator.next();
+		 QuadCurve2D quadCurve = new QuadCurve2D.Float();
+		 while(furnitureIterator.hasNext()) {
+            f = furnitureIterator.next();
+		    quadCurve = rotateQuad(e.topDownViewCurve, -f.getRotation(), f.getRotationCenterX(), f.getRotationCenterY());
+            x1 = quadCurve.getX1();
+            x2 = quadCurve.getX2();
+		    y1 = quadCurve.getY1();
+            y2 = quadCurve.getY2();
+            ctrlX = quadCurve.getCtrlX();
+		    ctrlY = quadCurve.getCtrlY();
+		    if(intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY()-f.getHeight()/2, x1, ctrlX, x2, f.getRotationCenterX()-f.getWidth()/2, f.getRotationCenterX()+f.getWidth()/2) ||
+		       intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY()+f.getHeight()/2, x1, ctrlX, x2, f.getRotationCenterX()-f.getWidth()/2, f.getRotationCenterX()+f.getWidth()/2) ||
+			   intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX()-f.getWidth()/2, y1, ctrlY, y2, f.getRotationCenterY()-f.getHeight()/2, f.getRotationCenterY()+f.getHeight()/2) ||
+			   intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX()+f.getWidth()/2, y1, ctrlY, y2, f.getRotationCenterY()-f.getHeight()/2, f.getRotationCenterY()+f.getHeight()/2)) {
+				   return true;
+		    }
+	     }
+		 furnitureIterator = furniture.listIterator();
+	  }
+	  return false;
    }
 
    public boolean detectCollisions(Furniture f) {
