@@ -149,15 +149,17 @@ class TwoDPanel extends JPanel implements ChangeListener {
    }
 
    /** No reason other than stopping erroneous  */
-   private void lineDragFinished() {
+   private void lineDragFinished(Point p, boolean snapToGrid) {
 	  if(isCollisionVertex) {
 	     if(isDragging) {
 		    coords.setEdgeCtrl(dragEdge, revertPoint);
 		 } else {
 	        coords.delete(dragEdge);
+			coords.mergeVertices(dragEdge.getV2(), p.x, p.y, 0, snapToGrid);
 		 }
 	  } else if(dragEdge != null) {
 		if(dragEdge.length() == 0) coords.delete(dragEdge);
+		else coords.mergeVertices(dragEdge.getV2(), p.x, p.y, 0, snapToGrid);
 	  }
 	  
 	  isDragging = false;
@@ -260,13 +262,13 @@ class TwoDPanel extends JPanel implements ChangeListener {
       /** Invoked when a mouse button has been released on a component. */
       public void mouseReleased(MouseEvent e) {
          if (e.getButton() == MouseEvent.BUTTON1) {
-			lineDragFinished();
+			Point p = new Point();
+			p.setLocation(e.getPoint().getX() / zoomScale, e.getPoint().getY() / zoomScale);
+			lineDragFinished(p, designButtons.isGridOn());
 
             setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			if(selectVertex != null) {
 				if (designButtons.isSelectTool() && !isCollisionVertex) {
-					Point p = new Point();
-					p.setLocation(e.getPoint().getX() / zoomScale, e.getPoint().getY() / zoomScale);
 					// False while still moving, true when mouse released
 					vertexDragEvent(coords, selectVertex, p, designButtons.isGridOn(), true);
 				}
