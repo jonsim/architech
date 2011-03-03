@@ -145,6 +145,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
       Coords.Vertex v = new Coords.Vertex(p.x, p.y, 0);
       dragEdge = coordStore.newEdge(v, v, snapToGrid);
+	  coords.mergeVertices(dragEdge.getV1(), p.x, p.y, 0, snapToGrid);
+	  hoverVertex = null;
 	  isDragging = false;
    }
 
@@ -155,7 +157,6 @@ class TwoDPanel extends JPanel implements ChangeListener {
 		    coords.setEdgeCtrl(dragEdge, revertPoint);
 		 } else {
 	        coords.delete(dragEdge);
-			coords.mergeVertices(dragEdge.getV2(), p.x, p.y, 0, snapToGrid);
 		 }
 	  } else if(dragEdge != null) {
 		if(dragEdge.length() == 0) coords.delete(dragEdge);
