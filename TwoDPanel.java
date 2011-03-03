@@ -196,8 +196,11 @@ class TwoDPanel extends JPanel implements ChangeListener {
    private void vertexDragEvent(Coords coordStore, Coords.Vertex selectVertex, Point p, boolean snapToGrid, boolean finished) {
       if (selectVertex == null) return; // coordStore won't do anything if selectVertex == null
 
-	  if(finished) coordStore.mergeVertices(selectVertex, p.x, p.y, 0, snapToGrid);
-      else coordStore.set(selectVertex, p.x, p.y, 0, snapToGrid);
+	  if(finished) {
+	    coordStore.set(selectVertex, revertPoint.x, revertPoint.y, 0, snapToGrid);
+	    coordStore.mergeVertices(selectVertex, p.x, p.y, 0, snapToGrid);
+	  }
+      coordStore.set(selectVertex, p.x, p.y, 0, snapToGrid);
 	  isCollisionVertex = coords.detectVertexCollisions(selectVertex);
    }
 

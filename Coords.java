@@ -582,7 +582,6 @@ public class Coords {
          // fire a shit load of events
          Edge[] affectedEdges = v.edgeUses.toArray(new Edge[0]);
          for (Edge e : affectedEdges) {
-			//e.resetCtrlPositionToHalfway();
             fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
          }
       }
@@ -611,6 +610,7 @@ public class Coords {
          // fire a shit load of events
          Edge[] affectedEdges = v.edgeUses.toArray(new Edge[0]);
          for (Edge e : affectedEdges) {
+		    e.resetCtrlPositionToHalfway();
             fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
          }
       }
