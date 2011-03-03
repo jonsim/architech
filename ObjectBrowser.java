@@ -9,6 +9,8 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.ListSelectionModel;
 import java.awt.dnd.*;
+import javax.swing.BorderFactory;
+import javax.swing.border.Border;
 
 /**
  *
@@ -46,6 +48,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    private JTextArea description;
    private JScrollPane libraryScroller;
    private JScrollPane descriptionScroller;
+   private JPanel picPan;
 
 	ObjectBrowser(Main main) {
 		this.main = main;
@@ -63,6 +66,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		AddLibrary();
 		currentCategory = -1;
 		addDescriptionPane();
+		addImagePane();
 		picInitialise();
 		SQLStatement("select COUNT(*) from TYPE", "count");
 	}
@@ -81,6 +85,19 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		c.weighty = 15;
 		c.fill = GridBagConstraints.BOTH;
 		pane.add(descriptionScroller, c);
+		pane.revalidate();
+	}
+
+	private void addImagePane() {
+		picPan = new JPanel();
+		picPan.setBackground(Color.WHITE);
+		Insets top_left_bottom_right = new Insets(10,10,10,10);
+		GridBagConstraints gbc;
+		gbc = FrontEnd.buildGBC(0, 2, 0.5, 0.5, GridBagConstraints.CENTER, top_left_bottom_right);
+		gbc.weighty = 40;
+		pane.add(picPan, gbc);
+		Border border = BorderFactory.createLineBorder(Color.WHITE);
+		picPan.setBorder(border);
 		pane.revalidate();
 	}
 	
@@ -331,8 +348,8 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			gbc = FrontEnd.buildGBC(0, 2, 0.5, 0.5, GridBagConstraints.CENTER, top_left_bottom_right);
 			gbc.weighty = 40;
 			JLabel blankLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"blank.png") ));
-			pane.add(blankLabel, gbc);
-			pane.remove(picLabel);
+			picPan.add(blankLabel);
+			picPan.remove(picLabel);
 			pane.revalidate();
 			try {
 				BufferedImage myPicture;
@@ -348,20 +365,26 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 						if (image.equals("none")==true)
 						{
 							picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"NoImage.png") ));
+							Border border = BorderFactory.createLineBorder(Color.GRAY);
+		          picPan.setBorder(border);
 						}
 						else
 					    {
 							picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+image) ));
+							Border border = BorderFactory.createLineBorder(Color.GRAY);
+		          picPan.setBorder(border);
 						}
 					} else {
 						picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"NoImage.png") ));
+						Border border = BorderFactory.createLineBorder(Color.GRAY);
+		        picPan.setBorder(border);
 					}
 				}
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
-			pane.add(picLabel, gbc);
-			pane.remove(blankLabel);
+			picPan.add(picLabel, gbc);
+			picPan.remove(blankLabel);
 			pane.revalidate();
 		}
 	}

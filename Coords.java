@@ -575,6 +575,28 @@ public class Coords {
          z = snapToGrid(z);
       }
 
+      // if the vertex is currently snapped, it might not be changing position, don't fire events
+      if (!(v.p.x()==x && v.p.y()==y && v.p.z()==z)) {
+         v.set(x, y, z);
+
+         // fire a shit load of events
+         Edge[] affectedEdges = v.edgeUses.toArray(new Edge[0]);
+         for (Edge e : affectedEdges) {
+			//e.resetCtrlPositionToHalfway();
+            fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
+         }
+      }
+   }
+   
+   public void mergeVertices(Vertex v, float x, float y, float z, boolean snapToGrid) {
+      if (v == null || !vertices.contains(v)) return;
+
+      if (snapToGrid) {
+         x = snapToGrid(x);
+         y = snapToGrid(y);
+         z = snapToGrid(z);
+      }
+
       Vertex vAlt = vertexInUse(x, y, z);
 
       if (vAlt != null && vAlt != v) {
@@ -617,6 +639,17 @@ public class Coords {
       }
 
       return coord;
+   }
+   
+   private Point snapToEdge(Point p) {
+	  ListIterator<Edge> ite = edges.listIterator();
+	  Rectangle proximity = new Rectangle((int)p.getX(), (int)p.getY(), 10, 10);
+      
+      while (ite.hasNext()) {
+         Edge e = ite.next();
+		 
+	  }
+	  return p;
    }
 
    /** If the vertex exists already it prevents duplicate entries.
