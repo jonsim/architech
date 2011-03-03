@@ -589,14 +589,29 @@ public class Coords {
    
    public void mergeVertices(Vertex v, float x, float y, float z, boolean snapToGrid) {
       if (v == null || !vertices.contains(v)) return;
-
+	  
+	  Vertex vAlt = null;
+	  
       if (snapToGrid) {
          x = snapToGrid(x);
          y = snapToGrid(y);
          z = snapToGrid(z);
+		 vAlt = vertexInUse(x, y, z);
+      } else {
+		 Point p = new Point();
+		 p.setLocation(x, y);
+	     ListIterator<Vertex> ite = vertices.listIterator();
+		
+         while (ite.hasNext()) {
+            Vertex vertex = ite.next();
+            if(vertex.contains(p)) {
+				vAlt = vertex;
+				break;
+			}
+		 }
       }
 
-      Vertex vAlt = vertexInUse(x, y, z);
+      
 
       if (vAlt != null && vAlt != v) {
          v.addUsesCutFrom(vAlt);
@@ -610,7 +625,8 @@ public class Coords {
          // fire a shit load of events
          Edge[] affectedEdges = v.edgeUses.toArray(new Edge[0]);
          for (Edge e : affectedEdges) {
-		    e.resetCtrlPositionToHalfway();
+			// Doing this makes the lines straight, but needs to be done differently
+		    //if(affectedEdges.length != 1) e.resetCtrlPositionToHalfway();
             fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
          }
       }
