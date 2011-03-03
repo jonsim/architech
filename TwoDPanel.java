@@ -197,7 +197,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
       if (selectVertex == null) return; // coordStore won't do anything if selectVertex == null
 
 	  if(finished) {
-	    coordStore.set(selectVertex, revertPoint.x, revertPoint.y, 0, snapToGrid);
+		// put it at the right xy-coordinates but different z so it wont be considered to be at that point
+	    coordStore.set(selectVertex, p.x, p.y, 1000, snapToGrid);
 	    coordStore.mergeVertices(selectVertex, p.x, p.y, 0, snapToGrid);
 	  }
       coordStore.set(selectVertex, p.x, p.y, 0, snapToGrid);

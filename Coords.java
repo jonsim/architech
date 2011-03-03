@@ -604,14 +604,12 @@ public class Coords {
 		
          while (ite.hasNext()) {
             Vertex vertex = ite.next();
-            if(vertex.contains(p)) {
+            if(vertex.contains(p) && vertex != v) {
 				vAlt = vertex;
 				break;
 			}
 		 }
       }
-
-      
 
       if (vAlt != null && vAlt != v) {
          v.addUsesCutFrom(vAlt);
@@ -625,8 +623,6 @@ public class Coords {
          // fire a shit load of events
          Edge[] affectedEdges = v.edgeUses.toArray(new Edge[0]);
          for (Edge e : affectedEdges) {
-			// Doing this makes the lines straight, but needs to be done differently
-		    //if(affectedEdges.length != 1) e.resetCtrlPositionToHalfway();
             fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
          }
       }
