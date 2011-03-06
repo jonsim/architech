@@ -47,6 +47,12 @@ public class Viewport3D implements CoordsChangeListener {
    public void shutdown3D() {
       canvasApplication.stop();
    }
+   
+   /** toggle day/night mode. this is almost certainly the wrong way to do this! */
+   public void toggleDay()
+   {
+	   canvasApplication.toggleDay();
+   }
 
    /** FrontEnd will put this in the main window */
    public Canvas getCanvas() {
