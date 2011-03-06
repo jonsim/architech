@@ -105,10 +105,11 @@ public class Tweaker extends JFrame implements ActionListener {
        controlarea = new JPanel(new GridBagLayout());
        controlScroller = new JScrollPane(controlarea);
        controlScroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-       controlScroller.setPreferredSize(new Dimension( 500, (int) scrDim.getHeight()-450 ));
+       controlScroller.setPreferredSize(new Dimension( 500, (int) scrDim.getHeight()-520 ));
+       controlScroller.setMinimumSize(new Dimension( 500, (int) scrDim.getHeight()-520 ));
        addItem(con,controlScroller,0,0,1,1, GridBagConstraints.CENTER);
        
-       ImageIcon brush = new ImageIcon("bin/img/add.png");
+       ImageIcon brush = new ImageIcon("img/add.png");
        JButton but = new JButton("<html><h1><font face='Gill Sans MT'>Add Object",brush);
        but.setActionCommand("add");
        but.addActionListener(this);
@@ -364,8 +365,8 @@ public class Tweaker extends JFrame implements ActionListener {
 			    if (returnVal==0){
 				    File file = fc.getSelectedFile();
 				    String path = file.getPath();
-				    String fname = file.getPath().split("\\\\")[file.getPath().split("\\\\").length-1];
-				    path = path.substring(0,path.lastIndexOf('\\'));
+				    String fname = file.getName();
+				    path = path.substring(0,path.lastIndexOf(File.separator));
 			 		//String path = null;
 			 		//String fname = "merge.obj";
 				    JPanel control = addcontrols(idcount,fname);

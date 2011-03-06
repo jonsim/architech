@@ -35,7 +35,7 @@ public class TWPane{
       canvasApplication.createCanvas(); // create canvas!
       JmeCanvasContext ctx = (JmeCanvasContext) canvasApplication.getContext();
       ctx.setSystemListener(canvasApplication);
-      ctx.getCanvas().setPreferredSize(new Dimension( (int) scrDim.getWidth()-900, (int) scrDim.getHeight()-500));
+      ctx.getCanvas().setPreferredSize(new Dimension( (int) scrDim.getWidth()-700, (int) scrDim.getHeight()-450));
 }
 
    /** Nicely disposes of the 3D stuff so that everything can close without exit(0) */
