@@ -59,18 +59,18 @@ public class Tweaker extends JFrame implements ActionListener {
 	JTextField namet;
 	JTextField desct;
 	JComboBox typelist;
-	Main parent;
-	
+	TwoDPanel parent;
+	Main main;
 
    public void addtodb(String object, int type,String desc,String image, String model,float width,float length,float height){
-      parent.objectBrowser.addObject(object,type,desc,image,model, width,length,height);
+      main.objectBrowser.addObject(object,type,desc,image,model, width,length,height);
    }
 
 	public String getname(){
 		return namet.getText();
 	}
 	
-	public Main pan(){
+	public TwoDPanel pan(){
 		return parent;
 	}
 	
@@ -82,8 +82,9 @@ public class Tweaker extends JFrame implements ActionListener {
 		return (String)typelist.getSelectedItem();
 	}
 	
-    public Tweaker(Main pan) {
+    public Tweaker(TwoDPanel pan, Main main) {
     	parent = pan;
+      this.main = main;
        setVisible(true);
        setTitle("ArchiTECH Tweaker");
        this.setMinimumSize(this.getSize());
