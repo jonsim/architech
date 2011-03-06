@@ -295,7 +295,7 @@ public class TWApp extends Application implements ActionListener {
     		name = "mrbung";    		
     		description = "hes so amazing";
     		int type = 2;
-        	main.pan().addtodb(name,type,description,"ss.png","mrbung.obj",0.5f,0.5f,0.5f);
+        	main.addtodb(name,type,description,"ss.png","mrbung.obj",0.5f,0.5f,0.5f);
 	        (new File(name)).mkdir();
     		/*try{
 			FileWriter fstream = new FileWriter(name+"/"+name+".obj");
