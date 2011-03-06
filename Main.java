@@ -30,10 +30,15 @@ public class Main {
    private void run() {
 	   	  JFrame splash = new JFrame();
 	      splash.setTitle("Splash Screen");
+	      splash.setResizable(false);
 	      splash.setSize(884, 457);
 	      splash.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		  splash.setVisible(true);
 	      splash.setLocationRelativeTo(null);
+	      splash.dispose();
+	      splash.setUndecorated(true);
+	      splash.setVisible(true);
+	      Image ic = FrontEnd.getImage(this, "img/frontend/icon.png");
+	      splash.setIconImage(ic);
 	      File file = new File("bin/img/frontend/logo.png");
 	      BufferedImage myPicture = null;
 	      try{
