@@ -11,7 +11,7 @@ public class TwoDScrollPane extends JScrollPane {
    /** Sets up all the classes mentioned above in the one ScrollPane */
    TwoDScrollPane(File file, String nameIfNullFile, DesignButtons designButtons, Viewport3D viewport3D, ObjectBrowser objectBrowser) throws Exception {
       super(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-      twoDPanel = new TwoDPanel(file, nameIfNullFile, designButtons,objectBrowser);
+      twoDPanel = new TwoDPanel(file, nameIfNullFile, designButtons);
       twoDPanel.getCoords().addCoordsChangeListener(viewport3D);
       this.setViewportView(twoDPanel);
 
