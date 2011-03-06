@@ -35,8 +35,11 @@ public class FrontEnd implements WindowListener, ChangeListener {
    };
    private FrontEndMenu frontEndMenu;
    private DesignButtons designButtons;
-   private Main main;
+   public Main main;
 
+   public JFrame getwindow(){
+	   return window;
+   }
    /** holds the displayable window and shows or hides sub windows
     * displays dialogs on request by other classes (i.e. crash dialog) */
    FrontEnd(Main main) {
@@ -83,7 +86,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
 
    /** Creates a new tab and registers viewport3D as a listener for it */
    private void addTab(File file) throws Exception {
-      TwoDScrollPane newTab = new TwoDScrollPane(file, null, designButtons, main.viewport3D);
+      TwoDScrollPane newTab = new TwoDScrollPane(file, null, designButtons, main.viewport3D,main.objectBrowser);
       tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
       tabbedPane.setSelectedComponent(newTab);
 
@@ -94,7 +97,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
    /** Creates a new tab and registers viewport3D as a listener for it */
    private void addTab(String title) {
       try {
-         TwoDScrollPane newTab = new TwoDScrollPane(null, title, designButtons, main.viewport3D);
+         TwoDScrollPane newTab = new TwoDScrollPane(null, title, designButtons, main.viewport3D,main.objectBrowser);
          tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
          tabbedPane.setSelectedComponent(newTab);
 
@@ -112,7 +115,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
    }
 
    /** Gets the current tab or null if there are no tabs */
-   private TwoDScrollPane getCurrentTab() {
+   public TwoDScrollPane getCurrentTab() {
       Component selected = tabbedPane.getSelectedComponent();
       if (selected != null && selected instanceof TwoDScrollPane) {
          return (TwoDScrollPane) selected;

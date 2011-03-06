@@ -10,7 +10,7 @@ public class DesignButtons implements ActionListener {
 
    private FrontEnd frontEnd;
    private JPanel pane;
-   private JButton selectTool, lineTool, curveTool, currentTool;
+   private JButton selectTool, lineTool, curveTool, currentTool,tweaker;
    private JSlider zoomTool;
    private Cursor selectCursor, lineCursor, curveCursor;
    private JToggleButton gridTool, dayToggle;
@@ -73,6 +73,9 @@ public class DesignButtons implements ActionListener {
       dayToggle = new JToggleButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "daynight.png")));
       dayToggle.addActionListener(this);
       dayToggle.setSelected(true);
+      
+      tweaker = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "pas.png")));
+      tweaker.addActionListener(this);
 
       currentTool = lineTool;
 
@@ -137,11 +140,14 @@ public class DesignButtons implements ActionListener {
       
       c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(dayToggle, c);
+      
+      c = FrontEnd.buildGBC(5, 1, 0.5, 0.5, topCenterAnchor, right);
+      pane.add(tweaker, c);
 
-      c = FrontEnd.buildGBC(5, 1, 0.5, 0.5, topCenterAnchor, none);
+      c = FrontEnd.buildGBC(6, 1, 0.5, 0.5, topCenterAnchor, none);
       pane.add(zoomTool, c);
 
-      c = FrontEnd.buildGBC(5, 0, 0.5, 0.5, bottomCenterAnchor, none);
+      c = FrontEnd.buildGBC(6, 0, 0.5, 0.5, bottomCenterAnchor, none);
       pane.add(new JLabel("Zoom"), c);
    }
 
@@ -180,10 +186,14 @@ public class DesignButtons implements ActionListener {
 
       } else if (gridTool == source) {
          // toggle grid showing
+    	  
 
       } else if (dayToggle == source) {
          Main.viewport3D.toggleDay();
-
+         
+      } else if (tweaker == source) {
+         Main.viewport3D.shutdown3D();
+         Tweaker hello = new Tweaker(frontEnd.getCurrentTab().gettd());
       } else {
          Main.showFatalExceptionTraceWindow(
                  new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));

@@ -417,7 +417,7 @@ public class ArchApp extends Application
         
         // if object specified does not exist
         if(name == null || name.equals("none"))
-        	furn = assetManager.loadModel("req/error/error.obj");
+        	furn = assetManager.loadModel("req/armchair/armchair.obj");
         else
         {
         	String path = "req/" + name.substring(0,name.length()-4) +"/" +name;

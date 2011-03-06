@@ -28,17 +28,19 @@ class TwoDPanel extends JPanel implements ChangeListener {
    private Point revertPoint;
    private double revertRotation = 0;
    private boolean isDragging = false;
+   private ObjectBrowser objectBrowser;
 
    /** If file is null creates a blank coords with the tab name nameIfNullFile,
     *  otherwise it tries to open the given file and load a coords from it, if
     *  it fails an Exception is thrown */
-   TwoDPanel(File file, String nameIfNullFile, DesignButtons designButtons) throws Exception {
+   TwoDPanel(File file, String nameIfNullFile, DesignButtons designButtons, ObjectBrowser objectBrowser) throws Exception {
       if (file == null && nameIfNullFile == null) {
          throw new IllegalArgumentException("If file is null, must give nameIfNullFile");
       }
       if (designButtons == null) throw new IllegalArgumentException("null designbuttons");
 
       this.designButtons = designButtons;
+      this.objectBrowser = objectBrowser;
 
       setBackground(Color.WHITE);
       setPreferredSize(new Dimension(2000, 1000));
@@ -65,6 +67,10 @@ class TwoDPanel extends JPanel implements ChangeListener {
    public void resizeDrawingArea(Dimension newSize) {
       setPreferredSize(newSize);
       revalidate();
+   }
+   
+   public void addtodb(String object, int type,String desc,String image, String model,float width,float length,float height){
+	   objectBrowser.addObject(object,type,desc,image,model, width,length,height);
    }
 
    /** Returns the current zoom multiplier for y axis 1.0 is normal */

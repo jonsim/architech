@@ -1,5 +1,11 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.EtchedBorder;
+
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 /** Starts the program running and catches "few!" uncaught exceptions gracefully */
 public class Main {
@@ -17,13 +23,37 @@ public class Main {
 
       objectButtons = new ObjectButtons(this);
       objectBrowser = new ObjectBrowser(this);
-
       frontEnd = new FrontEnd(this);
    }
 
    /** Starts everything in the program running */
    private void run() {
-      frontEnd.display();
+	   	  JFrame splash = new JFrame();
+	      splash.setTitle("Splash Screen");
+	      splash.setSize(884, 457);
+	      splash.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		  splash.setVisible(true);
+	      splash.setLocationRelativeTo(null);
+	      File file = new File("bin/img/frontend/logo.png");
+	      BufferedImage myPicture = null;
+	      try{
+	      myPicture = ImageIO.read(file);}
+		    catch(IOException x){};
+		    Image imag = (new ImageIcon(myPicture)).getImage();
+		    Image newimg = imag.getScaledInstance( 884, 457,  java.awt.Image.SCALE_SMOOTH ) ;  
+		    ImageIcon icon = new ImageIcon( newimg );
+		    JLabel piclabel = new JLabel(icon);
+		    piclabel.setPreferredSize(new Dimension(884,457));
+		    piclabel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+		    JPanel content = new JPanel();
+		    content.add(piclabel);
+		    splash.add(content);
+		    splash.pack();
+		    content.revalidate();		    
+		    try{Thread.sleep(3000);}
+		    catch (InterruptedException ie){}
+		    splash.dispose();
+		    frontEnd.display();
    }
 
    /** Sets the default look and feel. (must be done before anything else)
@@ -32,6 +62,8 @@ public class Main {
       try {
          setSystemLookAndFeel();
          Main program = new Main();
+
+	    
          program.run();
       } catch (Exception e) {
          showFatalExceptionTraceWindow(e);

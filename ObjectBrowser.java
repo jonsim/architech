@@ -32,7 +32,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    private PreparedStatement statement = null;
    private ResultSet rs = null;
    private JLabel picLabel;
-   private int NextID = 1;
+   private int NextID = 37;
    private String dashedSeparator = "------------------------";
    private String backButtonText = "* Go Back *";
    private int currentCategory = -1;
@@ -404,16 +404,16 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 	}
 	
 	// Make cat2 and/or cat3 0 if you want fewer than 3 categories 
-	public void addObject(String object, int cat1, int cat2, int cat3) {
-		NextID++;
+	public void addObject(String object, int type,String desc,String image, String model,float width,float length,float height) {
 		// Strings put into a TEXT field in sql need to be surrounded by apostrophes: eg. "'"+object+"'"
-		SQLStatement("insert into TYPE values ("+NextID+",'"+object+"',"+cat1+","+cat2+","+cat3+")", "update");
-		if(currentCategory == cat1 || currentCategory == cat2 || currentCategory == cat3) {
+		SQLStatement("insert into ITEM values ("+NextID+",'"+object+"',"+type+",'"+desc+"',"+1+",'"+image+"','"+model+"'," + 1 +","+width+","+length+","+height+")", "update");
+		/*if(currentCategory == cat1 || currentCategory == cat2 || currentCategory == cat3) {
 			fields.clear();
 			SQLStatement("select * from TYPE where Category1="+currentCategory+
 				" or Category2="+currentCategory+" or Category3="+currentCategory, "Type");
 			pane.revalidate();
-		}
+		}*/
+		NextID++;
 	}
 	
 	public void deleteObject() {
