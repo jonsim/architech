@@ -39,7 +39,7 @@ public class Main {
 	      splash.setVisible(true);
 	      Image ic = FrontEnd.getImage(this, "img/frontend/icon.png");
 	      splash.setIconImage(ic);
-	      File file = new File("bin/img/frontend/logo.png");
+	      File file = new File("img/frontend/logo.png");
 	      BufferedImage myPicture = null;
 	      try{
 	      myPicture = ImageIO.read(file);}
