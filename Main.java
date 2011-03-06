@@ -8,7 +8,7 @@ public class Main {
    public FrontEnd frontEnd;
    public ObjectBrowser objectBrowser;
    public ObjectButtons objectButtons;
-   public Viewport3D viewport3D;
+   public static Viewport3D viewport3D;
 
    /** Does the business making other classes and remembering their pointers. Be
     *  careful editing the order things are created here, to avoid race conditions */
