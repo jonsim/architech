@@ -13,7 +13,7 @@ public class DesignButtons implements ActionListener {
    private JButton selectTool, lineTool, curveTool, currentTool;
    private JSlider zoomTool;
    private Cursor selectCursor, lineCursor, curveCursor;
-   private JToggleButton gridTool, dayToggle;
+   private JToggleButton gridTool;
 
    /** Initialises the private variables as usual */
    DesignButtons(FrontEnd frontEnd) {
@@ -69,10 +69,6 @@ public class DesignButtons implements ActionListener {
       gridTool = new JToggleButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "grid.png")));
       gridTool.addActionListener(this);
       gridTool.setSelected(true);
-      
-      dayToggle = new JToggleButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "daynight.png")));
-      dayToggle.addActionListener(this);
-      dayToggle.setSelected(true);
 
       currentTool = lineTool;
 
@@ -102,20 +98,20 @@ public class DesignButtons implements ActionListener {
 
    /** Initialises the private pane variable, adds the buttons to it */
    private void initPane() {
-      //int leftAnchor = GridBagConstraints.LINE_START;
-      //int rightAnchor = GridBagConstraints.LINE_END;
-      //int centerAnchor = GridBagConstraints.CENTER;
+      int leftAnchor = GridBagConstraints.LINE_START;
+      int rightAnchor = GridBagConstraints.LINE_END;
+      int centerAnchor = GridBagConstraints.CENTER;
       int topCenterAnchor = GridBagConstraints.NORTH;
-      //int topLeftAnchor = GridBagConstraints.NORTHWEST;
-      //int topRightAnchor = GridBagConstraints.NORTHEAST;
+      int topLeftAnchor = GridBagConstraints.NORTHWEST;
+      int topRightAnchor = GridBagConstraints.NORTHEAST;
       int bottomCenterAnchor = GridBagConstraints.SOUTH;
 
-      //Insets top_left_right = new Insets(10, 10, 0, 10);
-      //Insets top_left_bottom_right = new Insets(10, 10, 10, 10);
-      //Insets top_right = new Insets(10, 0, 0, 10);
-      //Insets top_bottom_right = new Insets(10, 0, 10, 10);
+      Insets top_left_right = new Insets(10, 10, 0, 10);
+      Insets top_left_bottom_right = new Insets(10, 10, 10, 10);
+      Insets top_right = new Insets(10, 0, 0, 10);
+      Insets top_bottom_right = new Insets(10, 0, 10, 10);
       Insets right = new Insets(0, 0, 0, 10);
-      //Insets bottom = new Insets(0, 0, 5, 0);
+      Insets bottom = new Insets(0, 0, 5, 0);
       Insets none = new Insets(0, 0, 0, 0);
 
       pane = new JPanel(new GridBagLayout());
@@ -134,14 +130,11 @@ public class DesignButtons implements ActionListener {
 
       c = FrontEnd.buildGBC(3, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(gridTool, c);
-      
-      c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, topCenterAnchor, right);
-      pane.add(dayToggle, c);
 
-      c = FrontEnd.buildGBC(5, 1, 0.5, 0.5, topCenterAnchor, none);
+      c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, topCenterAnchor, none);
       pane.add(zoomTool, c);
 
-      c = FrontEnd.buildGBC(5, 0, 0.5, 0.5, bottomCenterAnchor, none);
+      c = FrontEnd.buildGBC(4, 0, 0.5, 0.5, bottomCenterAnchor, none);
       pane.add(new JLabel("Zoom"), c);
    }
 
@@ -180,9 +173,6 @@ public class DesignButtons implements ActionListener {
 
       } else if (gridTool == source) {
          // toggle grid showing
-
-      } else if (dayToggle == source) {
-         Main.viewport3D.toggleDay();
 
       } else {
          Main.showFatalExceptionTraceWindow(

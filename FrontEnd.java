@@ -83,7 +83,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
 
    /** Creates a new tab and registers viewport3D as a listener for it */
    private void addTab(File file) throws Exception {
-      TwoDScrollPane newTab = new TwoDScrollPane(file, null, designButtons, main.viewport3D, main.objectBrowser);
+      TwoDScrollPane newTab = new TwoDScrollPane(file, null, designButtons, main.viewport3D);
       tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
       tabbedPane.setSelectedComponent(newTab);
 
@@ -94,7 +94,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
    /** Creates a new tab and registers viewport3D as a listener for it */
    private void addTab(String title) {
       try {
-         TwoDScrollPane newTab = new TwoDScrollPane(null, title, designButtons, main.viewport3D, main.objectBrowser);
+         TwoDScrollPane newTab = new TwoDScrollPane(null, title, designButtons, main.viewport3D);
          tabbedPane.addTab(newTab.getCoords().getAssociatedSaveName(), newTab);
          tabbedPane.setSelectedComponent(newTab);
 
