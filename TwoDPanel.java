@@ -4,7 +4,7 @@ import java.awt.dnd.DropTarget;
 import java.io.*;
 import javax.swing.*;
 import javax.swing.event.*;
-import java.util.*;
+import java.util.ArrayList;
 
 /** This class holds the panel for the 2D view, it extends JPanel so has repaint()
  *  and all the other methods to do with JPanel. It draws the vertices and edges
@@ -16,6 +16,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
    private double zoomScale = 1.0;
    private DesignButtons designButtons;
    private Coords coords;
+   private ObjectBrowser objectBrowser;
    
    private Coords.Vertex hoverVertex, selectVertex;
    private Edge dragEdge;
@@ -24,21 +25,24 @@ class TwoDPanel extends JPanel implements ChangeListener {
    private double deltaX, deltaY;
    private double rotation;
    public boolean isCollision = false;
-   private boolean isCollisionVertex = false;
    private Point revertPoint;
    private double revertRotation = 0;
-   private boolean isDragging = false;
+	 private ArrayList<Coords.Vertex> selectedArray = new ArrayList<Coords.Vertex>();
+	 private ArrayList<Edge> wallEdges = new ArrayList<Edge>();
+	 public boolean cycleFormed = false;
+   public int selCount = 0;
 
    /** If file is null creates a blank coords with the tab name nameIfNullFile,
     *  otherwise it tries to open the given file and load a coords from it, if
     *  it fails an Exception is thrown */
-   TwoDPanel(File file, String nameIfNullFile, DesignButtons designButtons) throws Exception {
+   TwoDPanel(File file, String nameIfNullFile, DesignButtons designButtons, ObjectBrowser objectBrowser) throws Exception {
       if (file == null && nameIfNullFile == null) {
          throw new IllegalArgumentException("If file is null, must give nameIfNullFile");
       }
       if (designButtons == null) throw new IllegalArgumentException("null designbuttons");
 
       this.designButtons = designButtons;
+      this.objectBrowser = objectBrowser;
 
       setBackground(Color.WHITE);
       setPreferredSize(new Dimension(2000, 1000));
@@ -98,15 +102,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
       coords.paintVertices(g2, (int) Math.round(vertexDiameter / zoomScale));
       coords.paintFurniture(g2);
 
-      if (dragEdge != null) {
-		 dragEdge.paintLengthText(g2);
-		 if(isCollisionVertex) {
-		    g2.setColor(Color.red);
-			dragEdge.getV1().paint(g2, (int) Math.round(vertexDiameter / zoomScale));
-			dragEdge.getV2().paint(g2, (int) Math.round(vertexDiameter / zoomScale));
-			dragEdge.paint(g2, false);
-		 }
-	  }
+      if (dragEdge != null) dragEdge.paintLengthText(g2);
 
       if (hoverVertex != null) {
          g2.setColor(Color.red);
@@ -114,28 +110,27 @@ class TwoDPanel extends JPanel implements ChangeListener {
       }
 
       if (selectVertex != null && designButtons.isSelectTool()) {
-		 if(isCollisionVertex) {
-			Edge e;
-		    ListIterator<Edge> edgeIterator = selectVertex.getEdges().listIterator();
-		    g2.setColor(Color.red);
-			while(edgeIterator.hasNext()) {
-               e = edgeIterator.next();
-			   e.paint(g2, false);
-			}
-		 } else {
-			g2.setColor(Color.blue);
-		 }
-		 selectVertex.paint(g2, (int) Math.round(vertexDiameter / zoomScale));
+         Edge edge;
+         g2.setColor(Color.blue);
+         for (int i=0; i<selectedArray.size(); i++){
+            selectVertex = selectedArray.get(i);
+            selectVertex.paint(g2, (int) Math.round(vertexDiameter / zoomScale));
+         }
+         for (int k=0; k<wallEdges.size(); k++){
+            edge = wallEdges.get(k);
+            float len = edge.length();
+            edge.paint(g2, false);
+         }
       }
 
       if(selectFurniture != null) {
 	     if(isCollision) {
 		    g2.setColor(Color.red);
-		 } else if(designButtons.isSelectTool()){
+		   } else if(designButtons.isSelectTool()){
             g2.setColor(Color.green);
-		 }
-         selectFurniture.paint(g2);
-      }
+		   }
+       selectFurniture.paint(g2);
+     }
    }
 
    /** if the user clicks and drags with the line tool on, call this, it will
@@ -145,22 +140,10 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
       Coords.Vertex v = new Coords.Vertex(p.x, p.y, 0);
       dragEdge = coordStore.newEdge(v, v, snapToGrid);
-	  isDragging = false;
    }
 
    /** No reason other than stopping erroneous  */
    private void lineDragFinished() {
-	  if(isCollisionVertex) {
-	     if(isDragging) {
-		    coords.setEdgeCtrl(dragEdge, revertPoint);
-		 } else {
-	        coords.delete(dragEdge);
-		 }
-	  } else if(dragEdge != null) {
-		if(dragEdge.length() == 0) coords.delete(dragEdge);
-	  }
-	  
-	  isDragging = false;
       dragEdge = null;
       repaint(); // gets rid of the line length text drawn on screen
    }
@@ -189,68 +172,101 @@ class TwoDPanel extends JPanel implements ChangeListener {
       }
 
       coordStore.vertexMoveOrSplit(dragEdge, false, newX, newY, 0, snapToGrid);
-	  
-	  isCollisionVertex = coords.detectVertexCollisions(dragEdge.getV2());
    }
 
-   private void vertexDragEvent(Coords coordStore, Coords.Vertex selectVertex, Point p, boolean snapToGrid, boolean finished) {
+   private void vertexDragEvent(Coords coordStore, Coords.Vertex selectVertex, Point p, boolean snapToGrid) {
       if (selectVertex == null) return; // coordStore won't do anything if selectVertex == null
 
-	  if(finished) {
-		// put it at the right xy-coordinates but different z so it wont be considered to be at that point
-	    coordStore.set(selectVertex, p.x, p.y, 1000, snapToGrid);
-	    coordStore.mergeVertices(selectVertex, p.x, p.y, 0, snapToGrid);
-	  }
       coordStore.set(selectVertex, p.x, p.y, 0, snapToGrid);
-	  isCollisionVertex = coords.detectVertexCollisions(selectVertex);
    }
+
+	 private boolean isAdjacent (Coords.Vertex v, ArrayList<Coords.Vertex> selectedVertices){
+      Edge[] e = coords.getEdges();
+      boolean valid = false;
+			if (selectedVertices.size() > 0){
+			   for (int i=0; i<selectedVertices.size();i++){
+            for (int k=0; k<e.length; k++){
+               Coords.Vertex v1 = e[k].getV1();
+				       Coords.Vertex v2 = e[k].getV2();
+               if ((v1 == v && v2 == selectedVertices.get(i)) || (v1 == selectedVertices.get(i) && v2 == v)){
+                  selectedArray.add(v);
+							    wallEdges.add(e[k]);
+                  valid = true;
+               }
+            }
+		     }
+      }
+		  if (valid == false){
+				 if (selCount != 0){
+            System.out.println("Sorry. Invalid Vertex Selected . . . . .");
+         }
+      }
+      selCount++;
+	    return valid;
+   }
+
+   private void printEdges (){
+      System.out.println("Edge List:");
+      for (int k=0;k<wallEdges.size();k++){
+			   System.out.println(wallEdges.get(k));
+			}
+	 }
 
    private class TwoDPanelMouseListener implements MouseListener {
       /** Invoked when a mouse button has been pressed on a component. */
       public void mousePressed(MouseEvent e) {
+         boolean adjVertex = false;
          if (e.getButton() == MouseEvent.BUTTON1) {
             Point p = new Point();
             p.setLocation(e.getPoint().getX() / zoomScale, e.getPoint().getY() / zoomScale);
-			selectVertex = null;
 
             if (designButtons.isLineTool()) {
-			   if (!coords.edgeFurnitureCollision(p.getX(), p.getY())) {
-				  lineDragStarted(coords, p, designButtons.isGridOn());
-                  setCursor(new Cursor(Cursor.HAND_CURSOR));
-			   }
+               lineDragStarted(coords, p, designButtons.isGridOn());
+               setCursor(new Cursor(Cursor.HAND_CURSOR));
                // repaint(); - done by the coordStore change listener if anything changes
-            } else if (designButtons.isSelectTool()) {
+            } 
+						else if (designButtons.isSelectTool()) {
                selectVertex = coords.vertexAt(p);
+							 if (selectVertex != null){
+							    if (selectedArray.contains(selectVertex) == false){
+									   System.out.println("Vertex selected ....");
+									   if (selectedArray.size() == 0) {
+                        selectedArray.add(selectVertex);
+										 }
+                     adjVertex = isAdjacent(selectVertex, selectedArray);
+										 System.out.println("adjVertex := "+adjVertex);
+										 if (adjVertex == true){
+			                  for (int k=0;k<selectedArray.size();k++){
+			 	                   System.out.println(selectedArray.get(k));
+			                  }
+                     }
+                  }
+		  						printEdges();
+               }
+							 else {
+                   selectedArray.clear();
+                   wallEdges.clear();
+                   selCount = 0;
+                   objectBrowser.wall = false;
+                   objectBrowser.toReset();
+							 }
+               
+               if (selectedArray.size() >1){
+							    objectBrowser.toDecoration();
+               }
 
-			   if(selectVertex != null) {
-			      revertPoint = new Point();
-				  revertPoint.setLocation(selectVertex.getX(), selectVertex.getY());
-			   } else {
-				  selectFurniture = coords.furnitureAt(p.getX(), p.getY());
-               }			   
-			   if(selectFurniture != null) {
-			  	  revertPoint = new Point();
-				  revertPoint.setLocation(selectFurniture.getRotationCenter());
-				  revertRotation = selectFurniture.getRotation();
-		       }
-
-
+			selectFurniture = coords.furnitureAt(p.getX(), p.getY());
+			if(selectFurniture != null) {
+				revertPoint = new Point();
+				revertPoint.setLocation(selectFurniture.getRotationCenter());
+				revertRotation = selectFurniture.getRotation();
+			}
 
                requestFocus(); // makes the keys work if the user clicked on a vertex and presses delete
                repaint(); // gets rid of the blue selected vertex
 
-
-
-
-
-
-
             } else if (designButtons.isCurveTool()) {
                dragEdge = coords.ctrlAt(p);
-			   if (dragEdge != null) {
-			      revertPoint = new Point();
-				  revertPoint.setLocation(dragEdge.getCtrlX(), dragEdge.getCtrlY());
-			   }
             }
 
             // other tools go here
@@ -260,28 +276,9 @@ class TwoDPanel extends JPanel implements ChangeListener {
       /** Invoked when a mouse button has been released on a component. */
       public void mouseReleased(MouseEvent e) {
          if (e.getButton() == MouseEvent.BUTTON1) {
-			lineDragFinished();
+            lineDragFinished();
 
             setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			if(selectVertex != null) {
-				if (designButtons.isSelectTool() && !isCollisionVertex) {
-					Point p = new Point();
-					p.setLocation(e.getPoint().getX() / zoomScale, e.getPoint().getY() / zoomScale);
-					// False while still moving, true when mouse released
-					vertexDragEvent(coords, selectVertex, p, designButtons.isGridOn(), true);
-				}
-				Edge edge;
-				ListIterator<Edge> edgeIterator = selectVertex.getEdges().listIterator();
-				while(edgeIterator.hasNext()) {
-					edge = edgeIterator.next();
-					if(edge.getV1().equalsLocation(edge.getV2())) {
-						coords.delete(edge);
-						if(hoverVertex == selectVertex) hoverVertex = null;
-						selectVertex = null;
-						break;
-					}
-				}
-			}
 
 		    if(selectFurniture != null && isCollision) {
 		       coords.moveFurniture(selectFurniture, revertPoint);
@@ -290,20 +287,6 @@ class TwoDPanel extends JPanel implements ChangeListener {
 			   selectFurniture = null;
 			   repaint(); // go from green to blue
 		    }
-			if(isCollisionVertex) {
-				if(selectVertex != null) {
-					coords.set(selectVertex, (float)revertPoint.getX(), (float)revertPoint.getY(), 0, false);
-				}
-				isCollisionVertex = false;
-			}
-			Furniture beforeF = selectFurniture;
-			if(hoverVertex == null) {
-			  selectFurniture = coords.furnitureAt(e.getX(), e.getY());
-			} else {
-			  selectFurniture = null;
-			}
-			if (beforeF != selectFurniture) repaint();
-			requestFocus();
          }
       }
 
@@ -330,32 +313,25 @@ class TwoDPanel extends JPanel implements ChangeListener {
             lineDragEvent(coords, dragEdge, p, e.isShiftDown(), designButtons.isGridOn());
 
          } else if (designButtons.isSelectTool()) {
-			if(selectVertex != null) {
-				// False while still moving, true when mouse released
-               vertexDragEvent(coords, selectVertex, p, designButtons.isGridOn(), false);
+            vertexDragEvent(coords, selectVertex, p, designButtons.isGridOn());
+
+		 if(selectFurniture != null) {
+		    if(e.isControlDown()) {
+				deltaX = p.getX() - selectFurniture.getRotationCenterX();
+				deltaY = p.getY() - selectFurniture.getRotationCenterY();
+				if(deltaX == 0) rotation = (deltaY >= 0) ? Math.PI/2: -Math.PI/2;
+				else rotation = Math.atan2(deltaY, deltaX);
+				coords.rotateFurniture(selectFurniture, rotation);
+				isCollision = coords.detectCollisions(selectFurniture);
 			} else {
-		       if(selectFurniture != null) {
-		          if(e.isControlDown()) {
-				      deltaX = p.getX() - selectFurniture.getRotationCenterX();
-   				      deltaY = p.getY() - selectFurniture.getRotationCenterY();
-				      if(deltaX == 0) rotation = (deltaY >= 0) ? Math.PI/2: -Math.PI/2;
-				      else rotation = Math.atan2(deltaY, deltaX);
-				      coords.rotateFurniture(selectFurniture, rotation);
-			          isCollision = coords.detectCollisions(selectFurniture);
-			      } else {
-				      coords.moveFurniture(selectFurniture, p);
-				      isCollision = coords.detectCollisions(selectFurniture);
-			      }
-               }
-		    }
+				coords.moveFurniture(selectFurniture, p);
+				isCollision = coords.detectCollisions(selectFurniture);
+			}
+         }
 
          } else if (designButtons.isCurveTool()) {
-            if (dragEdge != null) {
+            if (dragEdge != null)
                coords.setEdgeCtrl(dragEdge, p);
-			   isDragging = true;
-			   isCollisionVertex = coords.detectVertexCollisions(dragEdge.getV1()) ||
-			                       coords.detectVertexCollisions(dragEdge.getV2());
-			}
          }
 
          // repaint(); - done by the coordStore change listener if anything changes
@@ -368,16 +344,10 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
          Coords.Vertex before = hoverVertex;
          hoverVertex = coords.vertexAt(p);
-		 
-		 
-		 Furniture beforeF = selectFurniture;
-		 if(hoverVertex == null) {
-			selectFurniture = coords.furnitureAt(p.getX(), p.getY());
-		 } else {
-			selectFurniture = null;
-		 }
+
+         Furniture beforeF = selectFurniture;
+         selectFurniture = coords.furnitureAt(p.getX(), p.getY());
          if (before != hoverVertex || beforeF != selectFurniture) repaint();
-		 requestFocus();
       }
    }
 
@@ -391,7 +361,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
          int c = kevt.getKeyCode();
 
          if ((c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE) && designButtons.isSelectTool()) {
-			coords.delete(selectVertex);
+            coords.delete(selectVertex);
 
             // the vertex currently being hovered over will only update if the person
             // moves the mouse. If they don't move the mouse and the vertex has been
@@ -399,17 +369,13 @@ class TwoDPanel extends JPanel implements ChangeListener {
             if (!coords.exists(hoverVertex)) hoverVertex = null;
 
             selectVertex = null;
-			
-			coords.delete(selectFurniture);
-			selectFurniture = null;
-            
-			repaint(); // removes the blue selected vertex colour
+            repaint(); // removes the blue selected vertex colour
          }
       }
 
       /** Invoked when a key is released */
       public void keyReleased(KeyEvent kevt) {
-      }
+      }					
    }
 
    private class TwoDPanelCoordsChangeListener implements CoordsChangeListener {
