@@ -61,6 +61,7 @@ public class Tweaker extends JFrame implements ActionListener {
 	JComboBox typelist;
 	TwoDPanel parent;
 	Main main;
+	Thread hello;
 
    public void addtodb(String object, int type,String desc,String image, String model,float width,float length,float height){
       main.objectBrowser.addObject(object,type,desc,image,model, width,length,height);
@@ -81,12 +82,14 @@ public class Tweaker extends JFrame implements ActionListener {
 	public String gettype(){
 		return (String)typelist.getSelectedItem();
 	}
-	
+
     public Tweaker(TwoDPanel pan, Main main) {
     	parent = pan;
-      this.main = main;
+       this.main = main;
        setVisible(true);
        setTitle("ArchiTECH Tweaker");
+       Image icon = main.frontEnd.getImage(this, "img/frontend/icon.png");
+       setIconImage(icon);
        this.setMinimumSize(this.getSize());
        this.setExtendedState(JFrame.MAXIMIZED_BOTH);
        red = (float) 0.1;
@@ -115,7 +118,7 @@ public class Tweaker extends JFrame implements ActionListener {
        controlScroller.setMinimumSize(new Dimension( 500, (int) scrDim.getHeight()-520 ));
        addItem(con,controlScroller,0,0,1,1, GridBagConstraints.CENTER);
        
-       ImageIcon brush = new ImageIcon("img/add.png");
+       ImageIcon brush = new ImageIcon(main.frontEnd.getImage(this, "img/designbuttons/add.png"));
        JButton but = new JButton("<html><h1><font face='Gill Sans MT'>Add Object",brush);
        but.setActionCommand("add");
        but.addActionListener(this);
@@ -160,7 +163,7 @@ public class Tweaker extends JFrame implements ActionListener {
 
 	   
        //addItem(tog, but, 0, 0, 1, 1, GridBagConstraints.CENTER);
-	   ImageIcon save = new ImageIcon("save.png");
+	   ImageIcon save = new ImageIcon(main.frontEnd.getImage(this, "img/designbuttons/save.png"));
        but = new JButton("<html><h1><font face='Gill Sans MT'>Save",save);
        but.setActionCommand("save");
        but.addActionListener(this);

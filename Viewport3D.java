@@ -25,7 +25,7 @@ public class Viewport3D implements CoordsChangeListener {
       // create new canvas application
       canvasApplication = new ArchApp(main);
       canvasApplication.setSettings(settings);
-      Logger.getLogger("").setLevel(Level.SEVERE);
+      Logger.getLogger("").setLevel(Level.OFF);
       canvasApplication.createCanvas(); // create canvas!
 
       // Fill Swing window with canvas and swing components
@@ -52,6 +52,7 @@ public class Viewport3D implements CoordsChangeListener {
    public void toggleDay()
    {
 	   canvasApplication.toggleDay(false);
+	   getCanvas().requestFocus();
    }
 
    /** FrontEnd will put this in the main window */

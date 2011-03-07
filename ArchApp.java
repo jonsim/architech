@@ -17,6 +17,7 @@ import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
@@ -29,6 +30,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
+import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Quad;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.system.AppSettings;
@@ -330,10 +332,9 @@ public class ArchApp extends Application
 
     PointLight pl1, pl2;
     private void setupScene()
-    {
-		//add the grassy area
-		Geometry geom = new Geometry("Box", new Quad(4000,4000));
-	    //grass.setTexture("m_ColorMap", grasst);
+    {	    
+	    //add the floor
+	    Geometry geom = new Geometry("Box", new Quad(4000,4000));
 	    geom.setMaterial(grass);
 	    geom.setShadowMode(ShadowMode.Receive);
 	    geom.setLocalTranslation(new Vector3f(2102,-100,-902));
@@ -396,9 +397,9 @@ public class ArchApp extends Application
         DAY_MAP = SkyFactory.createSky(assetManager, "req/SkyDay.dds", false);
         NIGHT_MAP = SkyFactory.createSky(assetManager, "req/SkyNight.dds", false);
         
-        toggleDay(true);
-        toggleDay(false);
-        toggleDay(false);
+        //toggleDay(true);
+        //toggleDay(false);
+        //toggleDay(false);
     }
     
     
@@ -756,12 +757,6 @@ public class ArchApp extends Application
     	{
     		drawline(wallGeometry,x1,x2,y1,y2);
     	}
-    	
-		//QuadCurve2D left=new QuadCurve2D.Float(),right=new QuadCurve2D.Float();
-		//qcurve.subdivide(left,right);
-		//WallGeometry wallGeometry = new WallGeometry();
-    	//drawline(wallGeometry,(int)left.getX1(),(int)left.getX2(),(int)left.getY1(),(int)left.getY2());
-    	//drawline(wallGeometry,(int)right.getX1(),(int)right.getX2(),(int)right.getY1(),(int)right.getY2());
 
     	return wallGeometry;
 	}
@@ -978,7 +973,7 @@ public class ArchApp extends Application
 		float w = (float) FastMath.cos((float)rotation);
 		Quaternion c = new Quaternion(w,x,y,z);
 		spatial.setLocalRotation(c);
-		spatial.rotate(0f,0f,-FastMath.PI);
+		spatial.rotate(0f,-FastMath.HALF_PI,-FastMath.PI);
 	}
 	
 	

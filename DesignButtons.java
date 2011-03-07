@@ -193,7 +193,11 @@ public class DesignButtons implements ActionListener {
          
       } else if (tweaker == source) {
          Main.viewport3D.shutdown3D();
-         Tweaker hello = new Tweaker(frontEnd.getCurrentTab().gettd(), frontEnd.main);
+    	 frontEnd.getwindow().setVisible(false);
+         try{Thread.sleep(1000);}
+		 catch (InterruptedException ie){}
+    	 Tweaker hello = new Tweaker(frontEnd.getCurrentTab().gettd(), frontEnd.main);
+         
       } else {
          Main.showFatalExceptionTraceWindow(
                  new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));

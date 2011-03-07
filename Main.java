@@ -20,7 +20,6 @@ public class Main {
     *  careful editing the order things are created here, to avoid race conditions */
    Main() {
       viewport3D = disable3D ? new Viewport3DEmpty(this) : new Viewport3D(this);
-
       objectButtons = new ObjectButtons(this);
       objectBrowser = new ObjectBrowser(this);
       frontEnd = new FrontEnd(this);
@@ -28,7 +27,7 @@ public class Main {
 
    /** Starts everything in the program running */
    private void run() {
-	   	  JFrame splash = new JFrame();
+	   	  /*JFrame splash = new JFrame();
 	      splash.setTitle("Splash Screen");
 	      splash.setResizable(false);
 	      splash.setSize(884, 457);
@@ -39,7 +38,7 @@ public class Main {
 	      splash.setVisible(true);
 	      Image ic = FrontEnd.getImage(this, "img/frontend/icon.png");
 	      splash.setIconImage(ic);
-	      File file = new File("img/frontend/logo.png");
+	      File file = new File("bin/img/frontend/logo.png");
 	      BufferedImage myPicture = null;
 	      try{
 	      myPicture = ImageIO.read(file);}
@@ -55,10 +54,12 @@ public class Main {
 		    splash.add(content);
 		    splash.pack();
 		    content.revalidate();		    
-		    try{Thread.sleep(2000);}
-		    catch (InterruptedException ie){}
-		    splash.dispose();
+		    try{Thread.sleep(3000);}
+		    catch (InterruptedException ie){}		    
 		    frontEnd.display();
+		    splash.setVisible(true);
+		    splash.dispose();*/
+	    	frontEnd.display();
    }
 
    /** Sets the default look and feel. (must be done before anything else)
