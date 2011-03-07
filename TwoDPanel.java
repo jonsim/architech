@@ -61,7 +61,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
       handlerEdgeDraw      = new HandlerEdgeDraw(coords);
       handlerVertexMove    = new HandlerVertexMove(coords);
       handlerFurnitureMove = new HandlerFurnitureMove(coords);
-      handlerVertexSelect  = new HandlerVertexSelect(coords);
+      handlerVertexSelect  = new HandlerVertexSelect(coords, objectBrowser);
 
       addKeyListener(new TwoDPanelKeyListener());
       addMouseListener(new TwoDPanelMouseListener());

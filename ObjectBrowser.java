@@ -35,6 +35,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    private int NextID = 37;
    private String dashedSeparator = "------------------------";
    private String backButtonText = "* Go Back *";
+   private String wallpaperTitle = "* Wallpapers *";
    private int currentCategory = -1;
    private int currentType = -1;
    private FurnitureObject draggedObject;
@@ -45,10 +46,13 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    private int itemType = -1;
    private int currentLibrary = -1;
    private int categoryIndex = -1;
+   private int prevCurrentLib = -1;
    private JTextArea description;
    private JScrollPane libraryScroller;
    private JScrollPane descriptionScroller;
    private JPanel picPan;
+   private String decName;
+   public boolean wall = false;
 
 	ObjectBrowser(Main main) {
 		this.main = main;
@@ -122,8 +126,13 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 						typeName = fields.get(index).toString();
 						Object obj = fields.get(index);
 						typeID = getTypeID(typeName);
-						setDescription(typeName);
-						showImage(obj,typeID);			
+            if (wall == false) {
+						   setDescription(typeName);
+						   showImage(obj,typeID);	
+            }	
+            else{
+               showWallpaper(obj);
+            }
 					}
 				}
 			}
@@ -303,6 +312,72 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			pane.revalidate();
 		}
 	}
+
+  private void selectWallpaper() {
+     int index = 1;
+     System.out.println("index: "+index);
+		 if(index > 0 ) {
+			  library.addListSelectionListener(listSelectionListener);
+			  library.ensureIndexIsVisible(0);
+        wall = true;
+			  pane.revalidate();
+		 }
+  }
+
+  private void showWallpaper(Object object) {
+    if(library.getSelectedIndex() >= 0) {
+			Insets top_left_bottom_right = new Insets(10,10,10,10);
+			GridBagConstraints gbc;
+			gbc = FrontEnd.buildGBC(0, 2, 0.5, 0.5, GridBagConstraints.CENTER, top_left_bottom_right);
+			gbc.weighty = 40;
+			JLabel blankLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"blank.png") ));
+			picPan.add(blankLabel);
+			picPan.remove(picLabel);
+			pane.revalidate();
+			try {
+				BufferedImage myPicture;
+				if(object == dashedSeparator || object == backButtonText || object == wallpaperTitle) {
+					picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"blank.png") ));
+          description.setText("");
+					description.setCaretPosition(0);
+				} else {
+					String request = "select * from ITEM where Type='38' AND Name='"+object+"'";
+					statement = connection.prepareStatement(request);
+					rs = statement.executeQuery();
+					//System.out.println("object ===== "+object);
+					//System.out.println("Type Name ===== "+typeName);
+					//if(rs.next()) {
+						String image = rs.getString("Image");
+						if (image.equals("none")==true)
+						{
+							picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"NoImage.png") ));
+							Border border = BorderFactory.createLineBorder(Color.GRAY);
+		          picPan.setBorder(border);
+              description.setText("");
+					    description.setCaretPosition(0);
+						}
+						else
+					    {
+							picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+image) ));
+							Border border = BorderFactory.createLineBorder(Color.GRAY);
+		          picPan.setBorder(border);
+              description.setText(rs.getString("Description"));
+					    description.setCaretPosition(0);
+						}
+					//} else {
+						//picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"NoImage.png") ));
+						//Border border = BorderFactory.createLineBorder(Color.GRAY);
+		        //picPan.setBorder(border);
+					//}
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			picPan.add(picLabel, gbc);
+			picPan.remove(blankLabel);
+			pane.revalidate();
+		}
+  }
 	
 	private void toCategories() {
 		if(currentCategory > 0 && library.getSelectedIndex() == fields.size()-1 ) {
@@ -315,6 +390,20 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			pane.revalidate();
 		}
 	}
+
+	public void toReset() {
+			library.removeListSelectionListener(listSelectionListener);
+      description.setText("");
+      picPan.remove(picLabel);
+			currentCategory = -1;
+      currentType = -1;
+			fields.clear();
+			SQLStatement("select * from CATEGORIES", "Category");
+			currentLibrary = 0;
+			library.setSelectedIndex(-1);
+			pane.revalidate();
+	}
+
 
 	private void toType() {
 		if(currentType > 0 && library.getSelectedIndex() == fields.size()-1 ) {
@@ -331,6 +420,22 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			pane.revalidate();
 		}
 	}
+
+  public void toDecoration() {
+      library.removeListSelectionListener(listSelectionListener);
+      description.setText("");
+      picPan.remove(picLabel);
+			fields.clear();
+			fields.addElement(wallpaperTitle);
+			fields.addElement(dashedSeparator);
+			SQLStatement("select * from ITEM where Type='38'", "Name");
+			prevCurrentLib = currentLibrary;
+			currentLibrary = 3;
+      currentType = 38;
+			library.setSelectedIndex(-1);
+      selectWallpaper();
+			pane.revalidate();
+  }
 
 	private String getModel(Object object) {
 		String model = null;
