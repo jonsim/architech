@@ -10,7 +10,7 @@ public class DesignButtons implements ActionListener {
 
    private FrontEnd frontEnd;
    private JPanel pane;
-   private JButton selectTool, lineTool, curveTool, currentTool, tweaker;
+   private JButton selectTool, lineTool, curveTool, currentTool,tweaker;
    private JSlider zoomTool;
    private Cursor selectCursor, lineCursor, curveCursor;
    private JToggleButton gridTool, dayToggle;

@@ -190,21 +190,6 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			}
 		} else description.setText("");
 	}
-
-   public boolean isDoorWindow( int typeID ) {
-      try {
-         statement = connection.prepareStatement("select Category1, Category2, Category3 from TYPE where ID = '" + typeID + "'");
-         rs = statement.executeQuery();
-         if(rs.next()) {
-            if( rs.getInt("Category1") == 8 || rs.getInt("Category1") == 9 || rs.getInt("Category2") == 8 || rs.getInt("Category2") == 9 || rs.getInt("Category3") == 8 || rs.getInt("Category3") == 9 )
-               return true;
-         }
-      } catch(Exception e) {
-			e.printStackTrace();
-		}
-
-      return false;
-   }
 	
 	private void getDimensions(int itemTypeID) {
 		draggedObject = null;
@@ -483,8 +468,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			String objPath = getModel(objectName);
 			float width = draggedObject.X * 50;
 			float length = draggedObject.Y * 50;
-         int type = getItemType(itemName);
-			FurnitureSQLData footprint = new FurnitureSQLData(ID, (float)width, (float)length, type, objPath);
+			FurnitureSQLData footprint = new FurnitureSQLData(ID, (float)width, (float)length, objPath);
 			return footprint;
 		}
 		//return null;

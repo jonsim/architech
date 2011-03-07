@@ -28,6 +28,8 @@ public class Main {
 
    /** Starts everything in the program running */
    private void run() {
+	      if(true)  //<-----CHANGE TO FALSE TO DISABLE SPLASH
+	      {
 	   	  JFrame splash = new JFrame();
 	      splash.setTitle("Splash Screen");
 	      splash.setResizable(false);
@@ -39,7 +41,7 @@ public class Main {
 	      splash.setVisible(true);
 	      Image ic = FrontEnd.getImage(this, "img/frontend/icon.png");
 	      splash.setIconImage(ic);
-	      File file = new File("img/frontend/logo.png");
+	      File file = new File("bin/img/frontend/logo.png");
 	      BufferedImage myPicture = null;
 	      try{
 	      myPicture = ImageIO.read(file);}
@@ -55,9 +57,10 @@ public class Main {
 		    splash.add(content);
 		    splash.pack();
 		    content.revalidate();		    
-		    try{Thread.sleep(2000);}
+		    try{Thread.sleep(3000);}
 		    catch (InterruptedException ie){}
 		    splash.dispose();
+	      }
 		    frontEnd.display();
    }
 

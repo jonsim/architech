@@ -9,12 +9,10 @@ class TwoDDropListener implements DropTargetListener {
    public static final int acceptableActions = DnDConstants.ACTION_COPY;
    private TwoDPanel twoDPanel;
    private Furniture inProgress;
-   private ObjectBrowser objectBrowser;
 
-   TwoDDropListener(TwoDPanel twoDPanel, ObjectBrowser objectBrowser) {
-      if (twoDPanel == null || objectBrowser == null) throw new IllegalArgumentException("null parameter");
+   TwoDDropListener(TwoDPanel twoDPanel) {
+      if (twoDPanel == null) throw new IllegalArgumentException("null parameter");
       this.twoDPanel = twoDPanel;
-      this.objectBrowser = objectBrowser;
    }
 
    /** Called by isDragOk. Checks to see if the drag flavor is acceptable */
@@ -57,7 +55,7 @@ class TwoDDropListener implements DropTargetListener {
       if ((e.getSourceActions() & acceptableActions) == 0) return false;
 
       if (chooseDropFlavor(e) == null) return false;
-      if (twoDPanel.getCoords().detectCollisions(inProgress) == true) return false;
+	  if (twoDPanel.getCoords().detectCollisions(inProgress) == true) return false;
 
       return true;
    }
@@ -74,7 +72,7 @@ class TwoDDropListener implements DropTargetListener {
             Object data = e.getTransferable().getTransferData(chosen);
             if (data instanceof FurnitureSQLData) {
                Point p = scalePoint(e.getLocation(), twoDPanel.getZoomScale());
-               inProgress = new Furniture( (FurnitureSQLData) data, p, objectBrowser);
+               inProgress = new Furniture((FurnitureSQLData) data, p);
                twoDPanel.getCoords().addFurniture(inProgress);
                e.acceptDrag(e.getDropAction());
                
@@ -120,10 +118,9 @@ class TwoDDropListener implements DropTargetListener {
          e.acceptDrop(acceptableActions); // if you give ACTION_COPY_OR_MOVE, then source will receive MOVE!
          Point p = scalePoint(e.getLocation(), twoDPanel.getZoomScale());
          twoDPanel.getCoords().moveFurniture(inProgress, p);
-
          e.dropComplete(true);
       }
-
+	  
       inProgress = null;
    }
 

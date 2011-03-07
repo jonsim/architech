@@ -69,7 +69,7 @@ public class FileManager {
       Furniture[] furniture = loadFurniture(br, numFurniture);
       if (furniture == null) throw new Exception("Unable to load all furniture");
 
-
+      
       /* Loading might not reach this stage */
       return new Coords(file, vertices, edges, furniture);
    }

@@ -100,10 +100,6 @@ public class ArchApp extends Application
     private boolean isInitComplete = false;
     private Main main;
 
-    
-    
-
-    
 	/**********************MAIN FUNCTION**********************/
     
     ArchApp(Main main)
@@ -111,10 +107,6 @@ public class ArchApp extends Application
     	super();
     	this.main = main;
     }
-    
-    
-    
-    
     
 	/**********************ACTION LISTNER**********************/
 
@@ -163,10 +155,6 @@ public class ArchApp extends Application
         }
     }
     
-    
-    
-
-    
 	/**********************INITIALISATION FUNCTIONS**********************/
 
     @Override
@@ -180,8 +168,6 @@ public class ArchApp extends Application
         super.start();
     }
 
-    
-    
     @Override
     public void update()
     {
@@ -210,9 +196,6 @@ public class ArchApp extends Application
 	        stateManager.postRender();
 		}
     }
-
-    
-    
     @Override
     public void initialize()
     {
@@ -931,8 +914,8 @@ public class ArchApp extends Application
         
         // model settings
         furn.scale(5, 5, 5);
-        furn.rotate(0,(float) -(FastMath.HALF_PI),0);
-        furn.setLocalTranslation(center.x,-100,center.y);
+        furn.rotate(0f, - FastMath.HALF_PI,0f);        
+        furn.setLocalTranslation(center.x,-100f,center.y);
     	if (shadowing)
     		furn.setShadowMode(ShadowMode.CastAndReceive);
     	if (physics)
@@ -976,18 +959,27 @@ public class ArchApp extends Application
 		{
 			rootNode.attachChild(iterator.next());
 		}
-	}
-
-	
+	}	
 	
 	/** Moves the given spatial to the new position of furniture f */
 	private void updatefurniture(Spatial spatial, Furniture f)
 	{
 		// move the furniture to the new position!
 		Point center = f.getRotationCenter();
-		spatial.setLocalTranslation(center.x,-100,center.y);
+		spatial.setLocalTranslation(center.x,-100f,center.y);
+		//take care of its rotation
+		double rotation = f.getRotation();
+		Quaternion q = spatial.getLocalRotation();
+		rotation *= 0.5;
+		float sina = FastMath.sin(((float)rotation));
+		float x = (float)(0.0 * sina);
+		float y = (float)(1.0 * sina);
+		float z = (float)(0.0 * sina);
+		float w = (float) FastMath.cos((float)rotation);
+		Quaternion c = new Quaternion(w,x,y,z);
+		spatial.setLocalRotation(c);
+		spatial.rotate(0f,0f,-FastMath.PI);
 	}
-
 	
 	
 	/** Moves the given furniture. Returns if Coords c is not known yet or if f is not

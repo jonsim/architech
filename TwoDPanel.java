@@ -19,7 +19,6 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
    private final DesignButtons designButtons;
    private final Coords coords;
-   private final ObjectBrowser objectBrowser;
    //private Coords.Vertex hoverVertex;
 
    private Object inProgressHandler = null;
@@ -31,26 +30,22 @@ class TwoDPanel extends JPanel implements ChangeListener {
    /** If file is null creates a blank coords with the tab name nameIfNullFile,
     *  otherwise it tries to open the given file and load a coords from it, if
     *  it fails an Exception is thrown */
-   TwoDPanel(File file, String nameIfNullFile, DesignButtons designButtons, ObjectBrowser objectBrowser) throws Exception {
+   TwoDPanel(File file, String nameIfNullFile, DesignButtons designButtons) throws Exception {
       if (file == null && nameIfNullFile == null) {
          throw new IllegalArgumentException("If file is null, must give nameIfNullFile");
       }
       if (designButtons == null) {
          throw new IllegalArgumentException("null designbuttons");
       }
-      if (objectBrowser == null) {
-         throw new IllegalArgumentException("null objectbrowser");
-      }      
 
       this.designButtons = designButtons;
-      this.objectBrowser = objectBrowser;
 
       setBackground(Color.WHITE);
       setPreferredSize(new Dimension(2000, 1000));
       setFocusable(true);
 
       DropTarget dropTarget = new DropTarget(this,
-              TwoDDropListener.acceptableActions, new TwoDDropListener(this, objectBrowser), false);
+              TwoDDropListener.acceptableActions, new TwoDDropListener(this), false);
       dropTarget.setActive(true);
 
       coords = file == null ? new Coords(nameIfNullFile) : FileManager.load(file);
