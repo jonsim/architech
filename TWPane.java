@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
@@ -34,13 +33,18 @@ public class TWPane{
       Logger.getLogger("").setLevel(Level.SEVERE);
       canvasApplication.createCanvas(); // create canvas!
       JmeCanvasContext ctx = (JmeCanvasContext) canvasApplication.getContext();
-      ctx.setSystemListener(canvasApplication);
       ctx.getCanvas().setPreferredSize(new Dimension( (int) scrDim.getWidth()-700, (int) scrDim.getHeight()-450));
-}
+      ctx.setSystemListener(canvasApplication);
+      }
 
    /** Nicely disposes of the 3D stuff so that everything can close without exit(0) */
    public void shutdown3D() {
       canvasApplication.stop();
+   }
+   
+   public void startcan(){
+	   canvasApplication.startCanvas();
+
    }
    
    public void addf(String name){

@@ -197,10 +197,9 @@ public class DesignButtons implements ActionListener {
          viewport3D.toggleDay();
 
       } else if (tweaker == source) {
-         //viewport3D.shutdown3D(); //<-- this is why the 3d won't come back
+         viewport3D.shutdown3D(); //<-- this is why the 3d won't come back
          frontEnd.getwindow().setVisible(false);
-         Tweaker hello = new Tweaker(frontEnd.main);
-
+         Tweaker hello = new Tweaker(frontEnd.getCurrentTab().gettd(), frontEnd.main);
       } else {
          Main.showFatalExceptionTraceWindow(
                  new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));

@@ -41,7 +41,7 @@ import javax.swing.filechooser.FileFilter;
 
 import com.jme3.system.JmeCanvasContext;
 
-public class Tweaker extends JFrame implements ActionListener {
+public class Tweaker extends JFrame implements ActionListener{
 	
 	private TWPane preview;
 	public float red;
@@ -59,6 +59,7 @@ public class Tweaker extends JFrame implements ActionListener {
 	JTextField namet;
 	JTextField desct;
 	JComboBox typelist;
+	TwoDPanel parent;
 	Main main;
 	Thread hello;
 
@@ -70,6 +71,10 @@ public class Tweaker extends JFrame implements ActionListener {
 		return namet.getText();
 	}
 	
+	public TwoDPanel pan(){
+		return parent;
+	}
+	
 	public String getdesc(){
 		return desct.getText();
 	}
@@ -78,16 +83,18 @@ public class Tweaker extends JFrame implements ActionListener {
 		return (String)typelist.getSelectedItem();
 	}
 
-    public Tweaker(Main main) {
+    public Tweaker(TwoDPanel pan, Main main) {      
+       parent = pan;
        this.main = main;
-	   setUndecorated(true);
-       setVisible(true);
-       main.frontEnd.getwindow().setVisible(false);
+	   setUndecorated(true);      
+       // set minimum size to initialised size, before maximisation
+
+       //main.frontEnd.getwindow().setVisible(false);
        setTitle("ArchiTECH Tweaker");
-       Image icon = main.frontEnd.getImage(this, "img/frontend/icon.png");
+       Image icon = (new ImageIcon("img/frontend/icon.png")).getImage();
        setIconImage(icon);
-       this.setMinimumSize(this.getSize());
-       this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+       setMinimumSize(getSize());
+       setExtendedState(JFrame.MAXIMIZED_BOTH);
        red = (float) 0.1;
        setLocationRelativeTo(null);
        setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -100,11 +107,11 @@ public class Tweaker extends JFrame implements ActionListener {
        JPanel bottom = new JPanel();
 
        JPanel graphics = new JPanel(new GridBagLayout());
-       preview = new TWPane(this); 
+       //preview = new TWPane(this); 
        JLabel la = new JLabel("<html><h1><font face='Gill Sans MT'>ArchiTECH Tweaker");
        addItem(graphics,la,0,0,0,1,GridBagConstraints.CENTER);
        JPanel canv = new JPanel();
-       canv.add(preview.getCanvas());
+       //canv.add(preview.getCanvas());
        addItem(graphics,canv,0,1,1,1, GridBagConstraints.EAST);
        graphics.setBorder(BorderFactory.createRaisedBevelBorder());
        addItem(pane,graphics,0,0,1,1, GridBagConstraints.CENTER);
@@ -114,8 +121,8 @@ public class Tweaker extends JFrame implements ActionListener {
        controlarea = new JPanel(new GridBagLayout());
        controlScroller = new JScrollPane(controlarea);
        controlScroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-       controlScroller.setPreferredSize(new Dimension( 500, (int) scrDim.getHeight()-520 ));
-       controlScroller.setMinimumSize(new Dimension( 500, (int) scrDim.getHeight()-520 ));
+       controlScroller.setPreferredSize(new Dimension( 500, (int) scrDim.getHeight()-900 ));
+       controlScroller.setMinimumSize(new Dimension( 500, (int) scrDim.getHeight()-900 ));
        addItem(con,controlScroller,0,1,1,1, GridBagConstraints.CENTER);
        
        la = new JLabel("<html><h2><font face='Gill Sans MT'>Object List:");
@@ -144,7 +151,8 @@ public class Tweaker extends JFrame implements ActionListener {
 	      }
 	    };
 	    AbstractColorChooserPanel [] chooserPanels = colorChooser.getChooserPanels();
-	    colorChooser.removeChooserPanel(chooserPanels[2]);
+	    if(chooserPanels.length>=2){
+		    colorChooser.removeChooserPanel(chooserPanels[2]);}
 	    colorChooser.setPreviewPanel(new JPanel());
 	    model.addChangeListener(changeListener);
 	    color.add(colorChooser);    
@@ -212,22 +220,14 @@ public class Tweaker extends JFrame implements ActionListener {
 	  	addItem(tog,typelist,1,2,1,1,GridBagConstraints.CENTER); 
 
        addItem(pane, tog, 1, 1, 1, 1, GridBagConstraints.CENTER);
-
+       //preview.shutdown3D();
+       //preview.startcan();
+       
+       //preview.startcan();
 	   //addItem(pane,bottom,0,1,1,1, GridBagConstraints.WEST);
-
-	   preview.focus();
+       setVisible(true);
+	   //preview.focus();
     }
-    
-    /*public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-            	setSystemLookAndFeel();
-                UIManager.put("Panel.background", Color.WHITE);
-                Tweaker ex = new Tweaker();
-                ex.setVisible(true);
-            }
-        });
-    }*/
     
     JPanel addcontrols(int id, String fname){    	
     	buttons = new JPanel();
@@ -425,7 +425,7 @@ public class Tweaker extends JFrame implements ActionListener {
 		         controlarea.revalidate();
 				 pane.revalidate();}
 			else if(comm.contains("can")){
-					 preview.shutdown3D();
+					 //preview.shutdown3D();
 					 this.dispose();
 					 main.frontEnd.getwindow().setVisible(true);
 					 
