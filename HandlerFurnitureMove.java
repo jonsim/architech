@@ -56,6 +56,9 @@ public class HandlerFurnitureMove {
       }
    }
 
+   /** Stop the furniture dragging, resets the class so it is ready to recieve
+    *  start() calls again. Resets the furniture to the last valid position if the
+    *  user attempts to place it in an invalid place. */
    public void stop(Point p, boolean isControlDown) {
       if (furniture == null) return;
 
@@ -83,11 +86,23 @@ public class HandlerFurnitureMove {
       furniture = null;
    }
 
+   /** Returns the furniture item which is being moved. might be null if no
+    *  furniture is being moved */
    public Furniture getFurniture() {
       return furniture;
    }
 
+   /** Returns true if the furniture is in an invalid position. (And will be
+    *  reset to the last valid position if the user doesn't put it in an ok place) */
    public boolean isCollided() {
       return isCollided;
+   }
+
+   /** Don't use yet, needs to be implemented more */
+   public void delete() {
+      //coords.delete(selectFurniture);
+      //selectFurniture = null;
+
+      //repaint(); // removes the blue selected vertex colour
    }
 }

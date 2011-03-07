@@ -199,7 +199,7 @@ public class DesignButtons implements ActionListener {
       } else if (tweaker == source) {
          //viewport3D.shutdown3D(); //<-- this is why the 3d won't come back
          frontEnd.getwindow().setVisible(false);
-         Tweaker hello = new Tweaker(frontEnd.getCurrentTab().gettd(), frontEnd.main);
+         Tweaker hello = new Tweaker(frontEnd.main);
 
       } else {
          Main.showFatalExceptionTraceWindow(

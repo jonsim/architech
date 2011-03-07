@@ -18,10 +18,6 @@ public class TwoDScrollPane extends JScrollPane {
       designButtons.getSlider().addChangeListener(twoDPanel);
    }
    
-   public TwoDPanel gettd(){
-	   return twoDPanel;
-   }
-   
    /** Subclasses may override this method to return a subclass of JViewport.  */
    @Override
    protected JViewport createViewport() {

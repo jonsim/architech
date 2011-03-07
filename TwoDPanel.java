@@ -336,22 +336,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
          int c = kevt.getKeyCode();
 
          if ((c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE) && designButtons.isSelectTool()) {
-            /* UNTIL CURVES AND THE REST ARE FIXED I DISABLED THIS AS IT WILL BE BAD!
-            coords.delete(selectVertex);
-
-            // the vertex currently being hovered over will only update if the person
-            // moves the mouse. If they don't move the mouse and the vertex has been
-            // deleted, then it will stay behind in red unless this is done!
-            if (!coords.exists(hoverVertex)) {
-               hoverVertex = null;
-            }
-
-            selectVertex = null;
-
-            coords.delete(selectFurniture);
-            selectFurniture = null;
-
-            repaint(); // removes the blue selected vertex colour*/
+            // This call might change a little as it depends on brent's module
+            handlerVertexSelect.deleteSelected();
          }
       }
 
@@ -361,7 +347,6 @@ class TwoDPanel extends JPanel implements ChangeListener {
    }
 
    private class TwoDPanelCoordsChangeListener implements CoordsChangeListener {
-
       /** Called when the something changes in the coordinate system */
       public void coordsChangeOccurred(CoordsChangeEvent e) {
          repaint();

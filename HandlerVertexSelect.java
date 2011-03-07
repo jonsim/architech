@@ -28,9 +28,18 @@ public class HandlerVertexSelect {
 
       if (v != null) {
          // add the vertex
-
+         
       } else {
          // reset
       }
+   }
+
+   /** As your class handles selection it makes sense to have control of deletes :) */
+   public void deleteSelected() {
+      System.out.println("delete");
+
+      // clear arraylists
+      
+      //coords.delete(selectVertices);
    }
 }
