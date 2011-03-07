@@ -56,19 +56,23 @@ import com.jme3.bullet.util.CollisionShapeFactory;
 public class ArchApp extends Application
 {
 	/**********************GLOBAL VARIABLES**********************/
-	// lighting globals
-	private static final boolean shadowing = true;  // determines whether or not to render shadows
-	private static final boolean physics   = true;  // determines whether or not to calculate physics
+	// toggle globals
+	private static final boolean shadowing = false;  // determines whether or not to render shadows
+	private static final boolean physics   = true;  // determines whether or not to calculate physics (not 100% implemented)
 	private static final boolean overlay   = false;  // displays overlay
-	private static final short[] DAY_BRIGHTNESS = {245, 240, 200};	// RGB colour (0-255) of the sun light
+	
+	// lighting globals
+	private static final short[]  DAY_BRIGHTNESS = {245, 240, 200};	// RGB colour (0-255) of the sun light
+	private static final float    DAY_AMBIENCE = 0.7f;	// amount of ambient light in the scene (0 is none)
 	private static final Vector3f DAY_ANGLE = new Vector3f(0.8f, -2, -0.2f);  // vector direction of the sun
-	private static final float DAY_SHADOW_INTENSITY = 0.5f;  // 0 = no shadows, 1 = pitch black shadows
-	private static final short[] NIGHT_BRIGHTNESS = {30, 30, 30};
+	private static final float    DAY_SHADOW_INTENSITY = 0.5f;  // 0 = no shadows, 1 = pitch black shadows
+	private static Spatial        DAY_MAP = null;  // must be initialised in SimpleInitApp() due to dependence on assetManager
+	private static final short[]  NIGHT_BRIGHTNESS = {30, 30, 30};
+	private static final float    NIGHT_AMBIENCE = 0.8f;
 	private static final Vector3f NIGHT_ANGLE = new Vector3f(-0.2f, -0.8f, 0.6f);
-	private static final float NIGHT_SHADOW_INTENSITY = 0;
+	private static final float    NIGHT_SHADOW_INTENSITY = 0;
+	private static Spatial        NIGHT_MAP = null;
 	private boolean day = true;  // true = day, false = night
-	private static Spatial DAY_MAP;  // must be initialised in SimpleInitApp() due to dependence on assetManager
-	private static Spatial NIGHT_MAP;
 	private DirectionalLight sun;
 	private AmbientLight ambient;
     private PssmShadowRenderer psr;
@@ -102,6 +106,9 @@ public class ArchApp extends Application
     private boolean isInitComplete = false;
     private Main main;
 
+    
+    
+    
 	/**********************MAIN FUNCTION**********************/
     
     ArchApp(Main main)
@@ -109,6 +116,9 @@ public class ArchApp extends Application
     	super();
     	this.main = main;
     }
+    
+    
+    
     
 	/**********************ACTION LISTNER**********************/
 
@@ -157,6 +167,9 @@ public class ArchApp extends Application
         }
     }
     
+    
+    
+    
 	/**********************INITIALISATION FUNCTIONS**********************/
 
     @Override
@@ -170,6 +183,8 @@ public class ArchApp extends Application
         super.start();
     }
 
+    
+    
     @Override
     public void update()
     {
@@ -198,6 +213,9 @@ public class ArchApp extends Application
 	        stateManager.postRender();
 		}
     }
+    
+    
+    
     @Override
     public void initialize()
     {
@@ -279,7 +297,7 @@ public class ArchApp extends Application
         setupPlayer();
         
         // attach the sky
-	    rootNode.attachChild(DAY_MAP);	    
+	    //rootNode.attachChild(DAY_MAP);
     }
 
     
@@ -386,7 +404,7 @@ public class ArchApp extends Application
         
         // add ambient lighting
         ambient = new AmbientLight();
-        ambient.setColor(new ColorRGBA(0.4f, 0.4f, 0.4f, 1));
+        ambient.setColor(ColorRGBA.White.mult(DAY_AMBIENCE));
         rootNode.addLight(ambient);
     }
     
@@ -396,8 +414,9 @@ public class ArchApp extends Application
     {
         DAY_MAP = SkyFactory.createSky(assetManager, "req/SkyDay.dds", false);
         NIGHT_MAP = SkyFactory.createSky(assetManager, "req/SkyNight.dds", false);
+        rootNode.attachChild(DAY_MAP);
         
-        //toggleDay(true);
+        toggleDay(true);
         //toggleDay(false);
         //toggleDay(false);
     }
@@ -429,36 +448,41 @@ public class ArchApp extends Application
     {
     	if (!day || init)
     	{
+            if (DAY_MAP == null)
+            	DAY_MAP = SkyFactory.createSky(assetManager, "req/SkyDay.dds", false);
+            if (!init)
+            	rootNode.detachChild(NIGHT_MAP);
+            rootNode.attachChild(DAY_MAP);
             sun.setDirection(DAY_ANGLE);
             sun.setColor(new ColorRGBA((float) DAY_BRIGHTNESS[0]/255, (float) DAY_BRIGHTNESS[1]/255, (float) DAY_BRIGHTNESS[2]/255, 1));
+            ambient.setColor(ColorRGBA.White.mult(DAY_AMBIENCE));
             if (shadowing)
             {
             	psr.setDirection(DAY_ANGLE);
             	psr.setShadowIntensity(DAY_SHADOW_INTENSITY);
-            }    		
-            if (!init)
-            	rootNode.detachChild(NIGHT_MAP);
-            rootNode.attachChild(DAY_MAP);
+            }
             turnOffLights();
             day = true;
     	}
     	else
     	{
+            if (NIGHT_MAP == null)
+            	NIGHT_MAP = SkyFactory.createSky(assetManager, "req/SkyNight.dds", false);
+        	rootNode.detachChild(DAY_MAP);
+            rootNode.attachChild(NIGHT_MAP);
             sun.setDirection(NIGHT_ANGLE);
             sun.setColor(new ColorRGBA((float) NIGHT_BRIGHTNESS[0]/255, (float) NIGHT_BRIGHTNESS[1]/255, (float) NIGHT_BRIGHTNESS[2]/255, 1));
+            ambient.setColor(ColorRGBA.White.mult(NIGHT_AMBIENCE));
             if (shadowing)
             {
 	            psr.setDirection(NIGHT_ANGLE);
 	        	psr.setShadowIntensity(NIGHT_SHADOW_INTENSITY);
             }
-            if (!init)
-            	rootNode.detachChild(DAY_MAP);
-            rootNode.attachChild(NIGHT_MAP);
             turnOnLights();
             day = false;
     	}
 		// Stops you having to click to update the 3D (for tab changes)
-		((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
+		//((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
     }
     
     
