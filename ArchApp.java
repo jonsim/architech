@@ -426,7 +426,7 @@ public class ArchApp extends Application
         //flyCam.setMoveSpeed(200);
      
         // player collision
-        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(20, 80, 1);
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(20, 70, 1);
         player = new CharacterControl(capsuleShape, 0.01f);
         player.setJumpSpeed(20);
         player.setFallSpeed(160);
@@ -745,7 +745,7 @@ public class ArchApp extends Application
 	/**********************WALL FUNCTIONS**********************/
 
     private WallGeometry makewall(Edge e)
-    {
+    {   
     	int x1 = (int) e.getV1().getX();
     	int y1 = (int) e.getV1().getY();
     	int x2 = (int) e.getV2().getX();
@@ -772,18 +772,99 @@ public class ArchApp extends Application
     	WallGeometry wallGeometry = new WallGeometry();
     	if (straight == 0)
     	{
+    		//CURVED LINE
     		QuadCurve2D qcurve = e.getqcurve();			
     		recurvsion(wallGeometry,qcurve,4);
     	}
     	else
-    	{
-    		drawline(wallGeometry,x1,x2,y1,y2);
+    	{	    
+    		//STRAIGHT LINE
+    		//Furniture[] dws = e.getDoorWindow(); 	
+    		//if(dws!=null){
+    		int doorwidth = 20;
+    		int doorpanel = 20;
+			//if(x1==180 & y1==0 & x2==300 & y2==0){
+	    		//Furniture[] dws = new Furniture[1];
+	    			    		
+	    		int cx=0,cy=0;
+	    		if(x2>x1){cx = x1 + Math.abs((x2 -x1)/2);}
+	    		if(x2==x1) {cx = x2;}
+	    		if(x1>x2){cx = x1 - Math.abs((x2 -x1)/2);}
+	    		if(y2>y1){cy = y1 + Math.abs((y2 -y1)/2);}
+	    		if(y2==y1){cy=y2;}
+	    		if(y1>y2){cy = y1 - Math.abs((y2 -y1)/2);}
+	    		
+	    		/*dws[0] = new Furniture(new FurnitureSQLData(2, 2f, 2f, 2,"bing"),new Point(cx,cy),null);
+	    		double dx1,dy1,dx2 ,dy2;
+	    		double o = Math.abs(y2 - y1);
+	    		double a = Math.abs(x2 - x1);
+	    		if(o==0){
+	    			dx1 = dws[0].getRotationCenter().getX()-doorwidth;	    			
+	    			dy1 = y1;
+	    			dx2 = dws[0].getRotationCenter().getX()+doorwidth;
+	    			dy2 = y2;
+	    			if(x1>x2){double temp = dx1; dx1 = dx2; dx2 = temp;}
+	    		}else{if(a==0){
+	    			dx1 = x1;
+	    			dy1 = dws[0].getRotationCenter().getY()-doorwidth;
+	    			dx2 = x2;
+	    			dy2 = dws[0].getRotationCenter().getY()+doorwidth;
+	    			if(y1>y2){double temp = dy1; dy1 = dy2; dy2 = temp;}
+	    		}else{  		
+	    		System.out.println(o/a);
+	    		double theta = Math.atan(o/a);
+	    		
+	    		double xtri =  doorwidth * (Math.cos(theta));
+	    		double ytri =  doorwidth * (Math.sin(theta));
+	    		if(x2<x1){xtri = -xtri;}
+	    		if(y2<y1){ytri = -ytri;}
+	    		dx1 = dws[0].getRotationCenter().getX()-xtri;
+	    		dy1 = dws[0].getRotationCenter().getY()-ytri;
+	    		dx2 = dws[0].getRotationCenter().getX()+xtri;
+	    		dy2 = dws[0].getRotationCenter().getY()+ytri;
+	    		*/
+	    		double dx1,dy1,dx2 ,dy2;
+	    		double o = Math.abs(y2 - y1);
+	    		double a = Math.abs(x2 - x1);
+	    		if(o==0){
+	    			dx1 = cx-doorwidth;	    			
+	    			dy1 = y1;
+	    			dx2 = cx+doorwidth;
+	    			dy2 = y2;
+	    			if(x1>x2){double temp = dx1; dx1 = dx2; dx2 = temp;}
+	    		}else{if(a==0){
+	    			dx1 = x1;
+	    			dy1 = cy-doorwidth;
+	    			dx2 = x2;
+	    			dy2 = cy+doorwidth;
+	    			if(y1>y2){double temp = dy1; dy1 = dy2; dy2 = temp;}
+	    		}else{  		
+	    		double theta = Math.atan(o/a);
+	    		
+	    		double xtri =  doorwidth * (Math.cos(theta));
+	    		double ytri =  doorwidth * (Math.sin(theta));
+	    		if(x2<x1){xtri = -xtri;}
+	    		if(y2<y1){ytri = -ytri;}
+	    		dx1 = cx-xtri;
+	    		dy1 = cy-ytri;
+	    		dx2 = cx+xtri;
+	    		dy2 = cy+ytri;
+
+	    		}}
+	    		drawline(wallGeometry,(int)x1,(int)dx1,(int)y1,(int)dy1,100,-100,1);
+	    		drawline(wallGeometry,(int)dx2,(int)x2,(int)dy2,(int)y2,100,-100,1);
+	    		drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,0);
+	    		
+			//}
+    		//}
+			//else{			
+
+    		//drawline(wallGeometry,x1,x2,y1,y2,100,-100); 
+			//}
     	}
 
     	return wallGeometry;
 	}
-	
-
     
 	/** Moves the two wall planes to the new position given by edge e */
 	private void updatewall(WallGeometry wallGeometry, Edge e)
@@ -804,13 +885,11 @@ public class ArchApp extends Application
 			rootNode.attachChild((Geometry) itr.next());
 	}
     
-    
-    
     private int recurvsion(WallGeometry top, QuadCurve2D curve,int level)
     {
     	if (level == 0)
     	{
-    		drawline(top, (int)curve.getX1(), (int)curve.getX2(), (int)curve.getY1(), (int)curve.getY2());
+    		drawline(top, (int)curve.getX1(), (int)curve.getX2(), (int)curve.getY1(), (int)curve.getY2(),100,-100,1);
     		return -1;
     	}
     	else
@@ -825,9 +904,7 @@ public class ArchApp extends Application
     	}
     }
     
-    
-    
-    private void drawline(WallGeometry wallGeometry, int x1, int x2, int y1, int y2)
+    private void drawline(WallGeometry wallGeometry, int x1, int x2, int y1, int y2,int height,int disp,int coll)
     {
     	int length, leny, lenx = 0;
     	float rotation = 0;
@@ -859,24 +936,24 @@ public class ArchApp extends Application
 		}
 		
 		// Draw a quad between the 2 given vertices
-		Geometry adding = new Geometry ("Box", new Quad(length, 100));
-		adding.setLocalTranslation(new Vector3f(x1, -100, y1));
+		Geometry adding = new Geometry ("Box", new Quad(length, height));
+		adding.setLocalTranslation(new Vector3f(x1, disp, y1));
 		adding.rotate(0f, rotation, 0f);
 		adding.setMaterial(wallmat);
     	if (shadowing)
     		adding.setShadowMode(ShadowMode.CastAndReceive);
-    	if (physics)
+    	if (physics & coll == 1)
     		addToPhysics(adding);
 		wallGeometry.geom.add(adding);
 
 		// Double up the quad
-		adding = new Geometry ("Box", new Quad(length,100));
-		adding.setLocalTranslation(new Vector3f(x2, -100, y2));
+		adding = new Geometry ("Box", new Quad(length,height));
+		adding.setLocalTranslation(new Vector3f(x2, disp, y2));
 		adding.rotate(0f, (float) (rotation + FastMath.PI), 0f);
 		adding.setMaterial(wallmat);
 		if (shadowing)
 			adding.setShadowMode(ShadowMode.CastAndReceive);
-		if (physics)
+		if (physics & coll == 1)
 			addToPhysics(adding);
     	wallGeometry.geom.add(adding);
     	return; 
