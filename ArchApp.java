@@ -3,6 +3,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import java.awt.geom.QuadCurve2D;
+import java.util.ArrayList;
+
 import com.jme3.app.Application;
 import com.jme3.app.StatsView;
 import com.jme3.font.BitmapFont;
@@ -10,11 +13,13 @@ import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
@@ -25,16 +30,21 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.shape.Quad;
-import com.jme3.scene.shape.Sphere;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeCanvasContext;
 import com.jme3.system.JmeContext.Type;
 import com.jme3.system.JmeSystem;
-import com.jme3.texture.Texture;
-import com.jme3.texture.Texture.WrapMode;
 import com.jme3.util.BufferUtils;
 import com.jme3.util.SkyFactory;
+
+import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
+import com.jme3.bullet.collision.shapes.CollisionShape;
+import com.jme3.bullet.collision.shapes.MeshCollisionShape;
+import com.jme3.bullet.control.CharacterControl;
+import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.bullet.util.CollisionShapeFactory;
 
 
 /*This code is mostly from the default application included with JME, SimpleApp.
@@ -43,74 +53,121 @@ import com.jme3.util.SkyFactory;
  */
 public class ArchApp extends Application
 {
+	/**********************GLOBAL VARIABLES**********************/
+	// lighting globals
+	private static final boolean shadowing = true;  // determines whether or not to render shadows
+	private static final boolean physics   = true;  // determines whether or not to calculate physics
+	private static final boolean overlay   = false;  // displays overlay
 	private static final short[] DAY_BRIGHTNESS = {245, 240, 200};	// RGB colour (0-255) of the sun light
 	private static final Vector3f DAY_ANGLE = new Vector3f(0.8f, -2, -0.2f);  // vector direction of the sun
 	private static final float DAY_SHADOW_INTENSITY = 0.5f;  // 0 = no shadows, 1 = pitch black shadows
-	private static final short[] NIGHT_BRIGHTNESS = {30, 30, 30};	// RGB colour (0-255) of the sun light
-	private static final Vector3f NIGHT_ANGLE = new Vector3f(-0.2f, -0.8f, 0.6f);  // vector direction of the sun
-	private static final float NIGHT_SHADOW_INTENSITY = 0.1f;  // 0 = no shadows, 1 = pitch black shadows
+	private static final short[] NIGHT_BRIGHTNESS = {30, 30, 30};
+	private static final Vector3f NIGHT_ANGLE = new Vector3f(-0.2f, -0.8f, 0.6f);
+	private static final float NIGHT_SHADOW_INTENSITY = 0;
 	private boolean day = true;  // true = day, false = night
-	private Spatial DAY_MAP;  // must be initialised in SimpleInitApp() due to dependence on assetManager
-	private Spatial NIGHT_MAP;  // must be initialised in SimpleInitApp() due to dependence on assetManager
+	private static Spatial DAY_MAP;  // must be initialised in SimpleInitApp() due to dependence on assetManager
+	private static Spatial NIGHT_MAP;
 	private DirectionalLight sun;
+	private AmbientLight ambient;
+    private PssmShadowRenderer psr;
 
+	// physics globals
+    private BulletAppState bulletAppState;
+	private CharacterControl player;
+	private Vector3f walkDirection = new Vector3f();
+	private boolean left = false, right = false, up = false, down = false;
+
+	// node globals
     private Node rootNode = new Node("Root Node");
     private Node guiNode = new Node("Gui Node");
     private final Object syncLockObject = new Object();
 
+    // overlay globals
     private BitmapText fpsText;
     private BitmapFont guiFont;
     private StatsView statsView;
     
+    // material globals
     private Material grass;
-    private Texture grasst;
     private Material wallmat;
     
-    private PssmShadowRenderer psr;
-
+    // camera globals
     private static MovCam flyCam;
     private boolean showSettings = false;
 
+    // miscellaneous globals
     private AppActionListener actionListener = new AppActionListener();
-
     private boolean isInitComplete = false;
     private Main main;
 
+    
+    
+
+    
+	/**********************MAIN FUNCTION**********************/
+    
     ArchApp(Main main)
     {
     	super();
     	this.main = main;
     }
     
+    
+    
+    
+    
+	/**********************ACTION LISTNER**********************/
+
     private class AppActionListener implements ActionListener
     {
         public void onAction(String name, boolean value, float tpf)
         {
-            if (!value)
-                return;
-
-            if (name.equals("SIMPLEAPP_Exit"))
-            {
+            if (name.equals("PLAYER_Left"))
+            	if (value)
+            		left = true;
+            	else
+            		left = false;
+            else if (name.equals("PLAYER_Right"))
+            	if (value)
+            		right = true;
+            	else
+            		right = false;
+            else if (name.equals("PLAYER_Up"))
+            	if (value)
+            		up = true;
+            	else
+            		up = false;
+            else if (name.equals("PLAYER_Down"))
+            	if (value)
+            		down = true;
+            	else
+            		down = false;
+            else if (name.equals("PLAYER_Jump"))
+            	player.jump();
+            else if (name.equals("SIMPLEAPP_Exit"))
             	stop();
-            }
+            else if (name.equals("SIMPLEAPP_ToggleDay"))
+            	if (value)
+            		toggleDay(false);
             else if (name.equals("SIMPLEAPP_CameraPos"))
-            {
-            	/*if (cam != null)
+            	if (cam != null)
             	{
 	                Vector3f loc = cam.getLocation();
 	                Quaternion rot = cam.getRotation();
-	                System.out.println("Camera Position: ("+
-	                        loc.x+", "+loc.y+", "+loc.z+")");
+	                System.out.println("Camera Position: ("+loc.x+", "+loc.y+", "+loc.z+")");
 	                System.out.println("Camera Rotation: "+rot);
 	                System.out.println("Camera Direction: "+cam.getDirection());
-	            }*/
-	        }
+	            }
             else if (name.equals("SIMPLEAPP_Memory"))
-            {
             	BufferUtils.printCurrentDirectMemory(null);
-            }
         }
     }
+    
+    
+    
+
+    
+	/**********************INITIALISATION FUNCTIONS**********************/
 
     @Override
     public void start()
@@ -123,110 +180,8 @@ public class ArchApp extends Application
         super.start();
     }
 
-    public MovCam getFlyByCamera()
-    {
-        return flyCam;
-    }
-
-    public Node getGuiNode()
-    {
-        return guiNode;
-    }
-
-    public Node getRootNode()
-    {
-        return rootNode;
-    }
-
-    public boolean isShowSettings()
-    {
-        return showSettings;
-    }
-
-    public void setShowSettings(boolean showSettings)
-    {
-        this.showSettings = showSettings;
-    }
-
-    public void loadFPSText()
-    {
-        guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
-        fpsText = new BitmapText(guiFont, false);
-        fpsText.setLocalTranslation(0, fpsText.getLineHeight(), 0);
-        fpsText.setText("Mother-licking FPS:");
-        guiNode.attachChild(fpsText);
-    }
-
-    public void loadStatsView()
-    {
-        statsView = new StatsView("Statistics View", assetManager, renderer.getStatistics());
-        // move it up so it appears above fps text
-        statsView.setLocalTranslation(0, fpsText.getLineHeight(), 0);
-        guiNode.attachChild(statsView);
-    }
     
-    public void initCamera()
-    {
-        cam = new Camera(settings.getWidth(), settings.getHeight());
-        cam.setFrustumPerspective(45f, (float)cam.getWidth() / cam.getHeight(), 1f, 10000f);
-        cam.setLocation(new Vector3f(357.61813f, -46.365437f, 546.6056f));
-        cam.lookAt(new Vector3f(400f, -50f, 0f), Vector3f.UNIT_Y);
-        renderManager = new RenderManager(renderer);
-        renderManager.setTimer(timer);
-        viewPort = renderManager.createMainView("Default", cam);
-        viewPort.setClearEnabled(true);
-        // Create a new cam for the gui
-        Camera guiCam = new Camera(settings.getWidth(), settings.getHeight());
-        guiViewPort = renderManager.createPostView("Gui Default", guiCam);
-        guiViewPort.setClearEnabled(false);
-    }
-
-    @Override
-    public void initialize()
-    {
-        super.initialize();
-        initCamera();
-        guiNode.setQueueBucket(Bucket.Gui);
-        guiNode.setCullHint(CullHint.Never);
-       // loadFPSText();
-       // loadStatsView();
-        viewPort.attachScene(rootNode);
-        guiViewPort.attachScene(guiNode);
-
-        if (inputManager != null)
-        {
-            flyCam = new MovCam(cam);
-            flyCam.setMoveSpeed(100f);
-            flyCam.registerWithInput(inputManager);
-
-            if (context.getType() == Type.Display)
-                inputManager.addMapping("SIMPLEAPP_Exit", new KeyTrigger(KeyInput.KEY_ESCAPE));
-            
-            inputManager.addMapping("SIMPLEAPP_CameraPos", new KeyTrigger(KeyInput.KEY_C));
-            inputManager.addMapping("SIMPLEAPP_Memory", new KeyTrigger(KeyInput.KEY_M));
-            inputManager.addListener(actionListener, "SIMPLEAPP_Exit", "SIMPLEAPP_CameraPos", "SIMPLEAPP_Memory");
-        }
-        
-        // call user code
-        //grass = new Material(assetManager, "Common/MatDefs/Terrain/Terrain.j3md");
-        grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        //grass.setTexture("m_Alpha", assetManager.loadTexture("req/tile.png"));
-        grass.setTexture("DiffuseMap", assetManager.loadTexture("req/floor.jpg"));
-        grasst = assetManager.loadTexture("req/floor.jpg");
-        grasst.setWrap(WrapMode.Repeat);
-        //grass.setTexture("DiffuseMap", grasst);
-        grass.setFloat("Shininess", 10);
-
-        wallmat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-		wallmat.setTexture("DiffuseMap", assetManager.loadTexture("req/wall1.jpg"));
-        wallmat.setFloat("Shininess", 10);
-        
-        simpleInitApp();
-        
-        if (main.frontEnd != null) tabChangedIgnoreInitComplete(main.frontEnd.getCurrentCoords());
-        isInitComplete = true;
-    }
-
+    
     @Override
     public void update()
     {
@@ -256,141 +211,142 @@ public class ArchApp extends Application
 		}
     }
 
+    
+    
+    @Override
+    public void initialize()
+    {
+        super.initialize();
+        if (!physics)
+        	initCamera();
+        guiNode.setQueueBucket(Bucket.Gui);
+        guiNode.setCullHint(CullHint.Never);
+        if (overlay)
+        {
+            loadFPSText();
+            loadStatsView();        	
+        }
+        viewPort.attachScene(rootNode);
+        guiViewPort.attachScene(guiNode);
+
+        if (inputManager != null)
+        {
+            flyCam = new MovCam(cam);
+        	flyCam.setMoveSpeed(20);
+            flyCam.registerWithInput(inputManager);
+
+            if (context.getType() == Type.Display)
+                inputManager.addMapping("SIMPLEAPP_Exit", new KeyTrigger(KeyInput.KEY_ESCAPE));
+            
+            inputManager.addMapping("SIMPLEAPP_CameraPos", new KeyTrigger(KeyInput.KEY_C));
+            inputManager.addMapping("SIMPLEAPP_Memory", new KeyTrigger(KeyInput.KEY_M));
+            inputManager.addMapping("SIMPLEAPP_ToggleDay", new KeyTrigger(KeyInput.KEY_N));
+            inputManager.addListener(actionListener, "SIMPLEAPP_Exit", "SIMPLEAPP_ToggleDay", "SIMPLEAPP_CameraPos", "SIMPLEAPP_Memory");
+            
+            inputManager.addMapping("PLAYER_Left",  new KeyTrigger(KeyInput.KEY_A));
+            inputManager.addMapping("PLAYER_Right", new KeyTrigger(KeyInput.KEY_D));
+            inputManager.addMapping("PLAYER_Up",    new KeyTrigger(KeyInput.KEY_W));
+            inputManager.addMapping("PLAYER_Down",  new KeyTrigger(KeyInput.KEY_S));
+            inputManager.addMapping("PLAYER_Jump",  new KeyTrigger(KeyInput.KEY_SPACE));
+            inputManager.addListener(actionListener, "PLAYER_Left", "PLAYER_Right", "PLAYER_Up", "PLAYER_Down", "PLAYER_Jump");
+        }
+        
+        // call user code
+        setupMaterials();
+        simpleInitApp();
+        
+        if (main.frontEnd != null)
+        	tabChangedIgnoreInitComplete(main.frontEnd.getCurrentCoords());
+        isInitComplete = true;
+    }
+    
+    
+    
+    public void initCamera()
+    {
+        cam = new Camera(settings.getWidth(), settings.getHeight());
+        cam.setFrustumPerspective(45f, (float)cam.getWidth() / cam.getHeight(), 1f, 10000f);
+        cam.setLocation(new Vector3f(357.61813f, -46.365437f, 546.6056f));
+        cam.lookAt(new Vector3f(400f, -50f, 0f), Vector3f.UNIT_Y);
+        renderManager = new RenderManager(renderer);
+        renderManager.setTimer(timer);
+        viewPort = renderManager.createMainView("Default", cam);
+        viewPort.setClearEnabled(true);
+        // Create a new cam for the gui
+        Camera guiCam = new Camera(settings.getWidth(), settings.getHeight());
+        guiViewPort = renderManager.createPostView("Gui Default", guiCam);
+        guiViewPort.setClearEnabled(false);
+    }
+
+    
+    
     public void simpleInitApp()
     {
-		flyCam.setDragToRotate(true);
-		addbackg();
-		
-        // add shadow renderer
-        rootNode.setShadowMode(ShadowMode.Off);
-        psr = new PssmShadowRenderer(assetManager, 1024, 4);
-    	psr.setShadowIntensity(DAY_SHADOW_INTENSITY);
-        psr.setDirection(DAY_ANGLE);
-        viewPort.addProcessor(psr);
-
-		// add sun
-        sun = new DirectionalLight();
-        sun.setDirection(DAY_ANGLE);
-        sun.setColor(new ColorRGBA((float) DAY_BRIGHTNESS[0]/255, (float) DAY_BRIGHTNESS[1]/255, (float) DAY_BRIGHTNESS[2]/255, 1));
-        rootNode.addLight(sun);
+    	// initialise the physics components
+        bulletAppState = new BulletAppState();
+        stateManager.attach(bulletAppState);
         
-        // add ambient point light
-        PointLight pl = new PointLight();
-        //pl.setPosition(localCentre);
-        pl.setColor(ColorRGBA.White);
-        pl.setRadius(200);
-        rootNode.addLight(pl);
-        Geometry pl1_model = new Geometry("Sphere", new Sphere(8, 8, 5));
-        pl1_model.setMaterial(assetManager.loadMaterial("Common/Materials/WhiteColor.j3m"));
-        //pl1_model.setLocalTranslation(localCentre);
-        rootNode.attachChild(pl1_model);
-                
-        // create and add sky
-        DAY_MAP = SkyFactory.createSky(assetManager, "req/SkyDay.dds", false);
-        NIGHT_MAP = SkyFactory.createSky(assetManager, "req/SkyNight.dds", false);
-	    rootNode.attachChild(DAY_MAP);
+        // setup the other components
+		flyCam.setDragToRotate(true);
+		setupScene();
+		setupLighting();
+        setupSky();
+        setupPlayer();
+        
+        // attach the sky
+	    rootNode.attachChild(DAY_MAP);	    
     }
 
+    
+    
     public void simpleUpdate(float tpf)
     {
+        Vector3f camDir = cam.getDirection().clone().multLocal(2);
+        Vector3f camLeft = cam.getLeft().clone().multLocal(2);
+        walkDirection.set(0, 0, 0);
+        if (left)
+        	walkDirection.addLocal(camLeft);
+        if (right)
+        	walkDirection.addLocal(camLeft.negate());
+        if (up)
+        	walkDirection.addLocal(camDir);
+        if (down)
+        	walkDirection.addLocal(camDir.negate());
+        player.setWalkDirection(walkDirection);
+        cam.setLocation(player.getPhysicsLocation());
     }
 
+    
+    
     public void simpleRender(RenderManager rm)
     {
     }
     
-    public void toggleDay()
+    
+    
+    
+    
+	/**********************SETUP FUNCTIONS**********************/
+
+    private void setupMaterials ()
     {
-    	if (day)
-    	{
-            sun.setDirection(NIGHT_ANGLE);
-            psr.setDirection(NIGHT_ANGLE);
-        	psr.setShadowIntensity(NIGHT_SHADOW_INTENSITY);
-            sun.setColor(new ColorRGBA((float) NIGHT_BRIGHTNESS[0]/255, (float) NIGHT_BRIGHTNESS[1]/255, (float) NIGHT_BRIGHTNESS[2]/255, 1));
-            rootNode.detachChild(DAY_MAP);
-            rootNode.attachChild(NIGHT_MAP);
-            day = false;
-    	}
-    	else
-    	{
-            sun.setDirection(DAY_ANGLE);
-            psr.setDirection(DAY_ANGLE);
-        	psr.setShadowIntensity(DAY_SHADOW_INTENSITY);
-            sun.setColor(new ColorRGBA((float) DAY_BRIGHTNESS[0]/255, (float) DAY_BRIGHTNESS[1]/255, (float) DAY_BRIGHTNESS[2]/255, 1));    		
-            rootNode.detachChild(NIGHT_MAP);
-            rootNode.attachChild(DAY_MAP);
-            day = true;
-    	}
+        grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        grass.setTexture("DiffuseMap", assetManager.loadTexture("req/floor.jpg"));
+        /*grass.setBoolean("UseMaterialColors", true);
+        grass.setColor("Diffuse",  ColorRGBA.White);
+        grass.setColor("Specular",  ColorRGBA.Red);
+        grass.setColor("Ambient",  ColorRGBA.Blue);*/
+        grass.setFloat("Shininess", 10);
+
+        wallmat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+		wallmat.setTexture("DiffuseMap", assetManager.loadTexture("req/wall1.jpg"));
+        wallmat.setFloat("Shininess", 1000);    	
     }
+    
+    
 
-
-    // constructs a wall between (x1,y1) and (x2,y2), doesn't add it to rootnode
-    private WallGeometry makewall(Edge e)
-    {
-    	int x1 = (int) e.getV1().getX();
-    	int y1 = (int) e.getV1().getY();
-    	int x2 = (int) e.getV2().getX();
-    	int y2 = (int) e.getV2().getY();
-
-    	int length,leny,lenx=0;
-    	float rotation=0;
-
-		//work out the distances and angles required
-		lenx = x2 - x1;
-		leny = y2 - y1;
-		if(lenx==0)
-		{
-			length=leny;
-			rotation=-(float) Math.toRadians(90);
-		}
-		else
-		{
-			if(leny==0)
-			{
-				length=lenx;
-				rotation=0;
-			}
-			else
-			{
-				length = (int) Math.sqrt((Math.pow(lenx,2) + Math.pow(leny,2)));
-				length += 2;
-				rotation = (float) -(Math.atan((double) (leny) / (lenx)));
-				if(y2>y1 & x1>x2)
-					rotation += FastMath.PI;
-				if(y2<y1 & x1>x2)
-					rotation += FastMath.PI;
-			}
-		}
-
-		WallGeometry wallGeometry = new WallGeometry();
-		// Draw a quad between the 2 given vertices
-		// geometry settings
-		wallGeometry.geom1 = new Geometry ("Box", new Quad(length,100));
-		wallGeometry.geom1.setLocalTranslation(new Vector3f(x1, -100, y1));
-		wallGeometry.geom1.rotate(0f, rotation, 0f);
-		wallGeometry.geom1.setMaterial(wallmat);
-    	
-    	// shadow settings
-    	//TangentBinormalGenerator.generate(wallGeometry.geom1.getMesh(), true);
-    	wallGeometry.geom1.setShadowMode(ShadowMode.CastAndReceive);
-
-
-		// Double up the quad
-		// geometry settings
-		wallGeometry.geom2 = new Geometry ("Box", new Quad(length,100));
-		wallGeometry.geom2.setLocalTranslation(new Vector3f(x2, -100, y2));
-		wallGeometry.geom2.rotate(0f, (float) (rotation + FastMath.PI), 0f);
-		wallGeometry.geom2.setMaterial(wallmat);
-    	
-    	// shadow settings
-    	//TangentBinormalGenerator.generate(wallGeometry.geom2.getMesh(), true);
-    	wallGeometry.geom2.setShadowMode(ShadowMode.CastAndReceive);
-
-    	
-        return wallGeometry;
-	}
-
-    private void addbackg()
+    PointLight pl1, pl2;
+    private void setupScene()
     {
 		//add the grassy area
 		Geometry geom = new Geometry("Box", new Quad(4000,4000));
@@ -399,115 +355,239 @@ public class ArchApp extends Application
 	    geom.setShadowMode(ShadowMode.Receive);
 	    geom.setLocalTranslation(new Vector3f(2102,-100,-902));
 	    geom.rotate((float) -Math.toRadians(90),(float) Math.toRadians(180),0f );
+	    addToPhysics(geom);
 	    rootNode.attachChild(geom);
+
+	    // add lightbulbs
+	    Spatial light1 = assetManager.loadModel("req/lightbulb/lightbulb.obj");
+		light1.scale(4, 4, 4);
+		light1.rotate(-FastMath.PI,0,0);
+		light1.setLocalTranslation(350, -30, 80);
+		rootNode.attachChild(light1);
+		
+	    Spatial light2 = assetManager.loadModel("req/lightbulb/lightbulb.obj");
+		light2.scale(4, 4, 4);
+		light2.rotate(-FastMath.PI,0,0);
+		light2.setLocalTranslation(150, -25, 280);
+		rootNode.attachChild(light2);
+
+        pl1 = new PointLight();
+        pl1.setColor(new ColorRGBA(2, 2, 1.5f, 0));
+        pl1.setRadius(250);
+        pl1.setPosition(new Vector3f(350, -25, 80));
+        
+        pl2 = new PointLight();
+        pl2.setColor(new ColorRGBA(2, 2, 1.5f, 0));
+        pl2.setRadius(250);
+        pl2.setPosition(new Vector3f(150, -25, 280));
     }
+    
+    
+    
+    public void setupLighting ()
+    {
+    	// add shadow renderer
+    	if (shadowing)
+    	{
+	        rootNode.setShadowMode(ShadowMode.Off);
+	        psr = new PssmShadowRenderer(assetManager, 1024, 4);
+	        viewPort.addProcessor(psr);
+    	}
+
+		// add directional lighting (sun)
+        sun = new DirectionalLight();
+        sun.setDirection(DAY_ANGLE);
+        sun.setColor(new ColorRGBA((float) DAY_BRIGHTNESS[0]/255, (float) DAY_BRIGHTNESS[1]/255, (float) DAY_BRIGHTNESS[2]/255, 1));
+        rootNode.addLight(sun); 
+        
+        // add ambient lighting
+        ambient = new AmbientLight();
+        ambient.setColor(new ColorRGBA(0.4f, 0.4f, 0.4f, 1));
+        rootNode.addLight(ambient);
+    }
+    
+    
+    
+    public void setupSky()
+    {
+        DAY_MAP = SkyFactory.createSky(assetManager, "req/SkyDay.dds", false);
+        NIGHT_MAP = SkyFactory.createSky(assetManager, "req/SkyNight.dds", false);
+        
+        toggleDay(true);
+        toggleDay(false);
+        toggleDay(false);
+    }
+    
+    
+    
+    private void setupPlayer ()
+    {
+        //flyCam.setMoveSpeed(200);
+     
+        // player collision
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(20, 80, 1);
+        player = new CharacterControl(capsuleShape, 0.01f);
+        player.setJumpSpeed(20);
+        player.setFallSpeed(160);
+        player.setGravity(400);
+        player.setPhysicsLocation(new Vector3f(350, -15, 550));
+        
+        bulletAppState.getPhysicsSpace().add(player);    	
+    }
+    
+    
+    
+    
+    
+	/**********************DAY/NIGHT/LIGHTING FUNCTIONS**********************/
+
+    public void toggleDay(boolean init)
+    {
+    	if (!day || init)
+    	{
+            sun.setDirection(DAY_ANGLE);
+            sun.setColor(new ColorRGBA((float) DAY_BRIGHTNESS[0]/255, (float) DAY_BRIGHTNESS[1]/255, (float) DAY_BRIGHTNESS[2]/255, 1));
+            if (shadowing)
+            {
+            	psr.setDirection(DAY_ANGLE);
+            	psr.setShadowIntensity(DAY_SHADOW_INTENSITY);
+            }    		
+            if (!init)
+            	rootNode.detachChild(NIGHT_MAP);
+            rootNode.attachChild(DAY_MAP);
+            turnOffLights();
+            day = true;
+    	}
+    	else
+    	{
+            sun.setDirection(NIGHT_ANGLE);
+            sun.setColor(new ColorRGBA((float) NIGHT_BRIGHTNESS[0]/255, (float) NIGHT_BRIGHTNESS[1]/255, (float) NIGHT_BRIGHTNESS[2]/255, 1));
+            if (shadowing)
+            {
+	            psr.setDirection(NIGHT_ANGLE);
+	        	psr.setShadowIntensity(NIGHT_SHADOW_INTENSITY);
+            }
+            if (!init)
+            	rootNode.detachChild(DAY_MAP);
+            rootNode.attachChild(NIGHT_MAP);
+            turnOnLights();
+            day = false;
+    	}
+		// Stops you having to click to update the 3D (for tab changes)
+		((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
+    }
+    
+    
+    
+    private void turnOnLights()
+    {
+    	rootNode.addLight(pl1);
+    	rootNode.addLight(pl2);
+    }
+    
+    
+    
+    private void turnOffLights()
+    {
+    	rootNode.removeLight(pl1);
+    	rootNode.removeLight(pl2);
+    }
+    
+    
+    
+    
+    
+    /**********************PHYSICS FUNCTIONS**********************/
+
+    private void addToPhysics (Spatial s)
+    {
+    	RigidBodyControl bla;
+    	CollisionShape sShape = CollisionShapeFactory.createMeshShape(s);
+        bla = new RigidBodyControl(sShape, 0);
+        s.addControl(bla);
+        
+        bulletAppState.getPhysicsSpace().add(bla);
+    }
+    
+    
+    
+    private void addToPhysics (Geometry g)
+    {
+    	RigidBodyControl bla;
+    	MeshCollisionShape gShape = CollisionShapeFactory.createSingleMeshShape(g);
+        bla = new RigidBodyControl(gShape, 0);
+        g.addControl(bla);
+        
+        bulletAppState.getPhysicsSpace().add(bla);
+    }
+    
+    
+    
+    
+    
+	/**********************OTHER FUNCTIONS**********************/
     
 	private void clearall()
     {
 		rootNode.detachAllChildren();
-		addbackg();
+		setupScene();
     }
-
-	private Spatial addfurniture(Furniture f)
-	{
-        Spatial furn = null;
-        Material furn_mat;
-		Point center = f.getRotationCenter();
-        String name = f.getObjPath();
-        
-        // if object specified does not exist
-        if(name == null || name.equals("none"))
-        	furn = assetManager.loadModel("req/armchair/armchair.obj");
-        else
-        {
-        	String path = "req/" + name.substring(0,name.length()-4) +"/" +name;
-            furn = assetManager.loadModel(path);
-        }
-        
-        // model settings
-        furn.scale(5, 5, 5);
-        furn.rotate(0,(float) -(FastMath.HALF_PI),0);
-        furn.setLocalTranslation(center.x,-100,center.y);
-        
-        // lighting settings
-    	furn_mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        furn_mat.setFloat("Shininess", 10);
-    	furn.setMaterial(furn_mat);
-    	
-    	// shadow settings
-    	//TangentBinormalGenerator.generate(furn.getMesh(), true);
-    	furn.setShadowMode(ShadowMode.CastAndReceive);
-
-        return furn;
-	}
+	
+	
+	
+	
+	
+	/**********************WALL GEOMETRY FUNCTIONS**********************/
 
 	private class WallGeometry
 	{
-		public Geometry geom1;
-		public Geometry geom2;
+		ArrayList<Geometry> geom = new ArrayList<Geometry>();
 	}
 	private final HashMap<Coords, HashMap<Edge, WallGeometry> > tabEdgeGeometry
 		= new HashMap<Coords, HashMap<Edge, WallGeometry> >();
 	private final HashMap<Coords, HashMap<Furniture, Spatial> > tabFurnitureSpatials
 		= new HashMap<Coords, HashMap<Furniture, Spatial> >();
 
-	/** Moves the two wall planes to the new position given by edge e */
-	private void updatewall(WallGeometry wallGeometry, Edge e)
-	{
-		rootNode.detachChild(wallGeometry.geom1);
-		rootNode.detachChild(wallGeometry.geom2);
 	
-		// move the wall, this makes a completely new one (for now)!
-		WallGeometry completelyNew = makewall(e);
-		wallGeometry.geom1 = completelyNew.geom1;
-		wallGeometry.geom2 = completelyNew.geom2;
 	
-		rootNode.attachChild(wallGeometry.geom1);
-		rootNode.attachChild(wallGeometry.geom2);
-	}
-
-	/** Moves the given spatial to the new position of furniture f */
-	private void updatefurniture(Spatial spatial, Furniture f)
+	
+	
+	/**********************TAB FUNCTIONS**********************/
+	
+	/** This should be called after the given Coords is no longer used i.e.
+      *  immediately after, not immediately before deletion. It forgets about
+      *  the edges. If called before, then the entry might be recreated */
+	void tabRemoved(Coords tab)
 	{
-		//rootNode.detachChild(spatial);
+		HashMap<Edge, WallGeometry> edges = tabEdgeGeometry.remove(tab);
+		if (edges != null)
+			edges.clear();
 
-		// move the furniture to the new position!
-		Point center = f.getRotationCenter();
-		spatial.setLocalTranslation(center.x,-100,center.y);
-
-		rootNode.attachChild(spatial);
+		HashMap<Furniture, Spatial> furniture = tabFurnitureSpatials.remove(tab);
+		if (furniture != null)
+			furniture.clear();
 	}
 
-	/** Goes through all the walls in the given hashmap and adds them to the rootNode */
-	private void redrawAllEdges(HashMap<Edge, WallGeometry> edges)
+	
+	
+	/** Public function to prepare edges for the given coords. If these coords haven't 	*
+	 *  been seen before then new objects will be created for it.						*/
+	void tabChanged(Coords newTab)
 	{
-		Collection<WallGeometry> walls = edges.values();
-		Iterator<WallGeometry> iterator = walls.iterator();
-		WallGeometry wall;
-		while (iterator.hasNext())
-		{
-			wall = iterator.next();
-			rootNode.attachChild(wall.geom1);
-			rootNode.attachChild(wall.geom2);
-		}
+		if (!isInitComplete) return;
+		tabChangedIgnoreInitComplete(newTab);
+
+		// Stops you having to click to update the 3D (for tab changes)
+		((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
 	}
 
-      /** Goes through all the furniture in the given hashmap and adds them to the rootNode */
-	private void redrawAllFurniture(HashMap<Furniture, Spatial> furniture)
-	{
-		Collection<Spatial> spatials = furniture.values();
-		Iterator<Spatial> iterator = spatials.iterator();
-		while (iterator.hasNext())
-		{
-			rootNode.attachChild(iterator.next());
-		}
-	}
-
-	// edges is the set of edges associated with those coords, likewise for furniture
-	// if these coords havn't been seen before both edges and furniture
-	// will be null (its a brand new tab). Either both will be null or not,
-	// never one or the other. If the tab has never been seen before then new
-	// objects will be created for it
+	
+	
+	/** Edges is the set of edges associated with those coords, likewise for furniture	*
+	 *  if these coords havn't been seen before both edges and furniture				*
+	 *  will be null (its a brand new tab). Either both will be null or not,			*
+	 *  never one or the other. If the tab has never been seen before then new			*
+	 *  objects will be created for it													*/
 	private void tabChangedIgnoreInitComplete(Coords newTab)
 	{
 		synchronized(syncLockObject)
@@ -554,33 +634,14 @@ public class ArchApp extends Application
 		}
 	}
 
-	/** Public function to prepare edges for the given coords. If these coords
-	 *  havn't been seen before then new objects will be created for it. */
-	void tabChanged(Coords newTab)
-	{
-		if (!isInitComplete) return;
-		tabChangedIgnoreInitComplete(newTab);
-
-		// Stops you having to click to update the 3D (for tab changes)
-		((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
-	}
-
-	/** This should be called after the given Coords is no longer used i.e.
-      *  immediately after, not immediately before deletion. It forgets about
-      *  the edges. If called before, then the entry might be recreated */
-	void tabRemoved(Coords tab)
-	{
-		HashMap<Edge, WallGeometry> edges = tabEdgeGeometry.remove(tab);
-		if (edges != null)
-			edges.clear();
-
-		HashMap<Furniture, Spatial> furniture = tabFurnitureSpatials.remove(tab);
-		if (furniture != null)
-			furniture.clear();
-	}
+	
+	
+	
+	
+	/**********************EDGE FUNCTIONS**********************/
 
 	/** Adds the given edge. Returns if Coords c is not known yet or if e is already
-      *  added */
+      * added */
 	void addEdge(Coords c, Edge e)
 	{
 		if (c == null || e == null)
@@ -596,33 +657,17 @@ public class ArchApp extends Application
 			if (wall == null)
 			{
 				wall = makewall(e); // make the new wall
-				edges.put(e, wall);
-               
-				rootNode.attachChild(wall.geom1);
-				rootNode.attachChild(wall.geom2);
+				edges.put(e, wall);               
+			
+				Iterator itr = wall.geom.iterator();
+				while(itr.hasNext())
+					rootNode.attachChild((Geometry) itr.next());
 			}
 		}
 	}
 
-	/** Moves the given edge. Returns if Coords c is not known yet or if e is not
-      *  known */
-	void updateEdgeChanged(Coords c, Edge e)
-	{
-		if (c == null || e == null)
-			throw new IllegalArgumentException("null");
-         
-		synchronized(syncLockObject)
-		{
-			HashMap<Edge, WallGeometry> edges = tabEdgeGeometry.get(c);
-			if (edges == null)
-				return;
-
-			WallGeometry wall = edges.get(e);
-			if (wall != null)
-				updatewall(wall, e);
-		}
-	}
-
+	
+	
 	/** Removes the given edge. Returns if Coords c is not known yet or if e is not
       *  known */
 	void removeEdge(Coords c, Edge e)
@@ -640,11 +685,208 @@ public class ArchApp extends Application
 			if (wall != null)
 			{
 				edges.remove(e);
-				rootNode.detachChild(wall.geom1);
-				rootNode.detachChild(wall.geom2);
+				Iterator itr = wall.geom.iterator();
+				while(itr.hasNext())
+					rootNode.detachChild((Geometry) itr.next());
 			}
 		}
 	}
+
+	
+	
+	/** Goes through all the walls in the given hashmap and adds them to the rootNode */
+	private void redrawAllEdges(HashMap<Edge, WallGeometry> edges)
+	{
+		Collection<WallGeometry> walls = edges.values();
+		Iterator<WallGeometry> iterator = walls.iterator();
+		WallGeometry wall;
+		while (iterator.hasNext())
+		{
+			wall = iterator.next();
+			Iterator itr = wall.geom.iterator();
+			while(itr.hasNext())
+				rootNode.attachChild((Geometry) itr.next());		
+		}
+	}
+
+   
+	
+	
+	
+	/** Moves the given edge. Returns if Coords c is not known yet or if e is not
+      *  known */
+	void updateEdgeChanged(Coords c, Edge e)
+	{
+		if (c == null || e == null)
+			throw new IllegalArgumentException("null");
+         
+		synchronized(syncLockObject)
+		{
+			HashMap<Edge, WallGeometry> edges = tabEdgeGeometry.get(c);
+			if (edges == null)
+				return;
+
+			WallGeometry wall = edges.get(e);
+			if (wall != null)
+				updatewall(wall, e);
+		}
+	} // constructs a wall between (x1,y1) and (x2,y2), doesn't add it to rootnode
+	
+	
+	
+
+	
+	/**********************WALL FUNCTIONS**********************/
+
+    private WallGeometry makewall(Edge e)
+    {
+    	int x1 = (int) e.getV1().getX();
+    	int y1 = (int) e.getV1().getY();
+    	int x2 = (int) e.getV2().getX();
+    	int y2 = (int) e.getV2().getY();
+    	float ctrlx = (int) e.getCtrlX();
+    	float ctrly = (int) e.getCtrlY();
+    	int straight = 0;
+    	int xx = 0, yy = 0;
+    	
+    	if (ctrlx     == ((x1 + x2) / 2))
+    		xx++;
+    	if (ctrlx+1.0 == ((x1 + x2) / 2))
+    		xx++;
+    	if (ctrlx-1.0 == ((x1 + x2) / 2))
+    		xx++;
+    	if (ctrly     == ((y1 + y2) / 2))
+    		yy++;
+    	if (ctrly+1.0 == ((y1 + y2) / 2))
+    		yy++;
+    	if (ctrly-1.0 == ((y1 + y2) / 2))
+    		yy++;
+    	if (xx > 0 & yy > 0)
+    		straight=1;
+    	WallGeometry wallGeometry = new WallGeometry();
+    	if (straight == 0)
+    	{
+    		QuadCurve2D qcurve = e.getqcurve();			
+    		recurvsion(wallGeometry,qcurve,4);
+    	}
+    	else
+    	{
+    		drawline(wallGeometry,x1,x2,y1,y2);
+    	}
+    	
+		//QuadCurve2D left=new QuadCurve2D.Float(),right=new QuadCurve2D.Float();
+		//qcurve.subdivide(left,right);
+		//WallGeometry wallGeometry = new WallGeometry();
+    	//drawline(wallGeometry,(int)left.getX1(),(int)left.getX2(),(int)left.getY1(),(int)left.getY2());
+    	//drawline(wallGeometry,(int)right.getX1(),(int)right.getX2(),(int)right.getY1(),(int)right.getY2());
+
+    	return wallGeometry;
+	}
+	
+
+    
+	/** Moves the two wall planes to the new position given by edge e */
+	private void updatewall(WallGeometry wallGeometry, Edge e)
+	{
+		Iterator itr = wallGeometry.geom.iterator();
+		while(itr.hasNext())
+			rootNode.detachChild((Geometry) itr.next());		
+	
+		// move the wall, this makes a completely new one (for now)!
+		WallGeometry completelyNew = makewall(e);
+		wallGeometry.geom.clear();	
+		itr = completelyNew.geom.iterator();
+		while(itr.hasNext())
+			wallGeometry.geom.add((Geometry) itr.next());
+	
+		itr = wallGeometry.geom.iterator();
+		while(itr.hasNext())
+			rootNode.attachChild((Geometry) itr.next());
+	}
+    
+    
+    
+    private int recurvsion(WallGeometry top, QuadCurve2D curve,int level)
+    {
+    	if (level == 0)
+    	{
+    		drawline(top, (int)curve.getX1(), (int)curve.getX2(), (int)curve.getY1(), (int)curve.getY2());
+    		return -1;
+    	}
+    	else
+    	{
+    		int nlevel = level - 1;
+    		QuadCurve2D left =  new QuadCurve2D.Float();
+    		QuadCurve2D right = new QuadCurve2D.Float();
+    		curve.subdivide(left, right);
+    		recurvsion(top, left, nlevel);
+    		recurvsion(top, right, nlevel);
+    		return 0;
+    	}
+    }
+    
+    
+    
+    private void drawline(WallGeometry wallGeometry, int x1, int x2, int y1, int y2)
+    {
+    	int length, leny, lenx = 0;
+    	float rotation = 0;
+		//work out the distances and angles required
+		lenx = x2 - x1;
+		leny = y2 - y1;
+		if (lenx == 0)
+		{
+			length = leny;
+			rotation =- (float) FastMath.HALF_PI;
+		}
+		else
+		{
+			if(leny == 0)
+			{
+				length = lenx;
+				rotation = 0;
+			}
+			else
+			{
+				length = (int) Math.sqrt((Math.pow(lenx,2) + Math.pow(leny,2)));
+				length += 2;
+				rotation = (float) -(Math.atan((double) (leny) / (lenx)));
+				if(y2 > y1 & x1 > x2)
+					rotation += FastMath.PI;
+				if(y2 < y1 & x1 > x2)
+					rotation += FastMath.PI;
+			}
+		}
+		
+		// Draw a quad between the 2 given vertices
+		Geometry adding = new Geometry ("Box", new Quad(length, 100));
+		adding.setLocalTranslation(new Vector3f(x1, -100, y1));
+		adding.rotate(0f, rotation, 0f);
+		adding.setMaterial(wallmat);
+    	if (shadowing)
+    		adding.setShadowMode(ShadowMode.CastAndReceive);
+    	if (physics)
+    		addToPhysics(adding);
+		wallGeometry.geom.add(adding);
+
+		// Double up the quad
+		adding = new Geometry ("Box", new Quad(length,100));
+		adding.setLocalTranslation(new Vector3f(x2, -100, y2));
+		adding.rotate(0f, (float) (rotation + FastMath.PI), 0f);
+		adding.setMaterial(wallmat);
+		if (shadowing)
+			adding.setShadowMode(ShadowMode.CastAndReceive);
+		if (physics)
+			addToPhysics(adding);
+    	wallGeometry.geom.add(adding);
+    	return; 
+    }
+	
+
+	
+	
+	
+	/**********************FURNITURE FUNCTIONS**********************/
 
 	/** Adds the given furniture. Returns if Coords c is not known yet or if f is already
       *  added */
@@ -669,25 +911,38 @@ public class ArchApp extends Application
 		}
 	}
 
-	/** Moves the given furniture. Returns if Coords c is not known yet or if f is not
-      *  known */
-	void updateFurnitureChanged(Coords c, Furniture f)
+	
+	
+	private Spatial addfurniture(Furniture f)
 	{
-		if (c == null || f == null)
-			throw new IllegalArgumentException("null");
-         
-		synchronized(syncLockObject)
-		{
-			HashMap<Furniture, Spatial> furniture = tabFurnitureSpatials.get(c);
-			if (furniture == null)
-				return;
+        Spatial furn = null;
+        //Material furn_mat;
+		Point center = f.getRotationCenter();
+        String name = f.getObjPath();
+        
+        // if object specified does not exist
+        if(name == null || name.equals("none"))
+        	furn = assetManager.loadModel("req/armchair/armchair.obj");
+        else
+        {
+        	String path = "req/" + name.substring(0,name.length()-4) +"/" +name;
+            furn = assetManager.loadModel(path);
+        }
+        
+        // model settings
+        furn.scale(5, 5, 5);
+        furn.rotate(0,(float) -(FastMath.HALF_PI),0);
+        furn.setLocalTranslation(center.x,-100,center.y);
+    	if (shadowing)
+    		furn.setShadowMode(ShadowMode.CastAndReceive);
+    	if (physics)
+    		addToPhysics(furn);
 
-			Spatial spatial = furniture.get(f);
-			if (spatial != null)
-				updatefurniture(spatial, f);
-		}
+        return furn;
 	}
 
+	
+	
 	/** Removes the given furniture. Returns if Coords c is not known yet or if f is not
       *  known */
 	void removeFurniture(Coords c, Furniture f)
@@ -709,4 +964,112 @@ public class ArchApp extends Application
 			}
 		}
 	}
+
+	
+	
+    /** Goes through all the furniture in the given hashmap and adds them to the rootNode */
+	private void redrawAllFurniture(HashMap<Furniture, Spatial> furniture)
+	{
+		Collection<Spatial> spatials = furniture.values();
+		Iterator<Spatial> iterator = spatials.iterator();
+		while (iterator.hasNext())
+		{
+			rootNode.attachChild(iterator.next());
+		}
+	}
+
+	
+	
+	/** Moves the given spatial to the new position of furniture f */
+	private void updatefurniture(Spatial spatial, Furniture f)
+	{
+		// move the furniture to the new position!
+		Point center = f.getRotationCenter();
+		spatial.setLocalTranslation(center.x,-100,center.y);
+	}
+
+	
+	
+	/** Moves the given furniture. Returns if Coords c is not known yet or if f is not
+      *  known */
+	void updateFurnitureChanged(Coords c, Furniture f)
+	{
+		if (c == null || f == null)
+			throw new IllegalArgumentException("null");
+         
+		synchronized(syncLockObject)
+		{
+			HashMap<Furniture, Spatial> furniture = tabFurnitureSpatials.get(c);
+			if (furniture == null)
+				return;
+
+			Spatial spatial = furniture.get(f);
+			if (spatial != null)
+				updatefurniture(spatial, f);
+		}
+	}
+
+    
+    
+    
+    
+	/**********************OVERLAY FUNCTIONS**********************/
+
+    public void loadFPSText()
+    {
+        guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
+        fpsText = new BitmapText(guiFont, false);
+        fpsText.setLocalTranslation(0, fpsText.getLineHeight(), 0);
+        fpsText.setText("Mother-licking FPS:");
+        guiNode.attachChild(fpsText);
+    }
+
+    
+    
+    public void loadStatsView()
+    {
+        statsView = new StatsView("Statistics View", assetManager, renderer.getStatistics());
+        // move it up so it appears above fps text
+        statsView.setLocalTranslation(0, fpsText.getLineHeight(), 0);
+        guiNode.attachChild(statsView);
+    }
+	
+
+	
+	
+	
+	/**********************GET FUNCTIONS**********************/
+
+    public MovCam getFlyByCamera()
+    {
+        return flyCam;
+    }
+
+    
+    
+    public Node getGuiNode()
+    {
+        return guiNode;
+    }
+
+    
+    
+    public Node getRootNode()
+    {
+        return rootNode;
+    }
+
+    
+    
+    public boolean isShowSettings()
+    {
+        return showSettings;
+    }
+
+    
+    
+    public void setShowSettings(boolean showSettings)
+    {
+        this.showSettings = showSettings;
+    }
 }

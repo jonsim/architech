@@ -39,6 +39,11 @@ public class Edge {
    public Coords.Vertex getV2() {
       return v2;
    }
+   
+   public QuadCurve2D.Float getqcurve()
+   {
+	   return topDownViewCurve;
+   }
 
    /** Updates v1, refuses to update if you give it null. Also updates the ctrl
     *  point to halfway between the two points. When a new line is drawn this is

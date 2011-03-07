@@ -55,7 +55,7 @@ public class Main {
 		    splash.add(content);
 		    splash.pack();
 		    content.revalidate();		    
-		    try{Thread.sleep(3000);}
+		    try{Thread.sleep(2000);}
 		    catch (InterruptedException ie){}
 		    splash.dispose();
 		    frontEnd.display();
