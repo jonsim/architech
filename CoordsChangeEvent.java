@@ -7,6 +7,9 @@ public class CoordsChangeEvent extends EventObject {
    public static final int FURNITURE_ADDED = 3;
    public static final int FURNITURE_REMOVED = 4;
    public static final int FURNITURE_CHANGED = 5;
+   public static final int DOORWINDOW_ADDED = 3;
+   public static final int DOORWINDOW_REMOVED = 4;
+   public static final int DOORWINDOW_CHANGED = 5;
 
    private int changeType;
    private Edge edgeChanged;
@@ -74,6 +77,10 @@ public class CoordsChangeEvent extends EventObject {
       else if (changeType == FURNITURE_ADDED) return "FURNITURE_ADDED";
       else if (changeType == FURNITURE_REMOVED) return "FURNITURE_REMOVED";
       else if (changeType == FURNITURE_CHANGED) return "FURNITURE_CHANGED";
+      else if (changeType == DOORWINDOW_ADDED) return "DOORWINDOW_ADDED";
+      else if (changeType == DOORWINDOW_REMOVED) return "DOORWINDOW_REMOVED";
+      else if (changeType == DOORWINDOW_CHANGED) return "DOORWINDOW_CHANGED";
+
       else return "UNKNOWN";
    }
 

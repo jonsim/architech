@@ -75,7 +75,12 @@ class TwoDDropListener implements DropTargetListener {
             if (data instanceof FurnitureSQLData) {
                Point p = scalePoint(e.getLocation(), twoDPanel.getZoomScale());
                inProgress = new Furniture( (FurnitureSQLData) data, p, objectBrowser);
-               twoDPanel.getCoords().addFurniture(inProgress);
+
+               if( inProgress.isDoorWindow() )
+                  twoDPanel.getCoords().addDoorWindow(inProgress);
+               else
+                  twoDPanel.getCoords().addFurniture(inProgress);
+
                e.acceptDrag(e.getDropAction());
                
             } else e.rejectDrag();

@@ -1,6 +1,8 @@
 import java.awt.geom.*;
 import java.awt.geom.Line2D.*;
 import java.awt.*;
+import java.util.LinkedList;
+import java.util.ListIterator;
 
 /** Holds an edge. When you make a new Edge() it gets automatically added to the
  *  internal coordinate system. This class remembers the two vertices at either
@@ -16,6 +18,7 @@ public class Edge {
    private final Ellipse2D.Float curveCtrl = new Ellipse2D.Float();
    private final Line2D.Float tangent1 = new Line2D.Float();
    private final Line2D.Float tangent2 = new Line2D.Float();
+   private final LinkedList<Furniture> doorWindow = new LinkedList<Furniture>();
 
    /** Creates a new edge from the given vertices. Doesn't add it to the coordStore.
     *  If null is given for a vertex then that vertex will be made at 0,0,0
@@ -72,12 +75,38 @@ public class Edge {
       return curveCtrl.contains(temp);
    }
 
+   public boolean curveContains(Point p) {
+      return topDownViewCurve.contains(p);
+   }
+
    /** Use setEdgeCtrl() in Coords! Updates ctrl, refuses to update if you give it null */
    public final void setCtrl(Point ctrl) {
       if (ctrl == null) return;
 
       this.ctrl.setLocation(ctrl.getX(), ctrl.getY());
       recalcTopDownView();
+   }
+
+   public final void addDoorWindow(Furniture f) {
+      if( f == null || doorWindow.contains(f) || !curveContains( f.getRotationCenter() ) ) return;
+
+      doorWindow.add(f);
+   }
+
+   public final void deleteDoorWindow(Furniture f) {
+      if( f == null || !doorWindow.contains(f) ) return;
+
+      doorWindow.remove(f);
+   }
+
+   public void moveDoorWindow(Furniture f, Point newCenter) {
+      if( f == null || !doorWindow.contains(f) ) return;
+
+      f.set(newCenter);
+   }
+
+   public boolean containsDoorWindow(Furniture f) {
+      return doorWindow.contains(f);
    }
 
    /** Returns the x coordinate of the ctrl point */
@@ -88,6 +117,33 @@ public class Edge {
    /** Returns the y coordinate of the ctrl point */
    public int getCtrlY() {
       return (int) Math.round(ctrl.getY());
+   }
+
+   public Furniture[] getDoorWindow() {
+      // return null if empty
+
+      return doorWindow.toArray( new Furniture[0] );
+   }
+
+   public Furniture getDoorWindowAt(Point p) {
+      ListIterator<Furniture> ite = doorWindow.listIterator();
+      
+      while( ite.hasNext() ) {
+         Furniture dw = ite.next();
+         if( dw.contains(p) ) return dw;
+      }
+
+      return null;
+   }
+
+   public boolean doorWindowAt(Point p) {
+      ListIterator<Furniture> ite = doorWindow.listIterator();
+      
+      while( ite.hasNext() ) {
+         if( ite.next().contains(p) ) return true;
+      }
+
+      return false;
    }
 
    /** Places the ctrl point halfway between v1 and v2 */
@@ -127,6 +183,11 @@ public class Edge {
          g2.setColor(oldColour);
          
       } else g2.draw(topDownViewCurve);
+
+      ListIterator<Furniture> ite = doorWindow.listIterator();
+      while ( ite.hasNext() ) {
+         ite.next().paint(g2);
+      }
    }
 
    /** Writes the length of this edge next to it on the given graphics canvas */

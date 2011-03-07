@@ -162,7 +162,6 @@ public class Coords {
    private final LinkedList<Vertex> vertices = new LinkedList<Vertex>();
    private final LinkedList<Edge> edges = new LinkedList<Edge>();
    private final LinkedList<Furniture> furniture = new LinkedList<Furniture>();
-   private final LinkedList<Furniture> doorWindow = new LinkedList<Furniture>();
    private int gridWidth = 60; // makes grid lines at 0,60,120,...
 
    /** Creates a blank coordinate system */
@@ -172,7 +171,7 @@ public class Coords {
 
    /** Blindly makes vertices and edges, there might be orphaned/dup vertices */
    Coords(File loadedFrom, float[][] vertices, int[][] edges, Furniture[] furniture) throws IllegalArgumentException {
-      if (loadedFrom == null || vertices == null || edges == null || furniture == null || doorWindow == null)
+      if (loadedFrom == null || vertices == null || edges == null || furniture == null)
          throw new IllegalArgumentException("null argument");
       if (!loadedFrom.isFile()) {
          throw new IllegalArgumentException("File is a directory or it doesn't exist");
@@ -218,7 +217,7 @@ public class Coords {
       for (Furniture f : furniture) {
          // check for collisions
          if( f.isDoorWindow() )
-            this.doorWindow.add(f);
+            addDoorWindow(f);
          else
             this.furniture.add(f);
       }
@@ -234,21 +233,68 @@ public class Coords {
 
    /** Adds the furniture item if it doesn't already exist */
    public void addFurniture(Furniture f) {
-      if (f == null || ( furniture.contains(f) || doorWindow.contains(f) )) return;
-
-      if( f.isDoorWindow() )
-         doorWindow.add(f);
-      else
-         furniture.add(f);
-
+      if ( f == null || furniture.contains(f) ) return;
+      furniture.add(f);
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_ADDED, f));
    }
 
    /** Moves the furniture item to the new location */
    public void moveFurniture(Furniture f, Point newCenter) {
-      if (f == null || ( !furniture.contains(f) && !doorWindow.contains(f) ) ) return;
+      if (f == null || !furniture.contains(f) ) return;
       f.set(newCenter);
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_CHANGED, f));
+   }
+
+   public Edge getDoorWindowEdge(Furniture f) {
+      ListIterator<Edge> ite = edges.listIterator();
+
+      while( ite.hasNext() ) {
+         Edge e = ite.next();
+         if( e.containsDoorWindow(f) ) return e;
+      }
+
+      return null;
+   }
+
+   /** Adds the door/window if it doesn't already exist */
+   public void addDoorWindow(Furniture f) {
+      if( f == null ) return;
+
+      f.set( snapToEdge( f.getRotationCenter() ) );
+      ListIterator<Edge> ite = edges.listIterator();
+      
+      while( ite.hasNext() ) {
+         Edge e = ite.next();
+         if( e.curveContains( f.getRotationCenter() ) ) {
+            e.addDoorWindow(f);
+            return;
+         }
+      }
+
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_ADDED, f));
+   }
+
+   /** Moves the door/window to the new location */
+   public void moveDoorWindow(Furniture f, Point newCenter) {
+      if( f == null ) return;
+      Edge e = getDoorWindowEdge(f);
+      
+      f.set(newCenter);
+      if( !e.curveContains(newCenter) ) {
+         e.deleteDoorWindow(f);
+
+         ListIterator<Edge> ite = edges.listIterator();
+      
+         while( ite.hasNext() ) {
+            e = ite.next();
+            if( e.curveContains(newCenter) ) {
+               e.addDoorWindow(f);
+               break;
+            }
+         }
+      }
+
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_CHANGED, f));
    }
    
    public boolean detectVertexCollisions(Vertex v) {
@@ -430,19 +476,16 @@ public class Coords {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
    public void rotateFurniture(Furniture f, double radians) {
-	  if(f == null || ( !furniture.contains(f) && !doorWindow.contains(f) ) ) return;
+	  if(f == null || !furniture.contains(f) ) return;
 	  f.setRotation(radians);
         fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_CHANGED, f));
    }
 
    /** Removes the furniture item */
    public void delete(Furniture f) {
-      if (f == null || ( !furniture.contains(f) && !doorWindow.contains(f) ) ) return;
+      if (f == null || !furniture.contains(f) ) return;
 
-      if( furniture.contains(f) )
-         furniture.remove(f);
-      else if( doorWindow.contains(f) )
-         doorWindow.remove(f);
+      furniture.remove(f);
 
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_REMOVED, f));
    }
@@ -470,11 +513,6 @@ public class Coords {
    /** returns an array containing all the Furniture in the current design */
    public Furniture[] getFurniture(){
       return furniture.toArray(new Furniture[0]);
-   }
-
-   /** returns an array containing all the Furniture in the current design */
-   public Furniture[] getDoorWindow(){
-      return doorWindow.toArray(new Furniture[0]);
    }
    
    public boolean edgeFurnitureCollision(double pointX, double pointY) {
@@ -509,12 +547,6 @@ public class Coords {
             Furniture f = ite.next();
             if(pointIsOverFurniture(f, MouseX, MouseY)) return f;
       }
-
-      ite = doorWindow.listIterator();
-      while(ite.hasNext()) {
-            Furniture f = ite.next();
-            if(pointIsOverFurniture(f, MouseX, MouseY)) return f;
-      }
       return null;
    }
 
@@ -540,6 +572,17 @@ public class Coords {
          if (e.curveCtrlContains(p)) return e;
       }
 		
+      return null;
+   }
+
+   public Furniture doorWindowAt(Point p) {
+      ListIterator<Edge> ite = edges.listIterator();
+
+      while( ite.hasNext() ) {
+         Edge e = ite.next();
+         if( e.doorWindowAt(p) ) return e.getDoorWindowAt(p);
+      }
+
       return null;
    }
 
@@ -581,11 +624,6 @@ public class Coords {
       g2.setColor(Color.BLUE);
 
       ListIterator<Furniture> ite = furniture.listIterator();
-      while (ite.hasNext()) {
-         ite.next().paint(g2);
-      }
-
-      ite = doorWindow.listIterator();
       while (ite.hasNext()) {
          ite.next().paint(g2);
       }
@@ -931,7 +969,7 @@ public class Coords {
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
    }
    public void somethingChanged(Furniture f) {
-      if (f == null || ( !furniture.contains(f) && !doorWindow.contains(f) ) ) return;
+      if (f == null || !furniture.contains(f) ) return;
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_CHANGED, f));
    }
 }
