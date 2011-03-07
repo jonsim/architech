@@ -17,10 +17,10 @@ public class HandlerFurnitureMove {
    }
 
    public void start(Point p) {
-      if (furniture != null) {
-         // already started
-         System.err.println("START CALLED WHILST RUNNING");
-      }
+//      if (furniture != null) {
+//         // already started
+//         System.err.println("START CALLED WHILST RUNNING");
+//      }
 
       furniture = coords.furnitureAt(p.getX(), p.getY());
 
@@ -82,8 +82,6 @@ public class HandlerFurnitureMove {
          coords.rotateFurniture(furniture, rotationRevert);
          coords.moveFurniture(furniture, revert);
       }
-
-      furniture = null;
    }
 
    /** Returns the furniture item which is being moved. might be null if no
@@ -98,11 +96,15 @@ public class HandlerFurnitureMove {
       return isCollided;
    }
 
-   /** Don't use yet, needs to be implemented more */
+   /** Don't call this when things are happening in start, middle or stop! */
    public void delete() {
-      //coords.delete(selectFurniture);
-      //selectFurniture = null;
+      Furniture remember = furniture;
+      furniture = null;
+      if (remember != null) coords.delete(remember);
+   }
 
-      //repaint(); // removes the blue selected vertex colour
+   /** Don't call this when things are happening in start, middle or stop! */
+   public void forgetRememberedFurniture() {
+      furniture = null;
    }
 }

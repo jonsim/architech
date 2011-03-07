@@ -157,7 +157,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
       coords.paintFurniture(g2);
 
       Furniture furnitureMove = handlerFurnitureMove.getFurniture();
-      if (inProgressHandler == handlerFurnitureMove && furnitureMove != null) {
+      if ((inProgressHandler == null || inProgressHandler == handlerFurnitureMove) && furnitureMove != null) {
          if (handlerFurnitureMove.isCollided()) g2.setColor(Color.RED);
          else                                   g2.setColor(Color.GREEN);
          furnitureMove.paint(g2);
@@ -183,12 +183,19 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
          } else if (designButtons.isSelectTool()) {
             if (coords.vertexAt(p) != null) {
+               // forget about selected furniture, we're remember vertices now
+               handlerFurnitureMove.forgetRememberedFurniture();
+
                inProgressHandler = handlerVertexMove;
                handlerVertexMove.start(p);
+               repaint();
 
             } else if (coords.furnitureAt(p.getX(), p.getY()) != null) {
+               // handlerVertexSelect.forgetRememberedVertices();
+
                inProgressHandler = handlerFurnitureMove;
                handlerFurnitureMove.start(p);
+               repaint();
             }
 
             requestFocus(); // makes the keys work if the user clicked on a vertex and presses delete
@@ -338,6 +345,11 @@ class TwoDPanel extends JPanel implements ChangeListener {
          if ((c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE) && designButtons.isSelectTool()) {
             // This call might change a little as it depends on brent's module
             handlerVertexSelect.deleteSelected();
+
+            if (inProgressHandler == null || inProgressHandler == handlerFurnitureMove) {
+               handlerFurnitureMove.delete();
+               inProgressHandler = null;
+            }
          }
       }
 
