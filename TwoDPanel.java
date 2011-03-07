@@ -27,6 +27,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
    private final HandlerEdgeDraw      handlerEdgeDraw;
    private final HandlerVertexMove    handlerVertexMove;
    private final HandlerFurnitureMove handlerFurnitureMove;
+   private final HandlerVertexSelect  handlerVertexSelect;
 
    /** If file is null creates a blank coords with the tab name nameIfNullFile,
     *  otherwise it tries to open the given file and load a coords from it, if
@@ -60,6 +61,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
       handlerEdgeDraw      = new HandlerEdgeDraw(coords);
       handlerVertexMove    = new HandlerVertexMove(coords);
       handlerFurnitureMove = new HandlerFurnitureMove(coords);
+      handlerVertexSelect  = new HandlerVertexSelect(coords);
 
       addKeyListener(new TwoDPanelKeyListener());
       addMouseListener(new TwoDPanelMouseListener());
@@ -210,6 +212,9 @@ class TwoDPanel extends JPanel implements ChangeListener {
          Point p = new Point();
          p.setLocation(e.getPoint().getX() / zoomScale, e.getPoint().getY() / zoomScale);
 
+         boolean callVertexSelect = false;
+         if (inProgressHandler == null) callVertexSelect = true;
+
          if (inProgressHandler == handlerEdgeCurve) {
             inProgressHandler = null;
             handlerEdgeCurve.stop(p);
@@ -222,10 +227,17 @@ class TwoDPanel extends JPanel implements ChangeListener {
             inProgressHandler = null;
             handlerVertexMove.stop(p, designButtons.isGridOn());
 
+            callVertexSelect = true;
+
          } else if (inProgressHandler == handlerFurnitureMove) {
             inProgressHandler = null;
             handlerFurnitureMove.stop(p, e.isControlDown());
          }
+
+         // Bren't stuff, mouse release is a lot easier than mouse press as moving
+         // vertices also uses mouse press to recognise and that and this shouldnt
+         // be doing things at the same time
+         if (callVertexSelect) handlerVertexSelect.click(p);
 
          setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 

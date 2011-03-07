@@ -8,7 +8,8 @@ import java.util.Hashtable;
 public class DesignButtons implements ActionListener {
    public static final String IMG_DIR = "img/designbuttons/";
 
-   private FrontEnd frontEnd;
+   private final Viewport3D viewport3D;
+   private final FrontEnd frontEnd;
    private JPanel pane;
    private JButton selectTool, lineTool, curveTool, currentTool, tweaker;
    private JSlider zoomTool;
@@ -16,8 +17,13 @@ public class DesignButtons implements ActionListener {
    private JToggleButton gridTool, dayToggle;
 
    /** Initialises the private variables as usual */
-   DesignButtons(FrontEnd frontEnd) {
+   DesignButtons(FrontEnd frontEnd, Viewport3D viewport3D) {
+      if (frontEnd == null || viewport3D == null) {
+         throw new IllegalArgumentException("null parameter");
+      }
+
       this.frontEnd = frontEnd;
+      this.viewport3D = viewport3D;
       initCursors();
       initButtons();
       initPane();
@@ -186,16 +192,15 @@ public class DesignButtons implements ActionListener {
 
       } else if (gridTool == source) {
          // toggle grid showing
-    	  
 
       } else if (dayToggle == source) {
-         Main.viewport3D.toggleDay();
-         
+         viewport3D.toggleDay();
+
       } else if (tweaker == source) {
-         Main.viewport3D.shutdown3D();
-    	 frontEnd.getwindow().setVisible(false);
-    	 Tweaker hello = new Tweaker(frontEnd.getCurrentTab().gettd(), frontEnd.main);
-         
+         //viewport3D.shutdown3D(); //<-- this is why the 3d won't come back
+         frontEnd.getwindow().setVisible(false);
+         Tweaker hello = new Tweaker(frontEnd.getCurrentTab().gettd(), frontEnd.main);
+
       } else {
          Main.showFatalExceptionTraceWindow(
                  new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));

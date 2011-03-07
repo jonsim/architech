@@ -45,7 +45,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
    FrontEnd(Main main) {
       this.main = main;
       this.frontEndMenu = new FrontEndMenu(this);
-      this.designButtons = new DesignButtons(this);
+      this.designButtons = new DesignButtons(this, main.viewport3D);
 
       initTwoDAndThreeD();
       initWindow();
