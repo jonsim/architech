@@ -121,3 +121,4 @@ public class HandlerFurnitureMove {
       furniture = null;
    }
 }
+

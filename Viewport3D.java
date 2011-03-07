@@ -42,6 +42,21 @@ public class Viewport3D implements CoordsChangeListener {
 
       // By now FrontEnd has displayed 3D preview window including JME canvas
    }
+   
+   public void remake3D ()
+   {
+	      AppSettings settings = new AppSettings(true);
+	      settings.setWidth(640);
+	      settings.setHeight(480);
+	      canvasApplication = new ArchApp(main);
+	      canvasApplication.setSettings(settings);
+	      Logger.getLogger("").setLevel(Level.OFF);
+	      canvasApplication.createCanvas();
+	      JmeCanvasContext ctx = (JmeCanvasContext) canvasApplication.getContext();
+	      ctx.setSystemListener(canvasApplication);
+	      ctx.getCanvas().setPreferredSize(new Dimension(640, 480));
+	      canvasApplication.startCanvas();
+   }
 
    /** Nicely disposes of the 3D stuff so that everything can close without exit(0) */
    public void shutdown3D() {

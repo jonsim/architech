@@ -591,7 +591,7 @@ public class TWApp extends Application implements ActionListener {
 	    
 	    mat_terrain = new Material(assetManager, "Common/MatDefs/Terrain/Terrain.j3md");
 	    mat_terrain.setTexture("m_Alpha", assetManager.loadTexture("req/tile.png"));
-	    grass = assetManager.loadTexture("req/fleur.jpg");
+	    grass = assetManager.loadTexture("req/floor.jpg");
 	    grass.setWrap(WrapMode.Repeat);
 	    mat_terrain.setTexture("m_Tex1", grass);
 	    mat_terrain.setFloat("m_Tex1Scale",8f);

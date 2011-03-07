@@ -36,6 +36,10 @@ public class FrontEnd implements WindowListener, ChangeListener {
    private FrontEndMenu frontEndMenu;
    private DesignButtons designButtons;
    public Main main;
+   
+   public void refreshtt(){
+	   TwoDandThreeD.revalidate();
+   }
 
    public JFrame getwindow(){
 	   return window;

@@ -200,6 +200,7 @@ public class DesignButtons implements ActionListener {
          viewport3D.shutdown3D(); //<-- this is why the 3d won't come back
          frontEnd.getwindow().setVisible(false);
          Tweaker hello = new Tweaker(frontEnd.main);
+         hello.setVisible(true);
       } else {
          Main.showFatalExceptionTraceWindow(
                  new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
