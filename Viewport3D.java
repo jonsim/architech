@@ -66,7 +66,7 @@ public class Viewport3D implements CoordsChangeListener {
    /** toggle day/night mode. this is almost certainly the wrong way to do this! */
    public void toggleDay()
    {
-	   canvasApplication.toggleDay(false);
+	   canvasApplication.toggleDay();
 	   getCanvas().requestFocus();
    }
 

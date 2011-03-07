@@ -11,10 +11,10 @@ public class DesignButtons implements ActionListener {
    private final Viewport3D viewport3D;
    private final FrontEnd frontEnd;
    private JPanel pane;
-   private JButton selectTool, lineTool, curveTool, currentTool, tweaker;
+   private JButton selectTool, lineTool, curveTool, currentTool, dayToggle, tweaker;
    private JSlider zoomTool;
    private Cursor selectCursor, lineCursor, curveCursor;
-   private JToggleButton gridTool, dayToggle;
+   private JToggleButton gridTool;
 
    /** Initialises the private variables as usual */
    DesignButtons(FrontEnd frontEnd, Viewport3D viewport3D) {
@@ -76,9 +76,8 @@ public class DesignButtons implements ActionListener {
       gridTool.addActionListener(this);
       gridTool.setSelected(true);
       
-      dayToggle = new JToggleButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "daynight.png")));
+      dayToggle = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "daynight.png")));
       dayToggle.addActionListener(this);
-      dayToggle.setSelected(true);
       
       tweaker = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "pas.png")));
       tweaker.addActionListener(this);

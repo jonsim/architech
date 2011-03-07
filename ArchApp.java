@@ -150,7 +150,7 @@ public class ArchApp extends Application
             	stop();
             else if (name.equals("SIMPLEAPP_ToggleDay"))
             	if (value)
-            		toggleDay(false);
+            		toggleDay();
             else if (name.equals("SIMPLEAPP_CameraPos"))
             	if (cam != null)
             	{
@@ -291,7 +291,6 @@ public class ArchApp extends Application
 		flyCam.setDragToRotate(true);
 		setupScene();
 		setupLighting();
-        setupSky();
         setupPlayer();
         
         // attach the sky
@@ -380,6 +379,9 @@ public class ArchApp extends Application
         pl2.setColor(new ColorRGBA(2, 2, 1.5f, 0));
         pl2.setRadius(250);
         pl2.setPosition(new Vector3f(150, -25, 280));
+
+        setupSky();
+
     }
     
     
@@ -413,10 +415,6 @@ public class ArchApp extends Application
         DAY_MAP = SkyFactory.createSky(assetManager, "req/SkyDay.dds", false);
         NIGHT_MAP = SkyFactory.createSky(assetManager, "req/SkyNight.dds", false);
         rootNode.attachChild(DAY_MAP);
-        
-        toggleDay(true);
-        //toggleDay(false);
-        //toggleDay(false);
     }
     
     
@@ -442,14 +440,10 @@ public class ArchApp extends Application
     
 	/**********************DAY/NIGHT/LIGHTING FUNCTIONS**********************/
 
-    public void toggleDay(boolean init)
+    public void toggleDay()
     {
-    	if (!day || init)
+    	if (!day)
     	{
-            if (DAY_MAP == null)
-            	DAY_MAP = SkyFactory.createSky(assetManager, "req/SkyDay.dds", false);
-            if (!init)
-            	rootNode.detachChild(NIGHT_MAP);
             rootNode.attachChild(DAY_MAP);
             sun.setDirection(DAY_ANGLE);
             sun.setColor(new ColorRGBA((float) DAY_BRIGHTNESS[0]/255, (float) DAY_BRIGHTNESS[1]/255, (float) DAY_BRIGHTNESS[2]/255, 1));
@@ -464,8 +458,6 @@ public class ArchApp extends Application
     	}
     	else
     	{
-            if (NIGHT_MAP == null)
-            	NIGHT_MAP = SkyFactory.createSky(assetManager, "req/SkyNight.dds", false);
         	rootNode.detachChild(DAY_MAP);
             rootNode.attachChild(NIGHT_MAP);
             sun.setDirection(NIGHT_ANGLE);
@@ -479,8 +471,8 @@ public class ArchApp extends Application
             turnOnLights();
             day = false;
     	}
-		// Stops you having to click to update the 3D (for tab changes)
-		//((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
+		// Stops you having to click to update the 3D
+		((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
     }
     
     
