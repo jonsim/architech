@@ -75,8 +75,8 @@ public class Edge {
       return curveCtrl.contains(temp);
    }
 
-   public boolean curveContains(Point p) {
-      return topDownViewCurve.contains(p);
+   public boolean curveContains(Furniture f) {
+      return topDownViewCurve.intersects( f.rectangle.getMinX(), f.rectangle.getMinY(), f.rectangle.getWidth(), f.rectangle.getHeight() );
    }
 
    /** Use setEdgeCtrl() in Coords! Updates ctrl, refuses to update if you give it null */
@@ -88,7 +88,7 @@ public class Edge {
    }
 
    public final void addDoorWindow(Furniture f) {
-      if( f == null || doorWindow.contains(f) || !curveContains( f.getRotationCenter() ) ) return;
+      if( f == null || doorWindow.contains(f) ) return;
 
       doorWindow.add(f);
    }
@@ -211,6 +211,10 @@ public class Edge {
    @Override
    public String toString() {
       //return "new Edge(new Vertex("+v1.getX()+","+v1.getY()+","+v1.getZ()+"), new Vertex("+v2.getX()+","+v2.getY()+","+v2.getZ()+"), this);";
-      return "Edge " + this.hashCode() + " - v1:(" + v1.getX() + ", " + v1.getY() + ", " + v1.getZ() + ") v2:(" + v2.getX() + ", " + v2.getY() + ", " + v2.getZ() + ")";
+      String str = "Edge " + this.hashCode() + " - v1:(" + v1.getX() + ", " + v1.getY() + ", " + v1.getZ() + ") v2:(" + v2.getX() + ", " + v2.getY() + ", " + v2.getZ() + ")";
+      for( Furniture f : doorWindow )
+         str = str + f;
+
+      return str;
    }
 }

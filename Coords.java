@@ -265,13 +265,12 @@ public class Coords {
       
       while( ite.hasNext() ) {
          Edge e = ite.next();
-         if( e.curveContains( f.getRotationCenter() ) ) {
+         if( e.curveContains(f) ) {
             e.addDoorWindow(f);
+            fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_ADDED, f));
             return;
          }
       }
-
-      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_ADDED, f));
    }
 
    /** Moves the door/window to the new location */
@@ -279,17 +278,22 @@ public class Coords {
       if( f == null ) return;
       Edge e = getDoorWindowEdge(f);
 
+      if( e == null ) {
+         addDoorWindow(f);
+         e = getDoorWindowEdge(f);
+      }
+
       newCenter = snapToEdge(newCenter);
       f.set(newCenter);
 
-      if( !e.curveContains(newCenter) ) {
+      if( e != null && !e.curveContains(f) ) {
          e.deleteDoorWindow(f);
 
          ListIterator<Edge> ite = edges.listIterator();
       
          while( ite.hasNext() ) {
             e = ite.next();
-            if( e.curveContains(newCenter) ) {
+            if( e.curveContains(f) ) {
                e.addDoorWindow(f);
                break;
             }
@@ -496,7 +500,10 @@ public class Coords {
    public void deleteDoorWindow(Furniture f) {
       if ( f == null ) return;
 
-      getDoorWindowEdge(f).deleteDoorWindow(f);
+      Edge e = getDoorWindowEdge(f);
+      if( e == null ) return;
+      
+      e.deleteDoorWindow(f);
 
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_REMOVED, f));
    }
@@ -739,7 +746,7 @@ public class Coords {
       while (ite.hasNext()) {
          Edge e = ite.next();
 		 
-	  }
+	   }
 	  return p;
    }
 
