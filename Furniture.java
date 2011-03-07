@@ -12,8 +12,9 @@ public class Furniture {
    private float width, height;
    private float rotationCenterX, rotationCenterY;
    private double rotation; // theta - in radians
+   private boolean isDW;// is this a door/window
 
-   Furniture(FurnitureSQLData data, Point center) {
+   Furniture(FurnitureSQLData data, Point center, ObjectBrowser ob) {
       if (data == null || data.objPath == null || center == null) {
          throw new IllegalArgumentException("Null parameter or furniture ID");
       }
@@ -23,6 +24,11 @@ public class Furniture {
       this.height = data.height;
       this.rotation = 0;
       this.objPath = data.objPath;
+
+      if( ob.isDoorWindow( data.type ) )
+         isDW = true;
+      else
+         isDW = false;
 
       setRotationCenter(center);
       recalcRectangle();
@@ -38,24 +44,38 @@ public class Furniture {
          throw new IllegalArgumentException("Not enough fields");
       }
 
+      // Just in case the file is in an older format
+      int lenOffset;
+      if(split.length == 6) {
+         isDW = false;
+         lenOffset = 0;
+      } else {
+         if( split[split.length - 1].equals( "true" ) )
+            isDW = true;
+         else
+            isDW = false;
+
+         lenOffset = 1;
+      }
+
       // furnitureID might contain "," so just split from the end as we know the expected number
       try {
-         rotation = java.lang.Double.parseDouble(split[split.length - 1]);
+         rotation = java.lang.Double.parseDouble(split[split.length - 1 - lenOffset]);
       } catch (NumberFormatException e) {
          throw new IllegalArgumentException("Malformed rotation value");
       }
 
       try {
-         rotationCenterY = java.lang.Float.parseFloat(split[split.length - 2]);
-         rotationCenterX = java.lang.Float.parseFloat(split[split.length - 3]);
-         height = java.lang.Float.parseFloat(split[split.length - 4]);
-         width = java.lang.Float.parseFloat(split[split.length - 5]);
+         rotationCenterY = java.lang.Float.parseFloat(split[split.length - 2 - lenOffset]);
+         rotationCenterX = java.lang.Float.parseFloat(split[split.length - 3 - lenOffset]);
+         height = java.lang.Float.parseFloat(split[split.length - 4 - lenOffset]);
+         width = java.lang.Float.parseFloat(split[split.length - 5 - lenOffset]);
       } catch (NumberFormatException e) {
          throw new IllegalArgumentException("Malformed float value");
       }
 
       try {
-         furnitureID = Integer.parseInt(split[split.length - 6]);
+         furnitureID = Integer.parseInt(split[split.length - 6 - lenOffset]);
       } catch (NumberFormatException e) {
          throw new IllegalArgumentException("Malformed furnitureID");
       }
@@ -72,7 +92,14 @@ public class Furniture {
    }
 
    public String getSaveString() {
-      return furnitureID + "," + width + "," + height + "," + rotationCenterX + "," + rotationCenterY + "," + rotation;
+      String doorWindow;
+
+      if( isDW )
+         doorWindow = "true";
+      else
+         doorWindow = "false";
+
+      return furnitureID + "," + width + "," + height + "," + rotationCenterX + "," + rotationCenterY + "," + rotation + "," + doorWindow;
    }
 
    /** Use the method in the Coords class instead! Sets the Furniture's location */
@@ -91,6 +118,10 @@ public class Furniture {
       float y = rotationCenterY - (float) 0.5 * height;
       // float x, float y, float w, float h, float arcw, float arch
       rectangle.setRoundRect(x, y, width, height, 0.2 * width, 0.2 * height);
+   }
+
+   public boolean isDoorWindow() {
+      return isDW;
    }
 
    /** Use moveFurniture() in the coordinates class instead! */
