@@ -59,7 +59,6 @@ public class Tweaker extends JFrame implements ActionListener{
 	JTextField namet;
 	JTextField desct;
 	JComboBox typelist;
-	TwoDPanel parent;
 	Main main;
 	Thread hello;
 
@@ -71,10 +70,6 @@ public class Tweaker extends JFrame implements ActionListener{
 		return namet.getText();
 	}
 	
-	public TwoDPanel pan(){
-		return parent;
-	}
-	
 	public String getdesc(){
 		return desct.getText();
 	}
@@ -83,8 +78,7 @@ public class Tweaker extends JFrame implements ActionListener{
 		return (String)typelist.getSelectedItem();
 	}
 
-    public Tweaker(TwoDPanel pan, Main main) {      
-       parent = pan;
+    public Tweaker( Main main) {   
        this.main = main;
 	   setUndecorated(true);      
        // set minimum size to initialised size, before maximisation
