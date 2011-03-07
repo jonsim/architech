@@ -292,9 +292,6 @@ public class ArchApp extends Application
 		setupScene();
 		setupLighting();
         setupPlayer();
-        
-        // attach the sky
-	    //rootNode.attachChild(DAY_MAP);
     }
 
     
@@ -381,7 +378,6 @@ public class ArchApp extends Application
         pl2.setPosition(new Vector3f(150, -25, 280));
 
         setupSky();
-
     }
     
     
@@ -394,6 +390,8 @@ public class ArchApp extends Application
 	        rootNode.setShadowMode(ShadowMode.Off);
 	        psr = new PssmShadowRenderer(assetManager, 1024, 4);
 	        viewPort.addProcessor(psr);
+        	psr.setDirection(DAY_ANGLE);
+        	psr.setShadowIntensity(DAY_SHADOW_INTENSITY);
     	}
 
 		// add directional lighting (sun)
