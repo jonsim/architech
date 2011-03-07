@@ -31,6 +31,19 @@ public class HandlerFurnitureMove {
       }
    }
 
+   /** Special method for TwoDDropListener, please don't use! */
+   public void start(Furniture f) {
+      if (f == null) throw new IllegalArgumentException("null furniture");
+
+      furniture = f;
+
+      if (furniture != null) {
+         revert.setLocation(furniture.getRotationCenter());
+         rotationRevert = furniture.getRotation();
+         isCollided = false;
+      }
+   }
+
    public void middle(Point p, boolean isControlDown) {
       if (furniture == null) return;
 
@@ -59,10 +72,10 @@ public class HandlerFurnitureMove {
    /** Stop the furniture dragging, resets the class so it is ready to recieve
     *  start() calls again. Resets the furniture to the last valid position if the
     *  user attempts to place it in an invalid place. */
-   public void stop(Point p, boolean isControlDown) {
+   public void stop() {
       if (furniture == null) return;
 
-      if (isControlDown) {
+      /*if (isControlDown) {
          double deltaX = p.getX() - furniture.getRotationCenterX();
          double deltaY = p.getY() - furniture.getRotationCenterY();
          double rotation = deltaX == 0
@@ -73,7 +86,7 @@ public class HandlerFurnitureMove {
 
       } else {
          coords.moveFurniture(furniture, p);
-      }
+      }*/
 
       isCollided = coords.detectCollisions(furniture);
 

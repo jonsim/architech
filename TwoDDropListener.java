@@ -98,30 +98,31 @@ class TwoDDropListener implements DropTargetListener {
    public void dragExit(DropTargetEvent e) {
       if( inProgress.isDoorWindow() )
          twoDPanel.getCoords().deleteDoorWindow(inProgress);
-      else
+      else {
+         twoDPanel.dropFurnitureHandlerForgetFurniture();
          twoDPanel.getCoords().delete(inProgress);
+      }
       // remember inProgress as the same drag might continue again
    }
 
    /** Called when a drag operation is ongoing, while the mouse pointer is still over
     * the operable part of the drop site for the DropTarget registered with this listener. */
    public void dragOver(DropTargetDragEvent e) {
-      // dragEnter is not called for every entry, so re-add the furniture if it
-      // was deleted from coords by dragExit. This will do nothing if already added
-      if( inProgress.isDoorWindow() )
-         twoDPanel.getCoords().addDoorWindow(inProgress);
-      else
-         twoDPanel.getCoords().addFurniture(inProgress);
-
-//   twoDPanel.selectFurniture = inProgress;
-//   twoDPanel.isCollision = twoDPanel.getCoords().detectCollisions(inProgress);
-//   twoDPanel.repaint();
       Point p = scalePoint(e.getLocation(), twoDPanel.getZoomScale());
 
-      if( inProgress.isDoorWindow() )
+      // dragEnter is not called for every entry, so re-add the furniture if it
+      // was deleted from coords by dragExit. This will do nothing if already added
+      if( inProgress.isDoorWindow() ) {
+         twoDPanel.getCoords().addDoorWindow(inProgress);
          twoDPanel.getCoords().moveDoorWindow(inProgress, p);
-      else
-         twoDPanel.getCoords().moveFurniture(inProgress, p);
+
+      } else {
+         twoDPanel.getCoords().addFurniture(inProgress);
+
+         twoDPanel.setFurnitureAsHandlerAndStart(inProgress);
+         twoDPanel.dropFurnitureMiddleHandlerCall(p);
+         twoDPanel.dropFurnitureStopHandlerCall();
+      }
 
       e.acceptDrag(e.getDropAction());
    }
@@ -134,18 +135,22 @@ class TwoDDropListener implements DropTargetListener {
 
          if( inProgress.isDoorWindow() )
             twoDPanel.getCoords().deleteDoorWindow(inProgress);
-         else
+         else {
+            twoDPanel.dropFurnitureHandlerForgetFurniture();
             twoDPanel.getCoords().delete(inProgress);
+         }
 
          e.dropComplete(false);
+
       } else {
          e.acceptDrop(acceptableActions); // if you give ACTION_COPY_OR_MOVE, then source will receive MOVE!
          Point p = scalePoint(e.getLocation(), twoDPanel.getZoomScale());
 
          if( inProgress.isDoorWindow() )
             twoDPanel.getCoords().moveDoorWindow(inProgress, p);
-         else
+         else {
             twoDPanel.getCoords().moveFurniture(inProgress, p);
+         }
 
          e.dropComplete(true);
       }

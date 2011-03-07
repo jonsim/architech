@@ -238,7 +238,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
          } else if (inProgressHandler == handlerFurnitureMove) {
             inProgressHandler = null;
-            handlerFurnitureMove.stop(p, e.isControlDown());
+            handlerFurnitureMove.stop();
          }
 
          // Bren't stuff, mouse release is a lot easier than mouse press as moving
@@ -383,5 +383,36 @@ class TwoDPanel extends JPanel implements ChangeListener {
       }
 
       repaint();
+   }
+
+   public void setFurnitureAsHandlerAndStart(Furniture f) {
+      if (inProgressHandler != null) {
+         System.err.println("Attempt to set handler when something else was going on");
+         return;
+      }
+
+      // handlerVertexSelect.forgetRememberedVertices();
+
+      inProgressHandler = handlerFurnitureMove;
+      handlerFurnitureMove.start(f);
+      repaint();
+   }
+
+   public void dropFurnitureMiddleHandlerCall(Point p) {
+      if (inProgressHandler != handlerFurnitureMove) {
+         System.err.println("Attempt to set handler when something else was going on");
+         return;
+      }
+
+      handlerFurnitureMove.middle(p, false);
+   }
+
+   public void dropFurnitureStopHandlerCall() {
+      inProgressHandler = null;
+      handlerFurnitureMove.stop();
+   }
+
+   public void dropFurnitureHandlerForgetFurniture() {
+      handlerFurnitureMove.forgetRememberedFurniture();
    }
 }
