@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.border.EtchedBorder;
+
 import java.awt.*;
 
 /** Starts the program running and catches "few!" uncaught exceptions gracefully */
@@ -21,7 +23,33 @@ public class Main {
 
    /** Starts everything in the program running */
    private void run() {
-      frontEnd.display();
+	   JFrame splash = new JFrame();
+       splash.setTitle("Splash Screen");
+       splash.setResizable(false);
+       splash.setSize(884, 457);
+       splash.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+       splash.setLocationRelativeTo(null);
+       splash.dispose();
+       splash.setUndecorated(true);
+       splash.setVisible(true);
+       Image ic = FrontEnd.getImage(this, "img/frontend/icon.png");
+       splash.setIconImage(ic);
+         Image imag = FrontEnd.getImage(this, "img/frontend/logo.png");
+         Image newimg = imag.getScaledInstance( 884, 457,  java.awt.Image.SCALE_SMOOTH ) ;  
+         ImageIcon icon = new ImageIcon( newimg );
+         JLabel piclabel = new JLabel(icon);
+         piclabel.setPreferredSize(new Dimension(884,457));
+         piclabel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+         JPanel content = new JPanel();
+         content.add(piclabel);
+         splash.add(content);
+         splash.pack();
+         content.revalidate();                   
+         try{Thread.sleep(2000);}
+         catch (InterruptedException ie){}               
+         frontEnd.display();
+         splash.setVisible(true);
+         splash.dispose();
    }
 
    /** Sets the default look and feel. (must be done before anything else)
