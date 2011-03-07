@@ -84,9 +84,11 @@ public class Tweaker extends JFrame implements ActionListener {
 	}
 
     public Tweaker(TwoDPanel pan, Main main) {
-    	parent = pan;
+       parent = pan;
        this.main = main;
+	   setUndecorated(true);
        setVisible(true);
+       main.frontEnd.getwindow().setVisible(false);
        setTitle("ArchiTECH Tweaker");
        Image icon = main.frontEnd.getImage(this, "img/frontend/icon.png");
        setIconImage(icon);
@@ -103,9 +105,13 @@ public class Tweaker extends JFrame implements ActionListener {
        JPanel top = new JPanel(new GridBagLayout());
        JPanel bottom = new JPanel();
 
-       JPanel graphics = new JPanel();
+       JPanel graphics = new JPanel(new GridBagLayout());
        preview = new TWPane(this); 
-       graphics.add(preview.getCanvas());
+       JLabel la = new JLabel("<html><h1><font face='Gill Sans MT'>ArchiTECH Tweaker");
+       addItem(graphics,la,0,0,0,1,GridBagConstraints.CENTER);
+       JPanel canv = new JPanel();
+       canv.add(preview.getCanvas());
+       addItem(graphics,canv,0,1,1,1, GridBagConstraints.EAST);
        graphics.setBorder(BorderFactory.createRaisedBevelBorder());
        addItem(pane,graphics,0,0,1,1, GridBagConstraints.CENTER);
 
@@ -116,15 +122,21 @@ public class Tweaker extends JFrame implements ActionListener {
        controlScroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
        controlScroller.setPreferredSize(new Dimension( 500, (int) scrDim.getHeight()-520 ));
        controlScroller.setMinimumSize(new Dimension( 500, (int) scrDim.getHeight()-520 ));
-       addItem(con,controlScroller,0,0,1,1, GridBagConstraints.CENTER);
+       addItem(con,controlScroller,0,1,1,1, GridBagConstraints.CENTER);
+       
+       la = new JLabel("<html><h2><font face='Gill Sans MT'>Object List:");
+       addItem(con,la,0,0,0,1,GridBagConstraints.CENTER);
        
        ImageIcon brush = new ImageIcon(main.frontEnd.getImage(this, "img/designbuttons/add.png"));
        JButton but = new JButton("<html><h1><font face='Gill Sans MT'>Add Object",brush);
        but.setActionCommand("add");
        but.addActionListener(this);
-       addItem(con,but,0,1,1,1, GridBagConstraints.CENTER); 
+       addItem(con,but,0,2,1,1, GridBagConstraints.CENTER);        
+       con.setBorder(BorderFactory.createRaisedBevelBorder());
        addItem(pane,con,1,0,1,1, GridBagConstraints.CENTER);
-
+       
+       
+	    JPanel bot = new JPanel(new GridBagLayout());
        JPanel color = new JPanel();
        color.setSize(10,10);  
        final JColorChooser colorChooser = new JColorChooser();
@@ -141,8 +153,13 @@ public class Tweaker extends JFrame implements ActionListener {
 	    colorChooser.removeChooserPanel(chooserPanels[2]);
 	    colorChooser.setPreviewPanel(new JPanel());
 	    model.addChangeListener(changeListener);
-	    color.add(colorChooser);
-	    addItem(bottom,color,0,0,1,1, GridBagConstraints.EAST);
+	    color.add(colorChooser);    
+	    
+	    addItem(bottom,color,0,1,1,1, GridBagConstraints.EAST);
+	    
+
+        la = new JLabel("<html><h2><font face='Gill Sans MT'>Colour and Texture Picker:");
+        addItem(bot,la,0,0,1,1, GridBagConstraints.WEST);
 
         picture = new JPanel(new GridBagLayout());
 	    piclabel = new JLabel("<html><h3><font face='Gill Sans MT'>No Texture Selected",SwingConstants.CENTER);
@@ -159,15 +176,26 @@ public class Tweaker extends JFrame implements ActionListener {
 	    addItem(picture,but,0,1,1,1, GridBagConstraints.CENTER);
 	    
 	    addItem(bottom,picture,0,1,1,1, GridBagConstraints.CENTER);
-	    addItem(pane,bottom,0,1,1,1, GridBagConstraints.CENTER);
+	    addItem(bot,bottom,0,1,1,1, GridBagConstraints.EAST);
+	    addItem(pane,bot,0,1,1,1, GridBagConstraints.CENTER);
 
 	   
-       //addItem(tog, but, 0, 0, 1, 1, GridBagConstraints.CENTER);
+	   JPanel finals = new JPanel();
 	   ImageIcon save = new ImageIcon(main.frontEnd.getImage(this, "img/designbuttons/save.png"));
        but = new JButton("<html><h1><font face='Gill Sans MT'>Save",save);
        but.setActionCommand("save");
        but.addActionListener(this);
-       addItem(tog, but, 0, 3, 2, 1, GridBagConstraints.CENTER);       
+       finals.add(but);
+       
+	   ImageIcon can = new ImageIcon(main.frontEnd.getImage(this, "img/designbuttons/can.png"));
+       but = new JButton("<html><h1><font face='Gill Sans MT'>Cancel</h1><font size=3>Return to Main",can);
+       but.setActionCommand("can");
+       but.addActionListener(this);
+       finals.add(but);       
+       addItem(tog,finals, 0, 3, 2, 1, GridBagConstraints.CENTER);
+       
+       
+       
        
 	    JLabel lab = new JLabel("<html><font face='Gill Sans MT' size=4> Object Name:");
 	    namet = new JTextField(20);
@@ -401,7 +429,12 @@ public class Tweaker extends JFrame implements ActionListener {
 				 JPanel control = preview.removeitem(Character.digit(comm.charAt(6),10));
 				 controlarea.remove(control);
 		         controlarea.revalidate();
-				 pane.revalidate();
+				 pane.revalidate();}
+			else if(comm.contains("can")){
+					 preview.shutdown3D();
+					 this.dispose();
+					 main.frontEnd.getwindow().setVisible(true);
+					 
 			 } else if (comm.equals("brow")){
 				 final JFileChooser fc = new JFileChooser("req");
 				 FileFilter img = new ExtensionGroup("Supported Image Files", new String[] {".png",".jpg",".gif"});

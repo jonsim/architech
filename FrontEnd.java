@@ -65,7 +65,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
    }
 
    /** Initialises the twoDandThreeD variable */
-   private void initTwoDAndThreeD() {
+   public void initTwoDAndThreeD() {
       TwoDandThreeD.setTopComponent(tabbedPane);
       TwoDandThreeD.setBottomComponent(main.viewport3D.getCanvas());
       TwoDandThreeD.setOneTouchExpandable(true);

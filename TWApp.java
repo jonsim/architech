@@ -1,3 +1,4 @@
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -278,7 +279,8 @@ public class TWApp extends Application implements ActionListener {
     
     public void saveitem(){
     	String name,description;
-    	/*if(furniture.size()==0){JOptionPane.showMessageDialog(null, "No objects have been added. Nothing to save","No Objects Added", 1);}
+    	int type;
+    	if(furniture.size()==0){JOptionPane.showMessageDialog(null, "No objects have been added. Nothing to save","No Objects Added", 1);}
 	    	else{
     		if(main.getname().equals("")){
    			 JOptionPane.showMessageDialog(null, "Blank Name - please fill in that field","Blank Name", 1);
@@ -288,16 +290,15 @@ public class TWApp extends Application implements ActionListener {
    			 }else{
     		if(main.gettype().equals("None")){
    			 JOptionPane.showMessageDialog(null, "No Type selected - please select one","Blank Name", 1);
-   			 }else{*/
-   		    //name = main.getname();
-   		    //description = main.getdesc();
-    		//type = main.gettype();
-    		name = "mrbung";    		
-    		description = "hes so amazing";
-    		int type = 2;
+   			 }else{
+   		    name = main.getname();
+   		    description = main.getdesc();
+    		type = 2;
+    		//name = "mrbung";    		
+    		//description = "hes so amazing";
         	main.addtodb(name,type,description,"ss.png","mrbung.obj",0.5f,0.5f,0.5f);
 	        (new File(name)).mkdir();
-    		/*try{
+    		try{
 			FileWriter fstream = new FileWriter(name+"/"+name+".obj");
 			FileWriter mstream = new FileWriter(name+"/"+name+".mtl");
 			BufferedWriter out = new BufferedWriter(fstream);
@@ -414,24 +415,22 @@ public class TWApp extends Application implements ActionListener {
 	    		}	    		
 	    		out.close();
 	    		outm.close();	  
-	    		focus();*/
+	    		focus();
 	    		//TAKE PRETTY SCREENSHOT
+	    		Dimension scrDim = Toolkit.getDefaultToolkit().getScreenSize();
 	    		int tx = (int) main.getLocationOnScreen().getX() + 80;
 	    		int ty = (int) main.getLocationOnScreen().getY() + 130;
-	    		int dx = 580;
-	    		int dy = 480;	    		
-	    		//Robot robot = new Robot();
-	    		//BufferedImage bi = robot.createScreenCapture(new Rectangle(tx,ty,dx,dy));
-	    		//ImageIO.write(bi, "jpg", new File(name + "/" + "ss.jpg"));
+	    		int dx = (int) scrDim.getWidth()/2;
+	    		int dy = (int) scrDim.getHeight()/2;   		
+	    		Robot robot = new Robot();
+	    		BufferedImage bi = robot.createScreenCapture(new Rectangle(tx,ty,dx,dy));
+	    		ImageIO.write(bi, "jpg", new File(name + "/" + "ss.jpg"));
 	    		//OUTPUT LENGTH, WIDTH, HEIGHT
-	    		//System.out.println(maxlength + " , " + maxheight + " , " +  maxwidth);  
-	    		//}catch(Exception e){e.printStackTrace(); JOptionPane.showMessageDialog(null, "Something went wrong during the saving" +
-	    		//		" process","OBJ Saving Error", 1);}
+	    		System.out.println(maxlength + " , " + maxheight + " , " +  maxwidth);  
+	    		}catch(Exception e){e.printStackTrace(); JOptionPane.showMessageDialog(null, "Something went wrong during the saving" +
+	    				" process","OBJ Saving Error", 1);}
 	    		
-	    		double maxwidth = 0.5;
-	    		double maxheight = 0.5;
-	    		double maxlength = 0.5;
-	    		
+   			 }}}}
 	    		
 	    		
 	    	//}}
