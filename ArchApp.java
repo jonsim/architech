@@ -778,7 +778,7 @@ public class ArchApp extends Application
     	}
     	else
     	{	    
-    		//STRAIGHT LINE
+    		/*//STRAIGHT LINE
     		//Furniture[] dws = e.getDoorWindow(); 	
     		//if(dws!=null){
     		int doorwidth = 20;
@@ -822,7 +822,7 @@ public class ArchApp extends Application
 	    		dy1 = dws[0].getRotationCenter().getY()-ytri;
 	    		dx2 = dws[0].getRotationCenter().getX()+xtri;
 	    		dy2 = dws[0].getRotationCenter().getY()+ytri;
-	    		*/
+	    		
 	    		double dx1,dy1,dx2 ,dy2;
 	    		double o = Math.abs(y2 - y1);
 	    		double a = Math.abs(x2 - x1);
@@ -853,13 +853,14 @@ public class ArchApp extends Application
 	    		}}
 	    		drawline(wallGeometry,(int)x1,(int)dx1,(int)y1,(int)dy1,100,-100,1);
 	    		drawline(wallGeometry,(int)dx2,(int)x2,(int)dy2,(int)y2,100,-100,1);
-	    		drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,0);
+	    		drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,0);*/
+    		
 	    		
 			//}
     		//}
 			//else{			
 
-    		//drawline(wallGeometry,x1,x2,y1,y2,100,-100); 
+    		drawline(wallGeometry,x1,x2,y1,y2,100,-100,1); 
 			//}
     	}
 

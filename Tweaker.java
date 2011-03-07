@@ -417,7 +417,6 @@ public class Tweaker extends JFrame implements ActionListener{
 		         controlarea.revalidate();
 		         controlcount--;
 		         if(controlcount==0){
-		        	 System.out.println("NONE");
 		             controlScroller.revalidate();
 		         }
 				 pane.revalidate();}
