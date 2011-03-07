@@ -57,7 +57,7 @@ class TwoDDropListener implements DropTargetListener {
       if ((e.getSourceActions() & acceptableActions) == 0) return false;
 
       if (chooseDropFlavor(e) == null) return false;
-      if (twoDPanel.getCoords().detectCollisions(inProgress) == true) return false;
+      if ( !inProgress.isDoorWindow() && twoDPanel.getCoords().detectCollisions(inProgress) == true ) return false;
 
       return true;
    }
@@ -96,7 +96,10 @@ class TwoDDropListener implements DropTargetListener {
    /** Called while a drag operation is ongoing, when the mouse pointer has exited
     *  the operable part of the drop site for the DropTarget registered with this listener. */
    public void dragExit(DropTargetEvent e) {
-      twoDPanel.getCoords().delete(inProgress);
+      if( inProgress.isDoorWindow() )
+         twoDPanel.getCoords().deleteDoorWindow(inProgress);
+      else
+         twoDPanel.getCoords().delete(inProgress);
       // remember inProgress as the same drag might continue again
    }
 
@@ -105,12 +108,21 @@ class TwoDDropListener implements DropTargetListener {
    public void dragOver(DropTargetDragEvent e) {
       // dragEnter is not called for every entry, so re-add the furniture if it
       // was deleted from coords by dragExit. This will do nothing if already added
-      twoDPanel.getCoords().addFurniture(inProgress);
+      if( inProgress.isDoorWindow() )
+         twoDPanel.getCoords().addDoorWindow(inProgress);
+      else
+         twoDPanel.getCoords().addFurniture(inProgress);
+
 //   twoDPanel.selectFurniture = inProgress;
 //   twoDPanel.isCollision = twoDPanel.getCoords().detectCollisions(inProgress);
 //   twoDPanel.repaint();
       Point p = scalePoint(e.getLocation(), twoDPanel.getZoomScale());
-      twoDPanel.getCoords().moveFurniture(inProgress, p);
+
+      if( inProgress.isDoorWindow() )
+         twoDPanel.getCoords().moveDoorWindow(inProgress, p);
+      else
+         twoDPanel.getCoords().moveFurniture(inProgress, p);
+
       e.acceptDrag(e.getDropAction());
    }
 
@@ -119,12 +131,21 @@ class TwoDDropListener implements DropTargetListener {
    public void drop(DropTargetDropEvent e) {
       if (!isDropOk(e)) {
          e.rejectDrop();
-         twoDPanel.getCoords().delete(inProgress);
+
+         if( inProgress.isDoorWindow() )
+            twoDPanel.getCoords().deleteDoorWindow(inProgress);
+         else
+            twoDPanel.getCoords().delete(inProgress);
+
          e.dropComplete(false);
       } else {
          e.acceptDrop(acceptableActions); // if you give ACTION_COPY_OR_MOVE, then source will receive MOVE!
          Point p = scalePoint(e.getLocation(), twoDPanel.getZoomScale());
-         twoDPanel.getCoords().moveFurniture(inProgress, p);
+
+         if( inProgress.isDoorWindow() )
+            twoDPanel.getCoords().moveDoorWindow(inProgress, p);
+         else
+            twoDPanel.getCoords().moveFurniture(inProgress, p);
 
          e.dropComplete(true);
       }
@@ -135,7 +156,12 @@ class TwoDDropListener implements DropTargetListener {
    /** Called if the user has modified the current drop gesture. */
    public void dropActionChanged(DropTargetDragEvent e) {
       if (!isDragOk(e)) {
-         twoDPanel.getCoords().delete(inProgress);
+
+         if( inProgress.isDoorWindow() )
+            twoDPanel.getCoords().deleteDoorWindow(inProgress);
+         else
+            twoDPanel.getCoords().delete(inProgress);
+
          e.rejectDrag();
       } else {
          e.acceptDrag(e.getDropAction());

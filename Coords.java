@@ -258,7 +258,7 @@ public class Coords {
 
    /** Adds the door/window if it doesn't already exist */
    public void addDoorWindow(Furniture f) {
-      if( f == null ) return;
+      if( f == null || getDoorWindowEdge(f) != null ) return;
 
       f.set( snapToEdge( f.getRotationCenter() ) );
       ListIterator<Edge> ite = edges.listIterator();
@@ -278,8 +278,10 @@ public class Coords {
    public void moveDoorWindow(Furniture f, Point newCenter) {
       if( f == null ) return;
       Edge e = getDoorWindowEdge(f);
-      
+
+      newCenter = snapToEdge(newCenter);
       f.set(newCenter);
+
       if( !e.curveContains(newCenter) ) {
          e.deleteDoorWindow(f);
 
@@ -486,6 +488,15 @@ public class Coords {
       if (f == null || !furniture.contains(f) ) return;
 
       furniture.remove(f);
+
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_REMOVED, f));
+   }
+
+   /** Removes the door/window */
+   public void deleteDoorWindow(Furniture f) {
+      if ( f == null ) return;
+
+      getDoorWindowEdge(f).deleteDoorWindow(f);
 
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_REMOVED, f));
    }
