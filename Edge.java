@@ -202,9 +202,27 @@ public class Edge {
 
    /** Returns the length of this line */
    public float length() {
-      float a = Math.abs(v1.getX() - v2.getX());
-      float b = Math.abs(v1.getY() - v2.getY());
-      return (float) Math.sqrt(a*a + b*b);
+      //float a = Math.abs(v1.getX() - v2.getX());
+      //float b = Math.abs(v1.getY() - v2.getY());
+      //return (float) Math.sqrt(a*a + b*b);
+      double length = 0;
+      double x;
+      double y;
+      PathIterator ite = topDownViewCurve.getPathIterator(null, 2.0);
+      double[] segment = new double[2];
+      ite.currentSegment(segment);
+      ite.next();
+      x = segment[0];
+      y = segment[1];
+      while(!ite.isDone()) {
+         ite.currentSegment(segment);
+         length += Math.sqrt(Math.pow((segment[0] - x),2)
+                   + Math.pow((segment[1] - y),2));
+         x = segment[0];
+         y = segment[1];
+         ite.next();
+      }
+      return (float)length;
    }
 
    /** Returns some vaguely useful form of string so you can println() an edge */

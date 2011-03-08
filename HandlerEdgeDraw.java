@@ -58,31 +58,47 @@ public class HandlerEdgeDraw {
 
       // check if the line is over a furniture item
       isCollided = coords.detectVertexCollisions(edge.getV2());
-
-      // if its not over a furniture item set a new valid revert point
-      if (!isCollided) {
-         revertV2.setLocation(edge.getV2().getX(), edge.getV2().getY());
-      }
    }
 
-   public void stop(Point p, boolean snapToGrid) {
+   public void stop(Point p, boolean snapToAxis, boolean snapToGrid) {
       if (edge == null) return;
 
-      coords.mergeVertices(edge.getV2(), p.x, p.y, 0, snapToGrid);
+      float newX = p.x;
+      float newY = p.y;
+
+      if(snapToAxis) {
+         Coords.Vertex origin = edge.getV1();
+
+         float hrizDifference = Math.abs(origin.getX() - newX);
+         float vertDifference = Math.abs(origin.getY() - newY);
+
+         if (hrizDifference > vertDifference) {
+            newY = origin.getY();
+         } else {
+            newX = origin.getX();
+         }
+      }
+
+      coords.vertexMoveOrSplit(edge, false, newX, newY, -1000, snapToGrid);
 
       // check if the line is over a furniture item, if it is revert if possible
       // to the latest otherwise delete.
       isCollided = coords.detectVertexCollisions(edge.getV2());
 
-      if (isCollided) {
+      if (!isCollided) {
+         coords.mergeVertices(edge.getV2(), newX, newY, 0, snapToGrid);
+         coords.vertexMoveOrSplit(edge, false, newX, newY, 0, snapToGrid);
+      } else {
          // revert
-         coords.set(edge.getV2(), revertV2.x, revertV2.y, 0, false);
+         coords.delete(edge);
          isCollided = false;
+         edge = null;
+         return;
       }
 
       // delete length 0 lines
-      if (edge.getV1() == edge.getV2()) coords.delete(edge);
-      
+      if (edge.getV1() == edge.getV2() || edge.length() == 0) coords.delete(edge);
+
       edge = null;
    }
 

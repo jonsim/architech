@@ -28,6 +28,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
    private final HandlerVertexMove    handlerVertexMove;
    private final HandlerFurnitureMove handlerFurnitureMove;
    private final HandlerVertexSelect  handlerVertexSelect;
+   
+   private Furniture hoverFurniture = null;
 
    /** If file is null creates a blank coords with the tab name nameIfNullFile,
     *  otherwise it tries to open the given file and load a coords from it, if
@@ -151,7 +153,19 @@ class TwoDPanel extends JPanel implements ChangeListener {
          }
       }
 
+	  Edge edgeCurve = handlerEdgeCurve.getEdge();
+      if (inProgressHandler == handlerEdgeCurve && edgeCurve != null) {
+         g2.setColor(Color.BLACK);
+         edgeCurve.paintLengthText(g2);
 
+         if (handlerEdgeCurve.isCollided()) {
+            g2.setColor(Color.RED);
+            edgeCurve.getV1().paint(g2, (int) Math.round(vertexDiameter / zoomScale));
+            edgeCurve.getV2().paint(g2, (int) Math.round(vertexDiameter / zoomScale));
+            edgeCurve.paint(g2, false);
+         }
+      }
+	  
       //FURNITURE
       g2.setColor(Color.BLUE);
       coords.paintFurniture(g2);
@@ -161,7 +175,10 @@ class TwoDPanel extends JPanel implements ChangeListener {
          if (handlerFurnitureMove.isCollided()) g2.setColor(Color.RED);
          else                                   g2.setColor(Color.GREEN);
          furnitureMove.paint(g2);
-      }
+      } else if(hoverFurniture != null && designButtons.isSelectTool()) {
+          g2.setColor(Color.CYAN);
+          hoverFurniture.paint(g2);
+       }
    }
 
    private class TwoDPanelMouseListener implements MouseListener {
@@ -180,6 +197,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
             setCursor(new Cursor(Cursor.HAND_CURSOR));
             inProgressHandler = handlerEdgeDraw;
             handlerEdgeDraw.start(p, designButtons.isGridOn());
+            handlerFurnitureMove.forgetRememberedFurniture();
 
          } else if (designButtons.isSelectTool()) {
             if (coords.vertexAt(p) != null) {
@@ -196,6 +214,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
                inProgressHandler = handlerFurnitureMove;
                handlerFurnitureMove.start(p);
                repaint();
+            } else {
+                handlerFurnitureMove.forgetRememberedFurniture();
             }
 
             requestFocus(); // makes the keys work if the user clicked on a vertex and presses delete
@@ -207,6 +227,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
             }
             inProgressHandler = handlerEdgeCurve;
             handlerEdgeCurve.start(p);
+            handlerFurnitureMove.forgetRememberedFurniture();
          }
 
          // other tools go here
@@ -228,7 +249,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
          } else if (inProgressHandler == handlerEdgeDraw) {
             inProgressHandler = null;
-            handlerEdgeDraw.stop(p, designButtons.isGridOn());
+            handlerEdgeDraw.stop(p, e.isShiftDown(), designButtons.isGridOn());
             
          } else if (inProgressHandler == handlerVertexMove) {
             inProgressHandler = null;
@@ -309,18 +330,20 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
       /** Invoked when the mouse cursor has been moved onto a component but no buttons have been pushed. */
       public void mouseMoved(MouseEvent e) {
-         /* UNTIL CURVES ARE FIXED I DISABLED THIS
-         
+         // UNTIL CURVES ARE FIXED I DISABLED THIS
+
          Point p = new Point();
          p.setLocation(e.getPoint().getX() / zoomScale, e.getPoint().getY() / zoomScale);
 
-         Coords.Vertex before = hoverVertex;
-         hoverVertex = coords.vertexAt(p);
+         //Coords.Vertex before = hoverVertex;
+         //hoverVertex = coords.vertexAt(p);
 
-         Furniture beforeF = selectFurniture;
-         if (hoverVertex == null) {
-            selectFurniture = coords.furnitureAt(p.getX(), p.getY());
-         } else {
+         Furniture beforeF = hoverFurniture;
+         //if (hoverVertex == null) {
+         hoverFurniture = coords.furnitureAt(p.getX(), p.getY());
+         if(hoverFurniture != beforeF) repaint();
+
+         /*} else {
             selectFurniture = null;
          }
 

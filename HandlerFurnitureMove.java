@@ -61,12 +61,6 @@ public class HandlerFurnitureMove {
       }
 
       isCollided = coords.detectCollisions(furniture);
-
-      // update the revert point, so it doesn't jump back too far
-      if (!isCollided) {
-         revert.setLocation(furniture.getRotationCenter());
-         rotationRevert = furniture.getRotation();
-      }
    }
 
    /** Stop the furniture dragging, resets the class so it is ready to recieve

@@ -38,24 +38,19 @@ public class HandlerVertexMove {
       coords.set(v, p.x, p.y, 0, snapToGrid);
 
       isCollided = coords.detectVertexCollisions(v);
-
-      // update revert point if no collision, so it doesn't jump back too far
-      if (!isCollided) {
-         revert.setLocation(v.getX(), v.getY());
-      }
    }
 
    public void stop(Point p, boolean snapToGrid) {
       if (v == null) return;
 
-      // put it at the right xy-coordinates but different z so it wont be considered to be at that point <-- woah sketchy!
-      /* coords.set(v, p.x, p.y, 0, snapToGrid); <- SILLY */
-      coords.mergeVertices(v, p.x, p.y, 0, snapToGrid);
-      /* coords.set(v, p.x, p.y, 0, snapToGrid); <- SILLY */
-
       isCollided = coords.detectVertexCollisions(v);
 
-      if (isCollided) {
+      if (!isCollided) {
+         // put it at the right xy-coordinates but different z so it wont be considered to be at that point <-- woah sketchy! <-- sketchy perhaps... but awesome and solves the problem nonetheless
+         coords.set(v, p.x, p.y, -1000, snapToGrid);
+         coords.mergeVertices(v, p.x, p.y, 0, snapToGrid);
+         coords.set(v, p.x, p.y, 0, snapToGrid);
+      } else {
          //reset to last known
          coords.set(v, (float) revert.getX(), (float) revert.getY(), 0, false);
          isCollided = false;
