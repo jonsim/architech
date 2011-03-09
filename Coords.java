@@ -673,8 +673,10 @@ public class Coords {
       }
    }
    
-   public void mergeVertices(Vertex v, float x, float y, float z, boolean snapToGrid) {
-      if (v == null || !vertices.contains(v)) return;
+   public Point mergeVertices(Vertex v, float x, float y, float z, boolean snapToGrid) {
+      Point oldPoint = new Point();
+      oldPoint.setLocation(-1,-1);
+      if (v == null || !vertices.contains(v)) return oldPoint;
 	  
 	  Vertex vAlt = null;
 	  
@@ -698,6 +700,7 @@ public class Coords {
       }
 
       if (vAlt != null && vAlt != v) {
+         oldPoint.setLocation(vAlt.p.x(), vAlt.p.y());
          v.addUsesCutFrom(vAlt);
          vertices.remove(vAlt);
       }
@@ -712,6 +715,7 @@ public class Coords {
             fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
          }
       }
+      return oldPoint;
    }
 
    /** Updates the given vertex so that it no longer remembers Object o as something

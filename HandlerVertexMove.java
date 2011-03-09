@@ -48,8 +48,10 @@ public class HandlerVertexMove {
       if (!isCollided) {
          // put it at the right xy-coordinates but different z so it wont be considered to be at that point <-- woah sketchy! <-- sketchy perhaps... but awesome and solves the problem nonetheless
          coords.set(v, p.x, p.y, -1000, snapToGrid);
-         coords.mergeVertices(v, p.x, p.y, 0, snapToGrid);
-         coords.set(v, p.x, p.y, 0, snapToGrid);
+         Point mergedPoint;
+         mergedPoint = coords.mergeVertices(v, p.x, p.y, 0, snapToGrid);
+         if(mergedPoint.x != -1 && mergedPoint.y != 1) coords.set(v, mergedPoint.x, mergedPoint.y, 0, snapToGrid);
+         else coords.set(v, p.x, p.y, 0, snapToGrid);
       } else {
          //reset to last known
          coords.set(v, (float) revert.getX(), (float) revert.getY(), 0, false);

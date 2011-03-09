@@ -86,8 +86,10 @@ public class HandlerEdgeDraw {
       isCollided = coords.detectVertexCollisions(edge.getV2());
 
       if (!isCollided) {
-         coords.mergeVertices(edge.getV2(), newX, newY, 0, snapToGrid);
-         coords.vertexMoveOrSplit(edge, false, newX, newY, 0, snapToGrid);
+         Point mergedPoint;
+         mergedPoint = coords.mergeVertices(edge.getV2(), newX, newY, 0, snapToGrid);
+         if(mergedPoint.x != -1 && mergedPoint.y != 1) coords.set(edge.getV2(), mergedPoint.x, mergedPoint.y, 0, snapToGrid);
+         else coords.set(edge.getV2(), p.x, p.y, 0, snapToGrid);
       } else {
          // revert
          coords.delete(edge);
