@@ -424,10 +424,10 @@ public class Tweaker extends JFrame implements ActionListener{
 					 preview.shutdown3D();
 					 this.dispose();
 					 main.viewport3D.remake3D();
-					 main.frontEnd.getwindow().setVisible(true);
+			         try{Thread.sleep(2000);}
+			         catch (InterruptedException ie){}
 					 main.frontEnd.initTwoDAndThreeD();
 				     main.viewport3D.getCanvas().setMinimumSize(new Dimension(0,0));
-					 main.frontEnd.refreshtt();
 					 main.frontEnd.getwindow().setVisible(true);
 					 
 			 } else if (comm.equals("brow")){

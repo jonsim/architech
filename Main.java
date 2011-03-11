@@ -23,6 +23,9 @@ public class Main {
 
    /** Starts everything in the program running */
    private void run() {
+	   //ENABLE/DISABLE SPLASH SCREEN
+	   boolean splash_enabled = false;
+	   if(splash_enabled){
 	   JFrame splash = new JFrame();
        splash.setTitle("Splash Screen");
        splash.setResizable(false);
@@ -49,7 +52,8 @@ public class Main {
          catch (InterruptedException ie){}               
          frontEnd.display();
          splash.setVisible(true);
-         splash.dispose();
+         splash.dispose();}
+	   else{frontEnd.display();}
    }
 
    /** Sets the default look and feel. (must be done before anything else)
