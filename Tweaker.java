@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -409,7 +410,9 @@ public class Tweaker extends JFrame implements ActionListener{
 		     idcount++;
 		 }*/
 		 else if ("add".equals(comm)){
-			    final JFileChooser fc = new JFileChooser("C:/Users/Robin/Documents/University/SPE/google cvs/beta resources backup/req main/");
+	        	URL folder = getClass().getResource("req");
+	        	String fpath = folder.getPath();
+			    final JFileChooser fc = new JFileChooser(fpath);
 			    FileFilter objf = new ExtensionGroup("OBJ Files", new String[] {".obj"});
 			    fc.setAcceptAllFileFilterUsed(false);
 			    fc.addChoosableFileFilter(objf);
@@ -462,7 +465,7 @@ public class Tweaker extends JFrame implements ActionListener{
 					 
 			 } else if (comm.equals("brow")){
 				 final JFileChooser fc = new JFileChooser("req");
-				 FileFilter img = new ExtensionGroup("Supported Image Files", new String[] {".png",".jpg",".gif"});
+				 FileFilter img = new ExtensionGroup("Supported Image Files", new String[] {".png",".jpg",".gif",".bmp"});
 				 fc.addChoosableFileFilter(img);
 				 fc.setFileFilter(img);
 				 int returnVal = fc.showOpenDialog(this);    
