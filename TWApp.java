@@ -18,6 +18,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -277,6 +278,45 @@ public class TWApp extends Application implements ActionListener {
 	    return;
     }
     
+    private int converttype(String type){
+    	if(type.equals("Chair")) {return 1;}
+    	if(type.equals("Armchair")) {return 2;}
+    	if(type.equals("Sofa (2 person)")) {return 3;}
+    	if(type.equals("Stool")) {return 4;}
+    	if(type.equals("Bench")) {return 5;}
+    	if(type.equals("Dining Table")) {return 6;}
+    	if(type.equals("Desk")) {return 7;}
+    	if(type.equals("Coffee Table")) {return 8;}
+    	if(type.equals("Bedside Table")) {return 9;}
+    	if(type.equals("Desk Lamp")) {return 10;}
+    	if(type.equals("Table Lamp")) {return 11;}
+    	if(type.equals("Floor Lamp")) {return 12;}
+    	if(type.equals("Wall Light")) {return 13;}
+    	if(type.equals("Ceiling Light")) {return 14;}
+    	if(type.equals("Cupboard")) {return 15;}
+    	if(type.equals("Drawers")) {return 16;}
+    	if(type.equals("Wardrobe")) {return 17;}
+    	if(type.equals( "Bookcase")) {return 18;}
+    	if(type.equals("Wall-mounted Cupboard")) {return 19;}
+    	if(type.equals("Kitchen Units")) {return 20;}
+    	if(type.equals("Single Bed")) {return 21;}
+    	if(type.equals("Bath (w/Shower)")) {return 22;}
+    	if(type.equals("Shower")) {return 23;}    	
+    	if(type.equals("Bathroom Sink")) {return 24;}
+    	if(type.equals("Toilet")) {return 25;}
+    	if(type.equals("Oven")) {return 26;}
+    	if(type.equals("Fridge")) {return 27;}
+    	if(type.equals("Freezer")) {return 28;}
+    	if(type.equals("Kitchen Sink")) {return 29;}
+    	if(type.equals("DishWasher")) {return 30;}
+    	if(type.equals("Rug")) {return 40;}
+    	if(type.equals("Double Bed")) {return 41;}
+    	if(type.equals("Sofa (3 person)")) {return 42;}
+    	if(type.equals("Large Plant")) {return 45;}
+    	if(type.equals("Pot Plant")) {return 46;}
+    	return 0;
+    }
+    
     public void saveitem(){
     	String name,description;
     	int type;
@@ -293,14 +333,13 @@ public class TWApp extends Application implements ActionListener {
    			 }else{
    		    name = main.getname();
    		    description = main.getdesc();
-    		type = 2;
-    		//name = "mrbung";    		
-    		//description = "hes so amazing";
-        	main.addtodb(name,type,description,"ss.png","mrbung.obj",0.5f,0.5f,0.5f);
-	        (new File(name)).mkdir();
+    		type = converttype(main.gettype());
+        	URL folder = getClass().getResource("req");
+        	String fpath = folder.getPath();
+	        (new File(fpath+"/"+name)).mkdir();
     		try{
-			FileWriter fstream = new FileWriter(name+"/"+name+".obj");
-			FileWriter mstream = new FileWriter(name+"/"+name+".mtl");
+			FileWriter fstream = new FileWriter(fpath+"/"+name+"/"+name+".obj");
+			FileWriter mstream = new FileWriter(fpath+"/"+name+"/"+name+".mtl");
 			BufferedWriter out = new BufferedWriter(fstream);
 			BufferedWriter outm = new BufferedWriter(mstream);
     		int vcount = 0,vncount =0,vtcount=0;
@@ -399,17 +438,18 @@ public class TWApp extends Application implements ActionListener {
 			    		File direc = new File(dir);
 			    		String[] children = direc.list();
 			    		for(int l = 0 ; l<children.length;l++){
+			    			if(children[l].lastIndexOf(".")!=-1){
 			    			if(children[l].substring(children[l].lastIndexOf(".")).equals(".jpg") ||
 			    					children[l].substring(children[l].lastIndexOf(".")).equals(".gif") ||
 			    					children[l].substring(children[l].lastIndexOf(".")).equals(".png")){
 			    				if(children[l].contains("ss")){}
 			    				else{
 			    				File file = new File(dir + "/" + children[l]);
-			    				copyf(file,new File(name+"/" + file.getName()));}
-			    			}
+			    				copyf(file,new File(fpath+"/"+name+"/" + file.getName()));}
+			    			}}
 			    		}}else{
 			    			File pic = new File(furniture.get(i).getpic());
-			    			copyf(pic,new File(name+"/" + pic.getName()));	
+			    			copyf(pic,new File(fpath+"/"+name+"/" + pic.getName()));	
 			    		}
 		    		}
 	    		}	    		
@@ -424,17 +464,16 @@ public class TWApp extends Application implements ActionListener {
 	    		int dy = (int) scrDim.getHeight()/2;   		
 	    		Robot robot = new Robot();
 	    		BufferedImage bi = robot.createScreenCapture(new Rectangle(tx,ty,dx,dy));
-	    		ImageIO.write(bi, "jpg", new File(name + "/" + "ss.jpg"));
+	    		folder = getClass().getResource("img");
+	        	fpath = folder.getPath();
+	    		ImageIO.write(bi, "jpg", new File(fpath + "/database/" + name+".jpg"));
 	    		//OUTPUT LENGTH, WIDTH, HEIGHT
-	    		System.out.println(maxlength + " , " + maxheight + " , " +  maxwidth);  
-	    		}catch(Exception e){e.printStackTrace(); JOptionPane.showMessageDialog(null, "Something went wrong during the saving" +
-	    				" process","OBJ Saving Error", 1);}
-	    		
+	    		//System.out.println(maxlength + " , " + maxheight + " , " +  maxwidth);  
+	        	main.addtodb(name,type,description,name+".jpg",name+".obj",maxwidth.floatValue(),maxlength.floatValue(),maxheight.floatValue());
+    	 		JOptionPane.showMessageDialog(null, "Saved Successfully!", "Success", 1);
+    			}catch(Exception e){e.printStackTrace(); JOptionPane.showMessageDialog(null, "Something went wrong during the saving" +
+	    				" process","OBJ Saving Error", 1);}	
    			 }}}}
-	    		
-	    		
-	    	//}}
-    	//}}}
     }
     
     void copyf(File sour,File tar){

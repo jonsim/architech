@@ -58,7 +58,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
       main.viewport3D.getCanvas().setMinimumSize(new Dimension(0,0));
 
       try {
-         addTab(new File("testSave.atech"));
+         addTab(new File("gammaroom.atech"));
          stateChanged(new ChangeEvent(tabbedPane));
       } catch (Exception e) {
          // FAILED TO LOAD, NOTIFY USER

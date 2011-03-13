@@ -29,6 +29,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
+import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Quad;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.system.AppSettings;
@@ -70,6 +71,8 @@ public class ArchApp extends Application
 	private static final Vector3f NIGHT_ANGLE = new Vector3f(-0.2f, -0.8f, 0.6f);
 	private static final float    NIGHT_SHADOW_INTENSITY = 0;
 	private static Spatial        NIGHT_MAP = null;
+	private static Vector3f lookvec = new Vector3f(-540f, -50f, 360f);
+	private static Vector3f startvec = new Vector3f(590, -15, 80);
 	private boolean day = true;  // true = day, false = night
 	private DirectionalLight sun;
 	private AmbientLight ambient;
@@ -292,6 +295,7 @@ public class ArchApp extends Application
 		setupScene();
 		setupLighting();
         setupPlayer();
+        cam.lookAt(lookvec, Vector3f.UNIT_Y);
     }
 
     
@@ -352,30 +356,39 @@ public class ArchApp extends Application
 	    geom.setLocalTranslation(new Vector3f(2102,-100,-902));
 	    geom.rotate((float) -Math.toRadians(90),(float) Math.toRadians(180),0f );
 	    addToPhysics(geom);
-	    rootNode.attachChild(geom);
+	    rootNode.attachChild(geom);	    
+	    
+	    Box cei = new Box( new Vector3f(420,0,150), 180,0.1f,90);
+        Geometry top = new Geometry("Box", cei);
+        top.setMaterial(grass);
+	    rootNode.attachChild(top);
+	    cei = new Box( new Vector3f(330,0,300), 90,0.1f,60);
+        top = new Geometry("Box", cei);
+        top.setMaterial(grass);
+	    rootNode.attachChild(top);
 
 	    // add lightbulbs
 	    Spatial light1 = assetManager.loadModel("req/lightbulb/lightbulb.obj");
 		light1.scale(4, 4, 4);
 		light1.rotate(-FastMath.PI,0,0);
-		light1.setLocalTranslation(350, -30, 80);
+		light1.setLocalTranslation(270, -30, 80);
 		rootNode.attachChild(light1);
 		
 	    Spatial light2 = assetManager.loadModel("req/lightbulb/lightbulb.obj");
 		light2.scale(4, 4, 4);
 		light2.rotate(-FastMath.PI,0,0);
-		light2.setLocalTranslation(150, -25, 280);
+		light2.setLocalTranslation(380, -25, 290);
 		rootNode.attachChild(light2);
 
         pl1 = new PointLight();
         pl1.setColor(new ColorRGBA(2, 2, 1.5f, 0));
         pl1.setRadius(250);
-        pl1.setPosition(new Vector3f(350, -25, 80));
+        pl1.setPosition(new Vector3f(270, -30, 80));
         
         pl2 = new PointLight();
         pl2.setColor(new ColorRGBA(2, 2, 1.5f, 0));
         pl2.setRadius(250);
-        pl2.setPosition(new Vector3f(150, -25, 280));
+        pl2.setPosition(new Vector3f(380, -25, 290));
 
         setupSky();
     }
@@ -427,7 +440,7 @@ public class ArchApp extends Application
         player.setJumpSpeed(20);
         player.setFallSpeed(160);
         player.setGravity(400);
-        player.setPhysicsLocation(new Vector3f(350, -15, 550));
+        player.setPhysicsLocation(startvec);
         
         bulletAppState.getPhysicsSpace().add(player);    	
     }

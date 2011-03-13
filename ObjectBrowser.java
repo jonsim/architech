@@ -467,14 +467,18 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			GridBagConstraints gbc;
 			gbc = FrontEnd.buildGBC(0, 2, 0.5, 0.5, GridBagConstraints.CENTER, top_left_bottom_right);
 			gbc.weighty = 40;
-			JLabel blankLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"blank.png") ));
+			Image prev = FrontEnd.getImage(this, IMG_DIR+"blank.png");
+			prev = prev.getScaledInstance( 128, 128,  java.awt.Image.SCALE_SMOOTH ) ;  
+			JLabel blankLabel = new JLabel(new ImageIcon( prev ));
 			picPan.add(blankLabel);
 			picPan.remove(picLabel);
 			pane.revalidate();
 			try {
 				BufferedImage myPicture;
 				if(object == dashedSeparator || object == backButtonText) {
-					picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"blank.png") ));
+					prev = FrontEnd.getImage(this, IMG_DIR+"blank.png");
+					prev = prev.getScaledInstance( 128, 128,  java.awt.Image.SCALE_SMOOTH ) ; 
+					picLabel = new JLabel(new ImageIcon( prev ));
 				} else {
 					String request = "select * from ITEM where Type='" + typeName + "' AND Name='"+object+"'";
 					statement = connection.prepareStatement(request);
@@ -484,18 +488,24 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 						String image = rs.getString("Image");
 						if (image.equals("none")==true)
 						{
-							picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"NoImage.png") ));
+							prev = FrontEnd.getImage(this, IMG_DIR+"NoImage.png");
+							prev = prev.getScaledInstance( 128, 128,  java.awt.Image.SCALE_SMOOTH ) ; 
+							picLabel = new JLabel(new ImageIcon( prev));
 							Border border = BorderFactory.createLineBorder(Color.GRAY);
 		          picPan.setBorder(border);
 						}
 						else
 					    {
-							picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+image) ));
+							prev = FrontEnd.getImage(this, IMG_DIR+image);
+							prev = prev.getScaledInstance( 128, 128,  java.awt.Image.SCALE_SMOOTH ) ; 
+							picLabel = new JLabel(new ImageIcon( prev));
 							Border border = BorderFactory.createLineBorder(Color.GRAY);
 		          picPan.setBorder(border);
 						}
 					} else {
-						picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"NoImage.png") ));
+						prev = FrontEnd.getImage(this, IMG_DIR+"NoImage.png");
+						prev = prev.getScaledInstance( 128, 128,  java.awt.Image.SCALE_SMOOTH ) ; 
+						picLabel = new JLabel(new ImageIcon( prev ));
 						Border border = BorderFactory.createLineBorder(Color.GRAY);
 		        picPan.setBorder(border);
 					}
@@ -523,17 +533,24 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 
 	}
 	
-	// Make cat2 and/or cat3 0 if you want fewer than 3 categories 
 	public void addObject(String object, int type,String desc,String image, String model,float width,float length,float height) {
 		// Strings put into a TEXT field in sql need to be surrounded by apostrophes: eg. "'"+object+"'"
-		SQLStatement("insert into ITEM values ("+NextID+",'"+object+"',"+type+",'"+desc+"',"+1+",'"+image+"','"+model+"'," + 1 +","+width+","+length+","+height+")", "update");
-		/*if(currentCategory == cat1 || currentCategory == cat2 || currentCategory == cat3) {
-			fields.clear();
-			SQLStatement("select * from TYPE where Category1="+currentCategory+
-				" or Category2="+currentCategory+" or Category3="+currentCategory, "Type");
-			pane.revalidate();
-		}*/
-		NextID++;
+		SQLStatement("select COUNT(*) from ITEM", "count");
+		String request = "select * from ITEM";
+		int nextcode=0;
+		try{
+		statement = connection.prepareStatement(request);
+		rs = statement.executeQuery();
+		String ident = null;
+		while (rs.next()) {
+	        ident = rs.getString("ID");
+	    }
+		nextcode = Integer.parseInt(ident);
+		} 
+		catch(Exception e) {e.printStackTrace(); }
+		NextID = nextcode+1;
+		System.out.println(NextID);
+		SQLStatement("insert into ITEM values ("+NextID+",'"+object+"','"+desc+"',"+type+","+1+",'"+image+"','"+model+"'," + 1 +","+width+","+length+","+height+")", "update");
 	}
 	
 	public void deleteObject() {
