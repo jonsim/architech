@@ -33,7 +33,7 @@ public class TWPane{
       Logger.getLogger("").setLevel(Level.SEVERE);
       canvasApplication.createCanvas(); // create canvas!
       JmeCanvasContext ctx = (JmeCanvasContext) canvasApplication.getContext();
-      ctx.getCanvas().setPreferredSize(new Dimension( (int) scrDim.getWidth()-700, (int) scrDim.getHeight()-450));
+      ctx.getCanvas().setPreferredSize(new Dimension( (int) scrDim.getWidth()-650, (int) scrDim.getHeight()-550));
       ctx.setSystemListener(canvasApplication);
       }
 

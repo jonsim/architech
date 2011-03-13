@@ -49,7 +49,7 @@ public class Tweaker extends JFrame implements ActionListener{
 	public float blue;
 	JPanel buttons;
 	JPanel controlarea;
-    JScrollPane controlScroller;
+   JScrollPane controlScroller;
 	int controlcount = 0;
 	int idcount = 0;
 	JLabel piclabel;
@@ -94,46 +94,68 @@ public class Tweaker extends JFrame implements ActionListener{
        GridBagConstraints c = new GridBagConstraints();
        getContentPane().add(pane);
        
-       JPanel tog = new JPanel(new GridBagLayout());
-       JPanel top = new JPanel(new GridBagLayout());
-       JPanel bottom = new JPanel();
+       JPanel top = new JPanel(new GridBagLayout());// the top half of the screen
+       JPanel bottom = new JPanel(new GridBagLayout());// the bottom section of the screen
+       JPanel graphicsContainer = new JPanel(new GridBagLayout());// holds the 3d pane and main title
+       JPanel objectContainer = new JPanel(new GridBagLayout());// holds the object list (and titles/buttons for it)
+       JPanel itemContainer = new JPanel(new GridBagLayout());// holds the color picker, texture picker and misc container
+       JPanel tog = new JPanel(new GridBagLayout());// misc container for save/cancel buttons and text fields
+       picture = new JPanel(new GridBagLayout());// holds texture picture and browse button
+       Dimension scrDim = Toolkit.getDefaultToolkit().getScreenSize();// screen dimensions
+ 
+       // add main window label to the graphics container
+       JLabel label = new JLabel("<html><h2><font face='Gill Sans MT'>ArchiTECH Tweaker");
+       addItem(graphicsContainer, label, 0, 0, 0, 1, GridBagConstraints.CENTER);
 
-       JPanel graphics = new JPanel(new GridBagLayout());
-       preview = new TWPane(this); 
-       JLabel la = new JLabel("<html><h1><font face='Gill Sans MT'>ArchiTECH Tweaker");
-       addItem(graphics,la,0,0,0,1,GridBagConstraints.CENTER);
+       // add 3d pane to the graphics container
+       preview = new TWPane(this);
        JPanel canv = new JPanel();
        canv.add(preview.getCanvas());
-       addItem(graphics,canv,0,1,1,1, GridBagConstraints.EAST);
-       graphics.setBorder(BorderFactory.createRaisedBevelBorder());
-       addItem(pane,graphics,0,0,1,1, GridBagConstraints.CENTER);
+       addItem(graphicsContainer, canv, 0, 1, 1, 1, GridBagConstraints.EAST);
 
-       JPanel con = new JPanel(new GridBagLayout());
-       Dimension scrDim = Toolkit.getDefaultToolkit().getScreenSize();
+       // add the graphics container to the top half of the screen
+       graphicsContainer.setBorder(BorderFactory.createRaisedBevelBorder());
+       addItem(top, graphicsContainer, 0, 0, 1, 1, GridBagConstraints.CENTER);
+
+       // add the object list to the object container
        controlarea = new JPanel(new GridBagLayout());
        controlScroller = new JScrollPane(controlarea);
        controlScroller.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-       controlScroller.setPreferredSize(new Dimension( 500, (int) scrDim.getHeight()-700 ));
-       controlScroller.setMinimumSize(new Dimension( 500, (int) scrDim.getHeight()-700 ));
-       addItem(con,controlScroller,0,1,1,1, GridBagConstraints.CENTER);
-       
-       la = new JLabel("<html><h2><font face='Gill Sans MT'>Object List:");
-       addItem(con,la,0,0,0,1,GridBagConstraints.CENTER);
-       
+       controlScroller.setPreferredSize(new Dimension( 500, (int) scrDim.getHeight()-590 ));
+       controlScroller.setMinimumSize(new Dimension( 500, (int) scrDim.getHeight()-590 ));
+       addItem(objectContainer, controlScroller, 0, 1, 1, 1, GridBagConstraints.CENTER);
+
+       //...and its title
+       label = new JLabel("<html><h3><font face='Gill Sans MT'>Object List:");
+       label.setMinimumSize( new Dimension(100, 20) );
+       label.setMaximumSize( new Dimension(100, 20) );
+       addItem(objectContainer, label, 0, 0, 0, 1, GridBagConstraints.CENTER);
+
+       //...and the "Add Object" button
        ImageIcon brush = new ImageIcon(main.frontEnd.getImage(this, "img/designbuttons/add.png"));
-       JButton but = new JButton("<html><h1><font face='Gill Sans MT'>Add Object",brush);
-       but.setActionCommand("add");
-       but.addActionListener(this);
-       addItem(con,but,0,2,1,1, GridBagConstraints.CENTER);        
-       con.setBorder(BorderFactory.createRaisedBevelBorder());
-       addItem(pane,con,1,0,1,1, GridBagConstraints.CENTER);
-       
-       
-	    JPanel bot = new JPanel(new GridBagLayout());
+       JButton button = new JButton("<html><h3><font face='Gill Sans MT'>Add Object",brush);
+       button.setActionCommand("add");
+       button.addActionListener(this);
+       button.setMinimumSize( new Dimension(150, 50) );
+       button.setMaximumSize( new Dimension(150, 50) );
+       addItem(objectContainer, button, 0, 2, 1, 1, GridBagConstraints.CENTER);        
+
+       // add the object container to the top half of the screen
+       objectContainer.setBorder(BorderFactory.createRaisedBevelBorder());
+       addItem(top, objectContainer, 1, 0, 1, 1, GridBagConstraints.CENTER);
+
+       // add title to bottom half of the screen
+       label = new JLabel("<html><h3><font face='Gill Sans MT'>Colour and Texture Picker:");
+       label.setMinimumSize( new Dimension(500, 20) );
+       label.setMaximumSize( new Dimension(500, 20) );
+       addItem(bottom, label, 0, 0, 1, 1, GridBagConstraints.WEST);
+
+       // add the color picker to the item container
        JPanel color = new JPanel();
        color.setSize(10,10);  
        final JColorChooser colorChooser = new JColorChooser();
 	    ColorSelectionModel model = colorChooser.getSelectionModel();
+
 	    ChangeListener changeListener = new ChangeListener() {
 	      public void stateChanged(ChangeEvent changeEvent) {
 	        Color newc = colorChooser.getColor();
@@ -142,79 +164,87 @@ public class Tweaker extends JFrame implements ActionListener{
 	        blue = (float) newc.getBlue()  / (float) 255.0;
 	      }
 	    };
+
 	    AbstractColorChooserPanel [] chooserPanels = colorChooser.getChooserPanels();
-	    if(chooserPanels.length>=2){
-		    colorChooser.removeChooserPanel(chooserPanels[2]);}
+
+	    if(chooserPanels.length>=2)
+		    colorChooser.removeChooserPanel(chooserPanels[2]);
+
 	    colorChooser.setPreviewPanel(new JPanel());
 	    model.addChangeListener(changeListener);
 	    color.add(colorChooser);    
-	    
-	    addItem(bottom,color,0,1,1,1, GridBagConstraints.EAST);
-	    
+	    addItem(itemContainer, color, 0, 0, 1 , 1, GridBagConstraints.EAST);
 
-        la = new JLabel("<html><h2><font face='Gill Sans MT'>Colour and Texture Picker:");
-        addItem(bot,la,0,0,1,1, GridBagConstraints.WEST);
-
-        picture = new JPanel(new GridBagLayout());
-	    piclabel = new JLabel("<html><h3><font face='Gill Sans MT'>No Texture Selected",SwingConstants.CENTER);
+       // add texture picture to picture container
+	    piclabel = new JLabel("<html><h4><font face='Gill Sans MT'>No Texture Selected",SwingConstants.CENTER);
 	    piclabel.setVerticalAlignment(SwingConstants.CENTER);
 	    picpath = null;
 	    piclabel.setPreferredSize(new Dimension(200,200));
-        piclabel.setMinimumSize(new Dimension(200,200));
+       piclabel.setMinimumSize(new Dimension(200,200));
 	    piclabel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
-	    addItem(picture,piclabel,0,0,1,1, GridBagConstraints.CENTER);
+	    addItem(picture, piclabel, 0, 0, 1, 1, GridBagConstraints.CENTER);
 
-	    but = new JButton("Browse...");
-	    but.setActionCommand("brow");
-	    but.addActionListener(this);
-	    addItem(picture,but,0,1,1,1, GridBagConstraints.CENTER);
-	    
-	    addItem(bottom,picture,0,1,1,1, GridBagConstraints.CENTER);
-	    addItem(bot,bottom,0,1,1,1, GridBagConstraints.EAST);
-	    addItem(pane,bot,0,1,1,1, GridBagConstraints.CENTER);
+       // add browse button to picture container
+	    button = new JButton("Browse");
+	    button.setActionCommand("brow");
+	    button.addActionListener(this);
+	    addItem(picture, button, 0, 1, 1, 1, GridBagConstraints.CENTER);
 
-	   
-	   JPanel finals = new JPanel();
-	   ImageIcon save = new ImageIcon(main.frontEnd.getImage(this, "img/designbuttons/save.png"));
-       but = new JButton("<html><h1><font face='Gill Sans MT'>Save",save);
-       but.setActionCommand("save");
-       but.addActionListener(this);
-       finals.add(but);
+       // add picture container to item container
+	    addItem(itemContainer, picture, 1, 0, 1, 1, GridBagConstraints.CENTER);
+
+       JPanel finals = new JPanel();
+       ImageIcon save = new ImageIcon(main.frontEnd.getImage(this, "img/designbuttons/save.png"));
+       button = new JButton("<html><h3><font face='Gill Sans MT'>Save",save);
+       button.setActionCommand("save");
+       button.addActionListener(this);
+       finals.add(button);
        
-	   ImageIcon can = new ImageIcon(main.frontEnd.getImage(this, "img/designbuttons/can.png"));
-       but = new JButton("<html><h1><font face='Gill Sans MT'>Cancel</h1><font size=3>Return to Main",can);
-       but.setActionCommand("can");
-       but.addActionListener(this);
-       finals.add(but);       
-       addItem(tog,finals, 0, 3, 2, 1, GridBagConstraints.CENTER);
+       ImageIcon can = new ImageIcon(main.frontEnd.getImage(this, "img/designbuttons/can.png"));
+       button = new JButton("<html><h3><font face='Gill Sans MT'>Cancel</h1><br /><font size=3>Return to Main", can);
+       button.setActionCommand("can");
+       button.addActionListener(this);
+       finals.add(button);
        
-       
-       
-       
+       addItem(tog, finals, 0, 3, 2, 1, GridBagConstraints.CENTER);
+
 	    JLabel lab = new JLabel("<html><font face='Gill Sans MT' size=4> Object Name:");
 	    namet = new JTextField(20);
-	    addItem(tog,namet,1,0,1,1,GridBagConstraints.WEST);
-	    addItem(tog,lab,0,0,1,1,GridBagConstraints.EAST); 
-	    
+	    addItem(tog, namet, 1, 0, 1, 1, GridBagConstraints.WEST);
+	    addItem(tog, lab, 0, 0, 1, 1, GridBagConstraints.EAST); 
+
 	    lab = new JLabel("<html><font face='Gill Sans MT' size=4> Description:");
 	    desct = new JTextField(20);
-	    addItem(tog,desct,1,1,1,1,GridBagConstraints.WEST);
-	    addItem(tog,lab,0,1,1,1,GridBagConstraints.EAST); 
-	    
+	    addItem(tog, desct, 1, 1, 1, 1, GridBagConstraints.WEST);
+	    addItem(tog, lab, 0, 1, 1, 1, GridBagConstraints.EAST); 
+
 	    String[] types = {"Chair", "Armchair", "Sofa (2 person)", "Stool", "Bench", "Dining Table", "Desk", "Coffee Table", "Bedside Table", "Desk Lamp", "Table Lamp", "Floor Lamp", "Wall Light", "Ceiling Light", "Cupboard", "Drawers", "Wardrobe", "Bookcase", "Wall-mounted Cupboard", "Kitchen Units", "Single Bed", "Bath (w/Shower)", "Shower", "Bathroom Sink", "Toilet", "Oven", "Fridge", "Freezer", "Kitchen Sink", "DishWasher", "Rug", "Double Bed", "Sofa (3 person)", "Large Plant", "Pot Plant"};
 	    Arrays.sort(types);
 	    lab = new JLabel("<html><font face='Gill Sans MT' size=4> Item Type:");
-	    addItem(tog,lab,0,2,1,1,GridBagConstraints.WEST);
+	    addItem(tog, lab, 0, 2, 1, 1, GridBagConstraints.WEST);
 	    typelist = new JComboBox(types);
 	    typelist.insertItemAt("None",0);
 	    typelist.setSelectedIndex(0);
 	    typelist.addActionListener(this);
-	  	addItem(tog,typelist,1,2,1,1,GridBagConstraints.CENTER); 
+       addItem(tog, typelist, 1, 2, 1, 1, GridBagConstraints.CENTER); 
 
-       addItem(pane, tog, 1, 1, 1, 1, GridBagConstraints.CENTER);
+       // add misc container to item container
+       addItem(itemContainer, tog, 2, 0, 1, 1, GridBagConstraints.CENTER);
+
+       // add item container to bottom half of screen
+       addItem(bottom, itemContainer, 0, 1, 1, 1, GridBagConstraints.CENTER);
+
+       // add halves to screen
+       top.setMinimumSize( new Dimension( (int) scrDim.getWidth(), (int) scrDim.getHeight() - 420 ) );
+       top.setMaximumSize( new Dimension( (int) scrDim.getWidth(), (int) scrDim.getHeight() - 420 ) );
+       bottom.setMinimumSize( new Dimension( (int) scrDim.getWidth(), 420 ) );
+       bottom.setMaximumSize( new Dimension( (int) scrDim.getWidth(), 420 ) );
+       addItem(pane, top, 0, 0, 1, 1, GridBagConstraints.CENTER);
+	    addItem(pane, bottom, 0, 1, 1, 1, GridBagConstraints.CENTER);
+
        //preview.shutdown3D();
        preview.startcan();
-       
+
        //preview.startcan();
 	   //addItem(pane,bottom,0,1,1,1, GridBagConstraints.WEST);
        setVisible(true);
