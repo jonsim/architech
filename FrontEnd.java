@@ -203,7 +203,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
 
    /** Asks the user to choose a file to open */
    private File userChoiceOfOpenFile() {
-      JFileChooser fc = new JFileChooser();
+      JFileChooser fc = new JFileChooser(getClass().getResource("").getPath());
       fc.setDialogType(JFileChooser.OPEN_DIALOG);
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
