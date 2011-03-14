@@ -69,13 +69,19 @@ public class FrontEnd implements WindowListener, ChangeListener {
    }
 
    /** Initialises the twoDandThreeD variable */
-   public void initTwoDAndThreeD() {
+   private void initTwoDAndThreeD() {
       TwoDandThreeD.setTopComponent(tabbedPane);
       TwoDandThreeD.setBottomComponent(main.viewport3D.getCanvas());
       TwoDandThreeD.setOneTouchExpandable(true);
       TwoDandThreeD.setDividerSize(11);
       TwoDandThreeD.setBorder(null);
       TwoDandThreeD.setResizeWeight(0.45);
+   }
+
+   /** Re-initialises the twoDandThreeD variable when we switch back to the main app from the tweaker */
+   public void reinitTwoDAndThreeD() {
+      initTwoDAndThreeD();
+      designButtons.getSlider().setMinimumSize( new Dimension( 200, 50 ) );
    }
 
    /** Called whenever the current tab state is changed in tabbedPane */
