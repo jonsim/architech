@@ -106,6 +106,7 @@ public class ArchApp extends Application
     private AppActionListener actionListener = new AppActionListener();
     private boolean isInitComplete = false;
     private Main main;
+    private Geometry floor;
 
     
     
@@ -331,32 +332,50 @@ public class ArchApp extends Application
 
     private void setupMaterials ()
     {
-        grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        grass.setTexture("DiffuseMap", assetManager.loadTexture("req/floor.jpg"));
+        //grass = new Material(assetManager, "Common/MatDefs/Misc/SimpleTextured.j3md");
+        //grass.setTexture("DiffuseMap", assetManager.loadTexture("req/wall1.jpg"));
         /*grass.setBoolean("UseMaterialColors", true);
         grass.setColor("Diffuse",  ColorRGBA.White);
         grass.setColor("Specular",  ColorRGBA.Red);
         grass.setColor("Ambient",  ColorRGBA.Blue);*/
-        grass.setFloat("Shininess", 10);
+        //grass.setFloat("Shininess", 10);
+        grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+		grass.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
+        grass.setFloat("Shininess", 1000);
 
         wallmat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 		wallmat.setTexture("DiffuseMap", assetManager.loadTexture("req/wall1.jpg"));
-        wallmat.setFloat("Shininess", 1000);    	
+        wallmat.setFloat("Shininess", 1000);
     }
     
-    
+    public void reloadfloor(String name){
+		synchronized(syncLockObject)
+		{
+        grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+		grass.setTexture("DiffuseMap", assetManager.loadTexture("img/"+name));
+        grass.setFloat("Shininess", 1000);
+        rootNode.detachChild(floor);
+    	Box floorbox = new Box( new Vector3f(500,-101,-1000),500,0.1f,1000);
+	    floor = new Geometry("Box",floorbox);
+	    floor.setMaterial(grass);
+	    floor.rotate(0f,(float) -Math.toRadians(90),0f);
+	    addToPhysics(floor);
+	    rootNode.attachChild(floor);
+	    ((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
+		}
+    }
 
     PointLight pl1, pl2;
     private void setupScene()
     {	    
 	    //add the floor
-	    Geometry geom = new Geometry("Box", new Quad(4000,4000));
-	    geom.setMaterial(grass);
-	    geom.setShadowMode(ShadowMode.Receive);
-	    geom.setLocalTranslation(new Vector3f(2102,-100,-902));
-	    geom.rotate((float) -Math.toRadians(90),(float) Math.toRadians(180),0f );
-	    addToPhysics(geom);
-	    rootNode.attachChild(geom);	    
+    	Box floorbox = new Box( new Vector3f(500,-101,-1000),500,0.1f,1000);
+	    floor = new Geometry("Box",floorbox);
+	    floor.setMaterial(grass);
+	    floor.rotate(0f,(float) -Math.toRadians(90),0f);
+	    //floor.setShadowMode(ShadowMode.Receive);
+	    addToPhysics(floor);
+	    rootNode.attachChild(floor);
 	    
 	    Box cei = new Box( new Vector3f(420,0,150), 180,0.1f,90);
         Geometry top = new Geometry("Box", cei);

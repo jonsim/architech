@@ -8,7 +8,7 @@ import java.util.Hashtable;
 public class DesignButtons implements ActionListener {
    public static final String IMG_DIR = "img/designbuttons/";
 
-   private final Viewport3D viewport3D;
+   public final Viewport3D viewport3D;
    private final FrontEnd frontEnd;
    private JPanel pane;
    private JButton selectTool, lineTool, curveTool, currentTool, dayToggle, tweaker;

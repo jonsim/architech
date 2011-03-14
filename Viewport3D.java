@@ -13,6 +13,10 @@ public class Viewport3D implements CoordsChangeListener {
    /** Used by Viewport3DEmpty to disable 3D */
    Viewport3D() {
    }
+   
+   public ArchApp getapp(){
+	   return canvasApplication;
+   }
 
    Viewport3D(Main main) {
       this.main = main;
@@ -25,7 +29,7 @@ public class Viewport3D implements CoordsChangeListener {
       // create new canvas application
       canvasApplication = new ArchApp(main);
       canvasApplication.setSettings(settings);
-      Logger.getLogger("").setLevel(Level.OFF);
+      Logger.getLogger("").setLevel(Level.SEVERE);
       canvasApplication.createCanvas(); // create canvas!
 
       // Fill Swing window with canvas and swing components

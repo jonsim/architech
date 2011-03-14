@@ -5,8 +5,12 @@ import java.awt.dnd.DropTarget;
 import java.awt.geom.PathIterator;
 import java.awt.image.BufferedImage;
 import java.io.*;
+
 import javax.swing.*;
 import javax.swing.event.*;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.imageio.ImageIO;
 
@@ -36,10 +40,11 @@ class TwoDPanel extends JPanel implements ChangeListener {
     private ArrayList<Polygon> polygons = new ArrayList<Polygon>();
     private ArrayList<Color> polygonFills = new ArrayList<Color>();
     public ArrayList<ArrayList<Edge>> polygonVertices = new ArrayList<ArrayList<Edge>>();
-    private String saveLocation = "img/";
+    private String saveLocation = getClass().getResource("img").getPath() + "/";
     private String saveName = "3DFloor.jpg";
     private double fillFlatness = 0.001;
     private boolean gettingScreenshot = false;
+    private String currname = null;
 
     /** If file is null creates a blank coords with the tab name nameIfNullFile,
      *  otherwise it tries to open the given file and load a coords from it, if
@@ -325,14 +330,29 @@ class TwoDPanel extends JPanel implements ChangeListener {
         BufferedImage image = (BufferedImage) this.createImage(size.width, size.height);
         Graphics g = image.getGraphics();
         gettingScreenshot = true;
+        String dir = getClass().getResource("img").getPath();
+        File direc = new File(dir);
+		String[] children = direc.list();
+		for(int l = 0 ; l<children.length;l++){
+		if(children[l].lastIndexOf(".")!=-1){
+		if(children[l].substring(children[l].lastIndexOf(".")).equals(".jpg")){
+				if(children[l].contains("ss")){
+					File file = new File(dir + "/" + children[l]);
+					file.delete();
+				}
+		}}}
+		DateFormat df = new SimpleDateFormat("ddMMhhmmss");
+        Date now = Calendar.getInstance().getTime();
+        String nows = df.format(now);		
         this.paint(g);
         g.dispose();
         try {
-            ImageIO.write(image, "jpg", new File(saveLocation + saveName));
+            ImageIO.write(image, "jpg", new File(saveLocation + "ss"+nows+".jpg"));
         } catch (IOException IOE) {
         }
         gettingScreenshot = false;
         repaint();
+        currname = "ss"+nows+".jpg";        	
     }
 
     private class TwoDPanelMouseListener implements MouseListener {
@@ -589,6 +609,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 ArrayList<Edge> sortedEdges = sortEdges(handlerVertexSelect.getSelectedE());
                 fillRoom(sortedEdges);
                 getFloorScreenshot();
+                System.out.println("NUNN");
+                designButtons.viewport3D.getapp().reloadfloor(currname);
             }
         }
 
