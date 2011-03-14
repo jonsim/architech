@@ -73,7 +73,9 @@ public class HandlerVertexSelect {
                     Coords.Vertex v1 = e[k].getV1();
                     Coords.Vertex v2 = e[k].getV2();
                     if ((v1 == v && v2 == selectedVertices.get(i)) || (v1 == selectedVertices.get(i) && v2 == v)) {
-                        selectedArray.add(v);
+                        if (selectedArray.contains(v) == false){
+                           selectedArray.add(v);
+                        }
                         wallEdges.add(e[k]);
                         valid = true;
                     }
