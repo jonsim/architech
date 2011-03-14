@@ -623,7 +623,6 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 // Brents function returns the last vertex twice for some reason
                 // either resolve that in his code (probably better), or ignore
                 // it and hope for the best (definitely lazier).
-                vList.remove(vList.size()-1);
                 // This just makes it remove a fill if it is just overwriting one
                 while(i < polygonEdges.size()-1) {
                     if(polygonEdges.get(i).size() == vList.size()) {
