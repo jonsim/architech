@@ -8,8 +8,9 @@ public class HandlerEdgeDraw {
    private final Coords coords;
    
    private Edge edge = null;
-   private final Point revertV2 = new Point();
    private boolean isCollided = false;
+   private float startX;
+   private float startY;
 
    HandlerEdgeDraw(Coords coords) {
       if (coords == null) throw new IllegalArgumentException("null coords");
@@ -29,8 +30,8 @@ public class HandlerEdgeDraw {
 
       Coords.Vertex v = new Coords.Vertex(p.x, p.y, 0);
       edge = coords.newEdge(v, v, snapToGrid);
-
-      revertV2.setLocation(edge.getV2().getX(), edge.getV2().getY());
+      startX = p.x;
+      startY = p.y;
 
       isCollided = false;
    }
@@ -87,6 +88,8 @@ public class HandlerEdgeDraw {
 
       if (!isCollided) {
          Point mergedPoint;
+         mergedPoint = coords.mergeVertices(edge.getV1(), startX, startY, 0, snapToGrid);
+         if(mergedPoint.x != -1 && mergedPoint.y != 1) coords.set(edge.getV1(), mergedPoint.x, mergedPoint.y, 0, snapToGrid);
          mergedPoint = coords.mergeVertices(edge.getV2(), newX, newY, 0, snapToGrid);
          if(mergedPoint.x != -1 && mergedPoint.y != 1) coords.set(edge.getV2(), mergedPoint.x, mergedPoint.y, 0, snapToGrid);
          else coords.set(edge.getV2(), p.x, p.y, 0, snapToGrid);

@@ -34,9 +34,10 @@ class TwoDPanel extends JPanel implements ChangeListener {
     private ColourPalette colourPalette;
 
     private ArrayList<Polygon> polygons = new ArrayList<Polygon>();
+    private ArrayList<Color> polygonFills = new ArrayList<Color>();
     private String saveLocation = "img/";
     private String saveName = "3DFloor.jpg";
-    private double fillFlatness = 0.5;
+    private double fillFlatness = 0.001;
     private boolean gettingScreenshot = false;
 
     /** If file is null creates a blank coords with the tab name nameIfNullFile,
@@ -124,7 +125,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
         int i = 0;
 	while (i < polygons.size()) {
-            g2.setColor(colourPalette.fillColour);
+            g2.setColor(polygonFills.get(i));
             g2.fill(polygons.get(i));
             i++;
         }
@@ -170,6 +171,24 @@ class TwoDPanel extends JPanel implements ChangeListener {
         g2.setColor(Color.red);
         hoverVertex.paint(g2, (int) Math.round(vertexDiameter / zoomScale));
         }*/
+
+        ArrayList<Coords.Vertex> selectedVertices = handlerVertexSelect.getSelectedV();
+        if (selectedVertices.size() != 0) {
+            g2.setColor(Color.BLUE);
+            for (int j = 0; j < selectedVertices.size(); j++) {
+                Coords.Vertex v = selectedVertices.get(j);
+                v.paint(g2, (int) Math.round(vertexDiameter / zoomScale));
+            }
+        }
+
+        ArrayList<Edge> wallEdges = handlerVertexSelect.getSelectedE();
+        if (wallEdges.size() != 0) {
+            g2.setColor(Color.BLUE);
+            for (int k = 0; k < wallEdges.size(); k++) {
+                Edge edge = wallEdges.get(k);
+                edge.paint(g2, false);
+            }
+        }
 
 
         // EDGE IF THE USER IS DRAWING ONE
@@ -219,24 +238,19 @@ class TwoDPanel extends JPanel implements ChangeListener {
         }
     }
 
-    private void fillRoom(Edge edgeList[]) {
-        int i = 0;
-        while (i < edgeList.length) {
-            if(!edgeList[i].getV2().equals(edgeList[(i + 1) % (edgeList.length)].getV1())) {
-                JOptionPane.showMessageDialog(null, "Edges Selected: " + edgeList.length
-                        + "\nThere is no closed path");
-                return;
-            }
-            i++;
+    private void fillRoom(ArrayList<Edge> edgeList) {
+        if(edgeList == null) {
+            JOptionPane.showMessageDialog(null, "There is no closed path");
+            return;
         }
-        i = 0;
+        int i = 0;
         double x;
         double y;
         Polygon thisPoly = new Polygon();
         PathIterator ite;
         double[] segment;
-        while (i < edgeList.length) {
-            ite = edgeList[i].topDownViewCurve.getPathIterator(null, fillFlatness);
+        while (i < edgeList.size()) {
+            ite = edgeList.get(i).topDownViewCurve.getPathIterator(null, fillFlatness);
             segment = new double[2];
             ite.currentSegment(segment);
             ite.next();
@@ -252,7 +266,56 @@ class TwoDPanel extends JPanel implements ChangeListener {
             i++;
         }
         polygons.add(thisPoly);
+        polygonFills.add(colourPalette.fillColour);
         repaint();
+    }
+
+    private ArrayList<Edge> sortEdges(ArrayList<Edge> edgeList) {
+        if(edgeList.isEmpty()) return null;
+        int i = 0;
+        boolean removed = false;
+        boolean changed = false;
+        ArrayList<Edge> sortedList = new ArrayList<Edge>();
+        Edge e;
+        Point ctrl = new Point();
+        Coords.Vertex v2 = edgeList.get(0).getV2();
+        sortedList.add(edgeList.get(0));
+        edgeList.remove(0);
+        while(!edgeList.isEmpty()) {
+            while(i < edgeList.size()) {
+                e = edgeList.get(i);
+                if(e.getV1().equals(v2)) {
+                    sortedList.add(e);
+                    edgeList.remove(e);
+                    removed = true;
+                    changed = true;
+                    break;
+                }
+                i++;
+            }
+            if(!removed) {
+                i = 0;
+                while(i < edgeList.size()) {
+                    e = edgeList.get(i);
+                    if(e.getV2().equals(v2)) {
+                        ctrl.setLocation(e.getCtrlX(), e.getCtrlY());
+                        sortedList.add(new Edge(e.getV2(), e.getV1(), ctrl));
+                        edgeList.remove(e);
+                        changed = true;
+                        break;
+                    }
+                    i++;
+                }
+            }
+            i = 0;
+            removed = false;
+            if(!changed) return null;
+            changed = false;
+            v2 = sortedList.get(sortedList.size()-1).getV2();
+        }
+        if(!sortedList.get(0).getV1().equals(sortedList.get(sortedList.size()-1).getV2()))
+            return null;
+        return sortedList;
     }
 
     private void getFloorScreenshot() {
@@ -289,6 +352,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 inProgressHandler = handlerEdgeDraw;
                 handlerEdgeDraw.start(p, designButtons.isGridOn());
                 handlerFurnitureMove.forgetRememberedFurniture();
+                handlerVertexSelect.forgetSelectedVertices();
 
             } else if (designButtons.isSelectTool()) {
                 if (coords.vertexAt(p) != null) {
@@ -300,12 +364,13 @@ class TwoDPanel extends JPanel implements ChangeListener {
                     repaint();
 
                 } else if (coords.furnitureAt(p.getX(), p.getY()) != null) {
-                    // handlerVertexSelect.forgetRememberedVertices();
+                    handlerVertexSelect.forgetSelectedVertices();
 
                     inProgressHandler = handlerFurnitureMove;
                     handlerFurnitureMove.start(p);
                     repaint();
                 } else {
+                    handlerVertexSelect.forgetSelectedVertices();
                     handlerFurnitureMove.forgetRememberedFurniture();
                 }
 
@@ -319,6 +384,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 inProgressHandler = handlerEdgeCurve;
                 handlerEdgeCurve.start(p);
                 handlerFurnitureMove.forgetRememberedFurniture();
+                handlerVertexSelect.forgetSelectedVertices();
             }
             // other tools go here
         }
@@ -473,7 +539,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
             }
 
             if(c == KeyEvent.VK_F) {
-                fillRoom(coords.getEdges());
+                ArrayList<Edge> sortedEdges = sortEdges(handlerVertexSelect.getSelectedE());
+                fillRoom(sortedEdges);
                 getFloorScreenshot();
             }
         }
