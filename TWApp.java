@@ -350,9 +350,15 @@ public class TWApp extends Application implements ActionListener {
 	    	for(int i = 0; i<furniture.size(); i++){	    		
 	    	        //OFFSETS
 	        		Double rotateangle = furniture.get(i).getrot();
-	        		Double scalingfactor = (furniture.get(i).getscale());
-	        		if(scalingfactor>1f){scalingfactor = 1 + (scalingfactor-1.0)/3.0;}
-	        		if(scalingfactor<1f){scalingfactor = 1 - (1.0-scalingfactor)/3.0;}
+	        		Double sfx = (furniture.get(i).getscalex());
+	        		if(sfx>1f){sfx = 1 + (sfx-1.0)/3.0;}
+	        		if(sfx<1f){sfx = 1 - (1.0-sfx)/3.0;}
+	        		Double sfy = (furniture.get(i).getscaley());
+	        		if(sfy>1f){sfy = 1 + (sfy-1.0)/3.0;}
+	        		if(sfy<1f){sfy = 1 - (1.0-sfy)/3.0;}
+	        		Double sfz = (furniture.get(i).getscalez());
+	        		if(sfz>1f){sfz = 1 + (sfz-1.0)/3.0;}
+	        		if(sfz<1f){sfz = 1 - (1.0-sfz)/3.0;}
 	    			Loc3f disp = furniture.get(i).getdis();
 	        		Double disx = Double.parseDouble(Float.toString(disp.x()));
 	        		Double disy = Double.parseDouble(Float.toString(disp.y()));
@@ -386,12 +392,12 @@ public class TWApp extends Application implements ActionListener {
 	    	        		out.write(System.getProperty("line.separator"));
 	    	        	} else
 			        	if(text.substring(0,2).equals("v ")){
-			        		pvcount++;
+				        	vcount++;
 			        		parts = text.split(" ");			        		
 			        		//apply scaling factor and offset
-			        		Double x = (Double.parseDouble(parts[1]) * scalingfactor)+(disx/3.0);
-			        		Double b = (Double.parseDouble(parts[2]) * scalingfactor)+(disz/3.0);
-			        		Double y = (Double.parseDouble(parts[3]) * scalingfactor)+(disy/3.0);
+			        		Double x = (Double.parseDouble(parts[1]) * sfx)+(disx/3.0);
+			        		Double b = (Double.parseDouble(parts[2]) * sfy)+(disz/3.0);
+			        		Double y = (Double.parseDouble(parts[3]) * sfz)+(disy/3.0);
 			        		//calculate geometry for rotation
 			        		Double hyp = Math.sqrt(Math.pow(x,2.0) + Math.pow(y,2.0));
 			        		Double angle = Math.atan(x/y);
@@ -423,6 +429,7 @@ public class TWApp extends Application implements ActionListener {
 			            	}else{
 				        	if(text.substring(0,2).equals("vn")){pvncount++;}
 				        	if(text.substring(0,2).equals("vt")){pvtcount++;}
+
 				        	if(!text.equals("")) {
 				        		out.write(text);
 				        		out.write(System.getProperty("line.separator"));}
@@ -534,11 +541,17 @@ public class TWApp extends Application implements ActionListener {
 			if(dir=='r'){item.setLocalTranslation(curx-5,cury,curz); parent.appendx(-5);}
 			if(dir=='f'){item.setLocalTranslation(curx,cury,curz+5); parent.appendy(5);}
 			if(dir=='b'){item.setLocalTranslation(curx,cury,curz-5); parent.appendy(-5);}
-			if(dir=='u'){item.setLocalTranslation(curx,cury+5,curz); parent.appendz(5);}
-			if(dir=='d'){item.setLocalTranslation(curx,cury-5,curz); parent.appendz(-5);;}
-			if(dir=='+'){item.setLocalScale(new Vector3f(sx+0.25f,sy+0.25f,sz+0.25f)); parent.appendscale(0.25);}
-			if(dir=='-'){if(!(parent.getscale()==0.25)){
-				item.setLocalScale(new Vector3f(sx-0.25f,sy-0.25f,sz-0.25f)); parent.appendscale(-0.25);}}
+			if(dir=='u'){item.setLocalTranslation(curx,cury+1,curz); parent.appendz(1);}
+			if(dir=='d'){item.setLocalTranslation(curx,cury-1,curz); parent.appendz(-1);;}
+			if(dir=='+'){item.setLocalScale(new Vector3f(sx+0.25f,sy+0.25f,sz+0.25f)); parent.appendscalex(0.25);parent.appendscaley(0.25);parent.appendscalez(0.25);}
+			if(dir=='-'){if(!(parent.getscalex()==0.25) & !(parent.getscaley()==0.25) & !(parent.getscalez()==0.25)){
+				item.setLocalScale(new Vector3f(sx-0.25f,sy-0.25f,sz-0.25f)); parent.appendscalex(-0.25);parent.appendscaley(-0.25);parent.appendscalez(-0.25);}}
+			if(dir=='x'){item.setLocalScale(new Vector3f(sx+0.25f,sy,sz)); parent.appendscalex(0.25);}
+			if(dir=='1'){if(!(parent.getscalex()==0.25)){item.setLocalScale(new Vector3f(sx-0.25f,sy,sz)); parent.appendscalex(-0.25);}}
+			if(dir=='y'){item.setLocalScale(new Vector3f(sx,sy+0.25f,sz)); parent.appendscaley(0.25);}
+			if(dir=='2'){if(!(parent.getscaley()==0.25)){item.setLocalScale(new Vector3f(sx,sy-0.25f,sz)); parent.appendscaley(-0.25);}}
+			if(dir=='z'){item.setLocalScale(new Vector3f(sx,sy,sz+0.25f)); parent.appendscalez(0.25);}
+			if(dir=='3'){if(!(parent.getscalez()==0.25)){item.setLocalScale(new Vector3f(sx,sy,sz-0.25f)); parent.appendscalez(-0.25);}}
 			if(dir=='>'){item.rotate(0f,(float) (Math.PI*0.125),0f);parent.appendrot(Math.PI*0.125);}
 			if(dir=='<'){item.rotate(0f,-((float) (Math.PI*0.125)),0f);parent.appendrot(-Math.PI*0.125);}
 			focus();

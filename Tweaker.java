@@ -302,17 +302,17 @@ public class Tweaker extends JFrame implements ActionListener{
         addItem(buttons, but, 2, 4, 1, 1, GridBagConstraints.EAST);      
         
         label = new JLabel("Texture Tiling");
-        addItem(buttons,label,0,7,1,1, GridBagConstraints.EAST);
+        addItem(buttons,label,0,10,1,1, GridBagConstraints.EAST);
         
         but = new JButton("+");
         but.setActionCommand("txp" + id);
         but.addActionListener(this);
-        addItem(buttons, but, 1, 7, 1, 1, GridBagConstraints.EAST);
+        addItem(buttons, but, 1, 10, 1, 1, GridBagConstraints.EAST);
         
         but = new JButton("-");
         but.setActionCommand("txm" + id);
         but.addActionListener(this);
-        addItem(buttons, but, 2, 7, 1, 1, GridBagConstraints.EAST);   
+        addItem(buttons, but, 2, 10, 1, 1, GridBagConstraints.EAST);   
 
         ImageIcon brush = new ImageIcon(main.frontEnd.getImage(this, "img/designbuttons/pas.png"));
         but = new JButton("<html>Paint with<P> current<p>colour</html>", brush);
@@ -345,21 +345,60 @@ public class Tweaker extends JFrame implements ActionListener{
         but.addActionListener(this);
         addItem(buttons, but, 2, 5, 1, 1, GridBagConstraints.EAST); 
         
-        label = new JLabel("Rotate");
+        label = new JLabel("Scale in X");
         addItem(buttons,label,0,6,1,1, GridBagConstraints.EAST);
+        
+        but = new JButton("+");
+        but.setActionCommand("!x" + id);
+        but.addActionListener(this);
+        addItem(buttons, but, 1, 6, 1, 1, GridBagConstraints.EAST);
+        
+        but = new JButton("-");
+        but.setActionCommand("!1" + id);
+        but.addActionListener(this);
+        addItem(buttons, but, 2, 6, 1, 1, GridBagConstraints.EAST); 
+        
+        label = new JLabel("Scale in Y");
+        addItem(buttons,label,0,7,1,1, GridBagConstraints.EAST);
+        
+        but = new JButton("+");
+        but.setActionCommand("!y" + id);
+        but.addActionListener(this);
+        addItem(buttons, but, 1, 7, 1, 1, GridBagConstraints.EAST);
+        
+        but = new JButton("-");
+        but.setActionCommand("!2" + id);
+        but.addActionListener(this);
+        addItem(buttons, but, 2, 7, 1, 1, GridBagConstraints.EAST);
+        
+        label = new JLabel("Scale in Z");
+        addItem(buttons,label,0,8,1,1, GridBagConstraints.EAST);
+        
+        but = new JButton("+");
+        but.setActionCommand("!z" + id);
+        but.addActionListener(this);
+        addItem(buttons, but, 1, 8, 1, 1, GridBagConstraints.EAST);
+        
+        but = new JButton("-");
+        but.setActionCommand("!3" + id);
+        but.addActionListener(this);
+        addItem(buttons, but, 2, 8, 1, 1, GridBagConstraints.EAST);
+        
+        label = new JLabel("Rotate");
+        addItem(buttons,label,0,9,1,1, GridBagConstraints.EAST);
         
         but = new JButton("<");
         but.setActionCommand("!<" + id);
         but.addActionListener(this);
-        addItem(buttons, but, 1, 6, 1, 1, GridBagConstraints.EAST);
+        addItem(buttons, but, 1, 9, 1, 1, GridBagConstraints.EAST);
         
         but = new JButton(">");
         but.setActionCommand("!>" + id);
         but.addActionListener(this);
-        addItem(buttons, but, 2, 6, 1, 1, GridBagConstraints.EAST);
+        addItem(buttons, but, 2, 9, 1, 1, GridBagConstraints.EAST);
         
         label = new JLabel("--------------------------------------------------------");
-        addItem(buttons,label,0,8,4,1, GridBagConstraints.EAST);
+        addItem(buttons,label,0,11,4,1, GridBagConstraints.EAST);
 
         addItem(controlarea,buttons,0,controlcount,1,1, GridBagConstraints.EAST);
         controlarea.validate();
@@ -463,8 +502,8 @@ public class Tweaker extends JFrame implements ActionListener{
 				     main.viewport3D.getCanvas().setMinimumSize(new Dimension(0,0));
 					 main.frontEnd.getwindow().setVisible(true);
 					 
-			 } else if (comm.equals("brow")){
-				 final JFileChooser fc = new JFileChooser("req");
+			 } else if (comm.equals("brow")){				 
+				 final JFileChooser fc = new JFileChooser(getClass().getResource("img/tex").getPath());
 				 FileFilter img = new ExtensionGroup("Supported Image Files", new String[] {".png",".jpg",".gif",".bmp"});
 				 fc.addChoosableFileFilter(img);
 				 fc.setFileFilter(img);

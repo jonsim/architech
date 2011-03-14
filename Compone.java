@@ -10,7 +10,9 @@ public class Compone {
 	String filepath;
 	String filename;
 	Loc3f displacement;
-	double scaling;
+	double scalex;
+	double scaley;
+	double scalez;
 	double rotateangle;
 	int code;
 	JPanel controls;
@@ -46,14 +48,16 @@ public class Compone {
 		matfile = material;
 		coloured = 0;
 		tiling = 1.0f;
-		scaling = 1.0;
+		scalex = 1.0;
+		scaley = 1.0;
+		scalez = 1.0;
 		controls = controller;
 	}
 	
 	public void print(){
 		System.out.println(displacement.x() + " , " + displacement.y() + " , " +displacement.z());
 		System.out.println(rotateangle);
-		System.out.println(scaling);
+		System.out.println(scalex);
 	}
 	
 	public void colour(float red, float green, float blue){
@@ -91,9 +95,20 @@ public class Compone {
 		matfile = output.toString();
 	}
 	
-	public void appendscale(double num){
-		scaling += num;
-		if(scaling<0.0){scaling=0.0;}
+	public void appendscalex(double num){
+		scalex += num;
+		if(scalex<0.0){scalex=0.0;}
+		return;
+	}
+	
+	public void appendscaley(double num){
+		scaley += num;
+		if(scaley<0.0){scaley=0.0;}
+		return;
+	}
+	public void appendscalez(double num){
+		scalez += num;
+		if(scalez<0.0){scalez=0.0;}
 		return;
 	}
 	
@@ -128,8 +143,14 @@ public class Compone {
 		return rotateangle;
 	}
 	
-	public double getscale(){
-		return scaling;
+	public double getscalex(){
+		return scalex;
+	}
+	public double getscaley(){
+		return scaley;
+	}
+	public double getscalez(){
+		return scalez;
 	}
 	
 	public Loc3f getdis(){
