@@ -375,65 +375,64 @@ public class TWApp extends Application implements ActionListener {
 	    			if(width>maxwidth){maxwidth = width;}
 	    			if(length>maxlength){maxlength = length;}
 	    			if(height>maxheight){maxheight = height;}	    			
-	    			//COPY OBJ ACROSS
-	    			vcount = pvcount;
-	    			vncount = pvncount;
-	    			vtcount = pvtcount;
-	    			String[] parts = null;
-	    			File inputx = new File(furniture.get(i).path());
-	    		    BufferedReader readall = null;  
-	    	        readall  = new BufferedReader(new FileReader(inputx));
-	    	        String text = null;
+	    			 //COPY OBJ ACROSS
+                    vcount = pvcount;
+                    vncount = pvncount;
+                    vtcount = pvtcount;
+                    String[] parts = null;
+                    File inputx = new File(furniture.get(i).path());
+                BufferedReader readall = null;  
+            readall  = new BufferedReader(new FileReader(inputx));
+            String text = null;
 
-	    	        while ((text = readall.readLine()) != null)
-	    	        {
-	    	        	if(text.contains("mtllib")){}else{
-	    	        	if(text.contains("usemtl")){out.write("usemtl mat" + furniture.get(i).getid());
-	    	        		out.write(System.getProperty("line.separator"));
-	    	        	} else
-			        	if(text.substring(0,2).equals("v ")){
-				        	vcount++;
-			        		parts = text.split(" ");			        		
-			        		//apply scaling factor and offset
-			        		Double x = (Double.parseDouble(parts[1]) * sfx)+(disx/3.0);
-			        		Double b = (Double.parseDouble(parts[2]) * sfy)+(disz/3.0);
-			        		Double y = (Double.parseDouble(parts[3]) * sfz)+(disy/3.0);
-			        		//calculate geometry for rotation
-			        		Double hyp = Math.sqrt(Math.pow(x,2.0) + Math.pow(y,2.0));
-			        		Double angle = Math.atan(x/y);
-			        		angle += rotateangle;
-			        		if(y<0){hyp = 0.0-hyp;}
-			        		x=Math.sin(angle) * hyp;
-			        		y=Math.cos(angle) * hyp;
-			        		out.write(parts[0] + " " + x + " " + b +  " " + y);
-			        		out.write(System.getProperty("line.separator"));
-			        	}
-			        	else{
-			        		if(text.charAt(0) == 'f' && i>0){
-			            		parts = text.split(" ");
-			            		int x,y,z;
-			    	        	out.write("f");
-			    	        	for(int j =1;j<parts.length;j++){
-			    	        		if(parts[j].contains("//")){
-			    		        		x = Integer.parseInt(parts[j].split("//")[0]) + vcount;
-			    		        		z = Integer.parseInt(parts[j].split("//")[1]) + vncount;
-			    		        		out.write(" " + x + "//" + z);
-			    	        		}else{
-			    	        			x= Integer.parseInt(parts[j].split("/")[0]) + vcount;
-			    	        			y= Integer.parseInt(parts[j].split("/")[1]) + vtcount;
-			    	        			z= Integer.parseInt(parts[j].split("/")[2]) + vncount;
-			    	        			out.write(" " + x + "/" + y + "/" + z);
-			    	        		}
-			    	        	}
-			    	        	out.write(System.getProperty("line.separator"));
-			            	}else{
-				        	if(text.substring(0,2).equals("vn")){pvncount++;}
-				        	if(text.substring(0,2).equals("vt")){pvtcount++;}
-
-				        	if(!text.equals("")) {
-				        		out.write(text);
-				        		out.write(System.getProperty("line.separator"));}
-		        	}}}
+            while ((text = readall.readLine()) != null)
+            {
+                    if(text.contains("mtllib")){}else{
+                    if(text.contains("usemtl")){out.write("usemtl mat" + furniture.get(i).getid());
+                            out.write(System.getProperty("line.separator"));
+                    } else
+                            if(text.substring(0,2).equals("v ")){
+                                    pvcount++;
+                                    parts = text.split(" ");                                                
+                                    //apply scaling factor and offset
+                                    Double x = (Double.parseDouble(parts[1]) * sfx)+(disx/3.0);
+                                    Double b = (Double.parseDouble(parts[2]) * sfy)+(disz/3.0);
+                                    Double y = (Double.parseDouble(parts[3]) * sfz)+(disy/3.0);
+                                    //calculate geometry for rotation
+                                    Double hyp = Math.sqrt(Math.pow(x,2.0) + Math.pow(y,2.0));
+                                    Double angle = Math.atan(x/y);
+                                    angle += rotateangle;
+                                    if(y<0){hyp = 0.0-hyp;}
+                                    x=Math.sin(angle) * hyp;
+                                    y=Math.cos(angle) * hyp;
+                                    out.write(parts[0] + " " + x + " " + b +  " " + y);
+                                    out.write(System.getProperty("line.separator"));
+                            }
+                            else{
+                                    if(text.charAt(0) == 'f' && i>0){
+                                    parts = text.split(" ");
+                                    int x,y,z;
+                                    out.write("f");
+                                    for(int j =1;j<parts.length;j++){
+                                            if(parts[j].contains("//")){
+                                                    x = Integer.parseInt(parts[j].split("//")[0]) + vcount;
+                                                    z = Integer.parseInt(parts[j].split("//")[1]) + vncount;
+                                                    out.write(" " + x + "//" + z);
+                                            }else{
+                                                    x= Integer.parseInt(parts[j].split("/")[0]) + vcount;
+                                                    y= Integer.parseInt(parts[j].split("/")[1]) + vtcount;
+                                                    z= Integer.parseInt(parts[j].split("/")[2]) + vncount;
+                                                    out.write(" " + x + "/" + y + "/" + z);
+                                            }
+                                    }
+                                    out.write(System.getProperty("line.separator"));
+                            }else{
+                                    if(text.substring(0,2).equals("vn")){pvncount++;}
+                                    if(text.substring(0,2).equals("vt")){pvtcount++;}
+                                    if(!text.equals("")) {
+                                            out.write(text);
+                                            out.write(System.getProperty("line.separator"));}
+                    }}}
 	    	        }
 	    	        if (readall != null) readall.close();
 	    	        //append the mtl file onto the new mtl

@@ -107,6 +107,7 @@ public class ArchApp extends Application
     private boolean isInitComplete = false;
     private Main main;
     private Geometry floor;
+    private Material white;
 
     
     
@@ -342,6 +343,10 @@ public class ArchApp extends Application
         grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 		grass.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
         grass.setFloat("Shininess", 1000);
+        
+        white = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+		white.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
+        white.setFloat("Shininess", 1000);
 
         wallmat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 		wallmat.setTexture("DiffuseMap", assetManager.loadTexture("req/wall1.jpg"));
@@ -373,10 +378,19 @@ public class ArchApp extends Application
     PointLight pl1, pl2;
     private void setupScene()
     {	    
+    	//add the floor
+        Geometry geom = new Geometry("Box", new Quad(4000,4000));
+        geom.setMaterial(grass);
+        geom.setShadowMode(ShadowMode.Receive);
+        geom.setLocalTranslation(new Vector3f(2102,-101,-902));
+        geom.rotate((float) -Math.toRadians(90),(float) Math.toRadians(180),0f );
+        addToPhysics(geom);
+        rootNode.attachChild(geom);
+        
 	    //add the floor
     	Box floorbox = new Box( new Vector3f(500,-101,-1000),500,0.1f,1000);
 	    floor = new Geometry("Box",floorbox);
-	    floor.setMaterial(grass);
+	    floor.setMaterial(white);
 	    floor.rotate(0f,(float) -Math.toRadians(90),0f);
 	    //floor.setShadowMode(ShadowMode.Receive);
 	    addToPhysics(floor);
@@ -384,11 +398,11 @@ public class ArchApp extends Application
 	    
 	    Box cei = new Box( new Vector3f(420,0,150), 180,0.1f,90);
         Geometry top = new Geometry("Box", cei);
-        top.setMaterial(grass);
+        top.setMaterial(white);
 	    rootNode.attachChild(top);
 	    cei = new Box( new Vector3f(330,0,300), 90,0.1f,60);
         top = new Geometry("Box", cei);
-        top.setMaterial(grass);
+        top.setMaterial(white);
 	    rootNode.attachChild(top);
 
 	    // add lightbulbs
