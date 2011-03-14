@@ -498,7 +498,7 @@ public class Tweaker extends JFrame implements ActionListener{
 					 main.viewport3D.remake3D();
 			         try{Thread.sleep(2000);}
 			         catch (InterruptedException ie){}
-					 main.frontEnd.initTwoDAndThreeD();
+					 main.frontEnd.reinitTwoDAndThreeD();
 				     main.viewport3D.getCanvas().setMinimumSize(new Dimension(0,0));
 					 main.frontEnd.getwindow().setVisible(true);
 					 
