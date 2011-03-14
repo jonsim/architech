@@ -7,9 +7,9 @@ public class CoordsChangeEvent extends EventObject {
    public static final int FURNITURE_ADDED = 3;
    public static final int FURNITURE_REMOVED = 4;
    public static final int FURNITURE_CHANGED = 5;
-   public static final int DOORWINDOW_ADDED = 3;
-   public static final int DOORWINDOW_REMOVED = 4;
-   public static final int DOORWINDOW_CHANGED = 5;
+   public static final int DOORWINDOW_ADDED = 6;
+   public static final int DOORWINDOW_REMOVED = 7;
+   public static final int DOORWINDOW_CHANGED = 8;
 
    private int changeType;
    private Edge edgeChanged;
@@ -29,7 +29,7 @@ public class CoordsChangeEvent extends EventObject {
    public CoordsChangeEvent(Object source, int changeType, Furniture furnitureChanged) {
       super(source);
 
-      if (!this.isFurnitureRelated(changeType)) {
+      if ( !this.isFurnitureRelated(changeType) && !this.isDoorWindowRelated(changeType) ) {
          throw new IllegalArgumentException("changeType must be Furniture related");
       }
 
@@ -91,6 +91,11 @@ public class CoordsChangeEvent extends EventObject {
 
    private boolean isFurnitureRelated(int changeType) {
       if (changeType == FURNITURE_ADDED || changeType == FURNITURE_REMOVED || changeType == FURNITURE_CHANGED) return true;
+      else return false;
+   }
+
+   private boolean isDoorWindowRelated(int changeType) {
+      if (changeType == DOORWINDOW_ADDED || changeType == DOORWINDOW_REMOVED || changeType == DOORWINDOW_CHANGED) return true;
       else return false;
    }
 

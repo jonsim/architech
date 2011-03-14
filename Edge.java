@@ -136,6 +136,29 @@ public class Edge {
       return null;
    }
 
+   public boolean isStraight() {
+      int xDiff = 0, yDiff = 0;
+
+      if ( ctrl.getX() == ( ( v1.getX() + v2.getX() ) / 2 ) )
+         xDiff++;
+      else if ( ctrl.getX()+1 == ( ( v1.getX() + v2.getX() ) / 2 ) )
+         xDiff++;
+      else if ( ctrl.getX()-1 == ( ( v1.getX() + v2.getX() ) / 2 ) )
+         xDiff++;
+
+      if ( ctrl.getY() == ( ( v1.getY() + v2.getY() ) / 2 ) )
+         yDiff++;
+      else if ( ctrl.getY()+1 == ( ( v1.getY() + v2.getY() ) / 2 ) )
+         yDiff++;
+      else if ( ctrl.getY()-1 == ( ( v1.getY() + v2.getY() ) / 2 ) )
+         yDiff++;
+
+      if( xDiff == 1 & yDiff == 1 )
+         return true;
+
+      return false;
+   }
+
    public boolean doorWindowAt(Point p) {
       ListIterator<Furniture> ite = doorWindow.listIterator();
       

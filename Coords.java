@@ -260,12 +260,12 @@ public class Coords {
    public void addDoorWindow(Furniture f) {
       if( f == null || getDoorWindowEdge(f) != null ) return;
 
-      f.set( snapToEdge( f.getRotationCenter() ) );
+      //f.set( snapToEdge( f.getRotationCenter() );
       ListIterator<Edge> ite = edges.listIterator();
       
       while( ite.hasNext() ) {
          Edge e = ite.next();
-         if( e.curveContains(f) ) {
+         if( e.isStraight() && e.curveContains(f) ) {
             e.addDoorWindow(f);
             fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_ADDED, f));
             return;
@@ -283,7 +283,7 @@ public class Coords {
          e = getDoorWindowEdge(f);
       }
 
-      newCenter = snapToEdge(newCenter);
+      //newCenter = snapToEdge(newCenter);
       f.set(newCenter);
 
       if( e != null && !e.curveContains(f) ) {
@@ -742,16 +742,18 @@ public class Coords {
 
       return coord;
    }
-   
+
+   /** TODO: Snaps a point to the nearest edge */
    private Point snapToEdge(Point p) {
-	  ListIterator<Edge> ite = edges.listIterator();
-	  Rectangle proximity = new Rectangle((int)p.getX(), (int)p.getY(), 10, 10);
-      
-      while (ite.hasNext()) {
+      ListIterator<Edge> ite = edges.listIterator();
+      Rectangle proximity = new Rectangle((int)p.getX(), (int)p.getY(), 10, 10);
+
+      while(ite.hasNext()) {
          Edge e = ite.next();
-		 
-	   }
-	  return p;
+
+      }
+
+      return p;
    }
 
    /** If the vertex exists already it prevents duplicate entries.

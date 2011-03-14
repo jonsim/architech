@@ -25,10 +25,14 @@ public class Furniture {
       this.rotation = 0;
       this.objPath = data.objPath;
 
-      if( ob.isDoorWindow( data.type ) )
+      if( ob.isDoorWindow( data.type ) ) {
+         if( this.height == 0 )
+            this.height = 10;
+
          isDW = true;
-      else
+      } else {
          isDW = false;
+      }
 
       setRotationCenter(center);
       recalcRectangle();
@@ -120,6 +124,7 @@ public class Furniture {
       rectangle.setRoundRect(x, y, width, height, 0.2 * width, 0.2 * height);
    }
 
+   /** Checks if the current object is a door/window */
    public boolean isDoorWindow() {
       return isDW;
    }
