@@ -35,6 +35,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
     private ArrayList<Polygon> polygons = new ArrayList<Polygon>();
     private ArrayList<Color> polygonFills = new ArrayList<Color>();
+    public ArrayList<ArrayList<Edge>> polygonVertices = new ArrayList<ArrayList<Edge>>();
     private String saveLocation = "img/";
     private String saveName = "3DFloor.jpg";
     private double fillFlatness = 0.001;
@@ -173,7 +174,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
         }*/
 
         ArrayList<Coords.Vertex> selectedVertices = handlerVertexSelect.getSelectedV();
-        if (selectedVertices.size() != 0) {
+        if (!selectedVertices.isEmpty()) {
             g2.setColor(Color.BLUE);
             for (int j = 0; j < selectedVertices.size(); j++) {
                 Coords.Vertex v = selectedVertices.get(j);
@@ -182,7 +183,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
         }
 
         ArrayList<Edge> wallEdges = handlerVertexSelect.getSelectedE();
-        if (wallEdges.size() != 0) {
+        if (!wallEdges.isEmpty()) {
             g2.setColor(Color.BLUE);
             for (int k = 0; k < wallEdges.size(); k++) {
                 Edge edge = wallEdges.get(k);
@@ -267,6 +268,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
         }
         polygons.add(thisPoly);
         polygonFills.add(colourPalette.fillColour);
+        polygonVertices.add(edgeList);
         repaint();
     }
 
@@ -404,18 +406,63 @@ class TwoDPanel extends JPanel implements ChangeListener {
             }
 
             if (inProgressHandler == handlerEdgeCurve) {
+                int i = 0;
+                int j = 0;
+                boolean breaker = false;
+                while(i < polygonVertices.size()) {
+                    while(j < polygonVertices.get(i).size()) {
+                        if(polygonVertices.get(i).get(j).equals(handlerEdgeCurve.getEdge())) {
+                            fillRoom(polygonVertices.get(i));
+                            polygons.remove(i);
+                            polygonFills.remove(i);
+                            polygonVertices.remove(i);
+                            breaker = true;
+                            break;
+                        }
+                        j++;
+                    }
+                    if(breaker) break;
+                    j = 0;
+                    i++;
+                }
+
                 inProgressHandler = null;
                 handlerEdgeCurve.stop(p);
+
+                getFloorScreenshot();
 
             } else if (inProgressHandler == handlerEdgeDraw) {
                 inProgressHandler = null;
                 handlerEdgeDraw.stop(p, e.isShiftDown(), designButtons.isGridOn());
 
             } else if (inProgressHandler == handlerVertexMove) {
+                int i = 0;
+                int j = 0;
+                boolean breaker = false;
+                while(i < polygonVertices.size()) {
+                    while(j < polygonVertices.get(i).size()) {
+                        if(polygonVertices.get(i).get(j).getV1().equals(handlerVertexMove.getVertex())
+                           || polygonVertices.get(i).get(j).getV2().equals(handlerVertexMove.getVertex())) {
+                            fillRoom(polygonVertices.get(i));
+                            polygons.remove(i);
+                            polygonFills.remove(i);
+                            polygonVertices.remove(i);
+                            breaker = true;
+                            break;
+                        }
+                        j++;
+                    }
+                    if(breaker) break;
+                    j = 0;
+                    i++;
+                }
+                
                 inProgressHandler = null;
                 handlerVertexMove.stop(p, designButtons.isGridOn());
 
                 callVertexSelect = true;
+
+                getFloorScreenshot();
 
             } else if (inProgressHandler == handlerFurnitureMove) {
                 inProgressHandler = null;

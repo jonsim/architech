@@ -53,7 +53,7 @@ public class HandlerVertexMove {
          if(mergedPoint.x != -1 && mergedPoint.y != 1) coords.set(v, mergedPoint.x, mergedPoint.y, 0, snapToGrid);
          else coords.set(v, p.x, p.y, 0, snapToGrid);
       } else {
-         //reset to last known
+         //reset to start
          coords.set(v, (float) revert.getX(), (float) revert.getY(), 0, false);
          isCollided = false;
       }
