@@ -1,10 +1,11 @@
 # Exported from Wings 3D 1.4.1
-newmtl error_mat
+newmtl bed_single_1_uv
 Ns 100.0
 d 1.0
 illum 2
-Kd 0.7266666666666667 0.11142222222222221 0.11142222222222221
+Kd 1.0 1.0 1.0
 Ka 1.0 1.0 1.0
 Ks 1.0 1.0 1.0
 Ke 0.0 0.0 0.0
+map_Kd bed_single_1_uv.jpg
 
