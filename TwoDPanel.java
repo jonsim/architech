@@ -39,7 +39,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
     private ArrayList<Polygon> polygons = new ArrayList<Polygon>();
     private ArrayList<Color> polygonFills = new ArrayList<Color>();
-    public ArrayList<ArrayList<Edge>> polygonVertices = new ArrayList<ArrayList<Edge>>();
+    public ArrayList<ArrayList<Edge>> polygonEdges = new ArrayList<ArrayList<Edge>>();
     private String saveLocation = getClass().getResource("img").getPath() + "/";
     private String saveName = "3DFloor.jpg";
     private double fillFlatness = 0.001;
@@ -273,7 +273,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
         }
         polygons.add(thisPoly);
         polygonFills.add(colourPalette.fillColour);
-        polygonVertices.add(edgeList);
+        polygonEdges.add(edgeList);
         repaint();
     }
 
@@ -386,13 +386,11 @@ class TwoDPanel extends JPanel implements ChangeListener {
                     repaint();
 
                 } else if (coords.furnitureAt(p.getX(), p.getY()) != null) {
-                    handlerVertexSelect.forgetSelectedVertices();
 
                     inProgressHandler = handlerFurnitureMove;
                     handlerFurnitureMove.start(p);
                     repaint();
                 } else {
-                    handlerVertexSelect.forgetSelectedVertices();
                     handlerFurnitureMove.forgetRememberedFurniture();
                 }
 
@@ -429,13 +427,13 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 int i = 0;
                 int j = 0;
                 boolean breaker = false;
-                while(i < polygonVertices.size()) {
-                    while(j < polygonVertices.get(i).size()) {
-                        if(polygonVertices.get(i).get(j).equals(handlerEdgeCurve.getEdge())) {
-                            fillRoom(polygonVertices.get(i));
+                while(i < polygonEdges.size()) {
+                    while(j < polygonEdges.get(i).size()) {
+                        if(polygonEdges.get(i).get(j).equals(handlerEdgeCurve.getEdge())) {
+                            fillRoom(polygonEdges.get(i));
                             polygons.remove(i);
                             polygonFills.remove(i);
-                            polygonVertices.remove(i);
+                            polygonEdges.remove(i);
                             breaker = true;
                             break;
                         }
@@ -459,14 +457,16 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 int i = 0;
                 int j = 0;
                 boolean breaker = false;
-                while(i < polygonVertices.size()) {
-                    while(j < polygonVertices.get(i).size()) {
-                        if(polygonVertices.get(i).get(j).getV1().equals(handlerVertexMove.getVertex())
-                           || polygonVertices.get(i).get(j).getV2().equals(handlerVertexMove.getVertex())) {
-                            fillRoom(polygonVertices.get(i));
+                while(i < polygonEdges.size()) {
+                    while(j < polygonEdges.get(i).size()) {
+                        if(polygonEdges.get(i).get(j).getV1().equals(handlerVertexMove.getVertex())
+                           || polygonEdges.get(i).get(j).getV2().equals(handlerVertexMove.getVertex())) {
+                            Color temp = polygonFills.get(i);
+                            fillRoom(polygonEdges.get(i));
+                            polygonFills.set(polygonFills.size()-1, temp);
                             polygons.remove(i);
                             polygonFills.remove(i);
-                            polygonVertices.remove(i);
+                            polygonEdges.remove(i);
                             breaker = true;
                             break;
                         }
@@ -608,9 +608,50 @@ class TwoDPanel extends JPanel implements ChangeListener {
             if(c == KeyEvent.VK_F) {
                 ArrayList<Edge> sortedEdges = sortEdges(handlerVertexSelect.getSelectedE());
                 fillRoom(sortedEdges);
+                int i = 0;
+                int j = 0;
+                int k = 0;
+                int count = 0;
+                boolean breaker = false;
+                ArrayList<Coords.Vertex> vList = handlerVertexSelect.getSelectedV();
+                vList.remove(vList.size()-1);
+                while(i < polygonEdges.size()-1) {
+                    if(polygonEdges.get(i).size() == vList.size()) {
+                        while(j < polygonEdges.get(i).size()) {
+                            while(k < vList.size()) {
+                                System.out.println("WTF");
+                                if(vList.get(k).equals(polygonEdges.get(i).get(j).getV1())) {
+                                    count++;
+                                    System.out.println("WTFWTFWTFWTFWTFWTFWTFWTF");
+                                    break;
+                                }
+                                k++;
+                            }
+                            if(count == vList.size()) {
+                                polygons.remove(i);
+                                polygonFills.remove(i);
+                                polygonEdges.remove(i);
+                                System.out.println("LOLOLOLOLOLOLOLOLOLOL");
+                                breaker = true;
+                                break;
+                            }
+                            k = 0;
+                            j++;
+                        }
+                        if(breaker) break;
+                        j = 0;
+                        count = 0;
+                    }
+                    i++;
+                }
                 getFloorScreenshot();
                 System.out.println("NUNN");
                 designButtons.viewport3D.getapp().reloadfloor(currname);
+            }
+
+            if(c == KeyEvent.VK_SPACE) {
+                handlerVertexSelect.forgetSelectedVertices();
+                repaint();
             }
         }
 

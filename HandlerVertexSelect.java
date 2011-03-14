@@ -51,11 +51,11 @@ public class HandlerVertexSelect {
             printEdges();
         } else {
             // reset
-            selectedArray.clear();
-            wallEdges.clear();
-            selCount = 0;
-            objectBrowser.wall = false;
-            objectBrowser.toReset();
+            //selectedArray.clear();
+            //wallEdges.clear();
+            //selCount = 0;
+            //objectBrowser.wall = false;
+            //objectBrowser.toReset();
         }
 
         if (selectedArray.size() > 1) {
