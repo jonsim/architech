@@ -90,9 +90,11 @@ class TwoDPanel extends JPanel implements ChangeListener {
             @Override
             public void mouseReleased(MouseEvent Me) {
                 if (Me.isPopupTrigger()) {
-                    colourPalette.show(null, Me.getX(), Me.getY());
+                    colourPalette.show(null, Me.getXOnScreen()-30, Me.getYOnScreen()-150);
+                    repaint();
                 } else {
                     colourPalette.hide();
+                    repaint();
                 }
             }
         });
@@ -247,6 +249,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
     private void fillRoom(ArrayList<Edge> edgeList) {
         if(edgeList == null) {
             JOptionPane.showMessageDialog(null, "There is no closed path");
+            repaint();
             return;
         }
         int i = 0;
@@ -559,6 +562,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
         /** Invoked when the mouse cursor has been moved onto a component but no buttons have been pushed. */
         public void mouseMoved(MouseEvent e) {
             // UNTIL CURVES ARE FIXED I DISABLED THIS
+            requestFocus();
 
             Point p = new Point();
             p.setLocation(e.getPoint().getX() / zoomScale, e.getPoint().getY() / zoomScale);
@@ -614,15 +618,17 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 int count = 0;
                 boolean breaker = false;
                 ArrayList<Coords.Vertex> vList = handlerVertexSelect.getSelectedV();
+                // Brents function returns the last vertex twice for some reason
+                // either resolve that in his code (probably better), or ignore
+                // it and hope for the best (definitely lazier).
                 vList.remove(vList.size()-1);
+                // This just makes it remove a fill if it is just overwriting one
                 while(i < polygonEdges.size()-1) {
                     if(polygonEdges.get(i).size() == vList.size()) {
                         while(j < polygonEdges.get(i).size()) {
                             while(k < vList.size()) {
-                                System.out.println("WTF");
                                 if(vList.get(k).equals(polygonEdges.get(i).get(j).getV1())) {
                                     count++;
-                                    System.out.println("WTFWTFWTFWTFWTFWTFWTFWTF");
                                     break;
                                 }
                                 k++;
@@ -631,7 +637,6 @@ class TwoDPanel extends JPanel implements ChangeListener {
                                 polygons.remove(i);
                                 polygonFills.remove(i);
                                 polygonEdges.remove(i);
-                                System.out.println("LOLOLOLOLOLOLOLOLOLOL");
                                 breaker = true;
                                 break;
                             }

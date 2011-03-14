@@ -114,15 +114,14 @@ public class HandlerVertexSelect {
       }
 
       // clear arraylists
-      selectedArray.clear();
-      wallEdges.clear();
-      selCount = 0;
-      objectBrowser.wall = false;
-      objectBrowser.toReset();
+      forgetSelectedVertices();
     }
 
     public void forgetSelectedVertices() {
         selectedArray.clear();
         wallEdges.clear();
+        selCount = 0;
+        objectBrowser.wall = false;
+        objectBrowser.toReset();
     }
 }
