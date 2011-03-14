@@ -107,11 +107,18 @@ public class HandlerVertexSelect {
 
     /** As your class handles selection it makes sense to have control of deletes :) */
     public void deleteSelected() {
-        System.out.println("delete");
+       System.out.println("delete");
 
-        // clear arraylists
+      for (int i=0; i<selectedArray.size();i++){
+         coords.delete(selectedArray.get(i));
+      }
 
-        //coords.delete(selectVertices);
+      // clear arraylists
+      selectedArray.clear();
+      wallEdges.clear();
+      selCount = 0;
+      objectBrowser.wall = false;
+      objectBrowser.toReset();
     }
 
     public void forgetSelectedVertices() {

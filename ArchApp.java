@@ -348,23 +348,28 @@ public class ArchApp extends Application
         wallmat.setFloat("Shininess", 1000);
     }
     
-    public void reloadfloor(String name){
+    
+    
+    public void reloadfloor(String name)
+    {
 		synchronized(syncLockObject)
 		{
-        grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-		grass.setTexture("DiffuseMap", assetManager.loadTexture("img/"+name));
-        grass.setFloat("Shininess", 1000);
-        rootNode.detachChild(floor);
-    	Box floorbox = new Box( new Vector3f(500,-101,-1000),500,0.1f,1000);
-	    floor = new Geometry("Box",floorbox);
-	    floor.setMaterial(grass);
-	    floor.rotate(0f,(float) -Math.toRadians(90),0f);
-	    addToPhysics(floor);
-	    rootNode.attachChild(floor);
-	    ((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
+	        grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+			grass.setTexture("DiffuseMap", assetManager.loadTexture("img/"+name));
+	        grass.setFloat("Shininess", 1000);
+	        rootNode.detachChild(floor);
+	    	Box floorbox = new Box( new Vector3f(500,-101,-1000),500,0.1f,1000);
+		    floor = new Geometry("Box",floorbox);
+		    floor.setMaterial(grass);
+		    floor.rotate(0f,(float) -Math.toRadians(90),0f);
+		    addToPhysics(floor);
+		    rootNode.attachChild(floor);
+		    ((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
 		}
     }
 
+    
+    
     PointLight pl1, pl2;
     private void setupScene()
     {	    
@@ -527,26 +532,47 @@ public class ArchApp extends Application
     
     /**********************PHYSICS FUNCTIONS**********************/
 
+	RigidBodyControl body;
+	
     private void addToPhysics (Spatial s)
     {
-    	RigidBodyControl bla;
     	CollisionShape sShape = CollisionShapeFactory.createMeshShape(s);
-        bla = new RigidBodyControl(sShape, 0);
-        s.addControl(bla);
+    	body = new RigidBodyControl(sShape, 0);
+    	//body.setApplyPhysicsLocal(true);
+        s.addControl(body);
         
-        bulletAppState.getPhysicsSpace().add(bla);
+        bulletAppState.getPhysicsSpace().add(body);
     }
+    
+    /*private void addToPhysics (Furniture f)
+    {
+    	CollisionShape fsShape = CollisionShapeFactory.createMeshShape(f.Spatial);
+    	RigidBodyControl body = new RigidBodyControl(fsShape, 0);
+        f.Spatial.addControl(body);
+        
+        bulletAppState.getPhysicsSpace().add(body);
+    }*/
+    
+    
+    //TODO
+    /*private void updatePhysics (Spatial s)
+    {
+    	//s.updateLogicalState(timer.getTimePerFrame() * speed);
+    	body.setApplyPhysicsLocal(true);
+    	body.update(timer.getTimePerFrame() * speed);
+    	bulletAppState.getPhysicsSpace().update(timer.getTimeInSeconds());
+    }*/
     
     
     
     private void addToPhysics (Geometry g)
     {
-    	RigidBodyControl bla;
     	MeshCollisionShape gShape = CollisionShapeFactory.createSingleMeshShape(g);
-        bla = new RigidBodyControl(gShape, 0);
-        g.addControl(bla);
+    	body = new RigidBodyControl(gShape, 0);
+    	//body.setApplyPhysicsLocal(true);
+        g.addControl(body);
         
-        bulletAppState.getPhysicsSpace().add(bla);
+        bulletAppState.getPhysicsSpace().add(body);
     }
     
     
@@ -565,7 +591,7 @@ public class ArchApp extends Application
 	
 	
 	
-	/**********************WALL GEOMETRY FUNCTIONS**********************/
+	/**********************WALL GEOMETRY CLASS**********************/
 
 	private class WallGeometry
 	{
@@ -575,7 +601,7 @@ public class ArchApp extends Application
 		= new HashMap<Coords, HashMap<Edge, WallGeometry> >();
 	private final HashMap<Coords, HashMap<Furniture, Spatial> > tabFurnitureSpatials
 		= new HashMap<Coords, HashMap<Furniture, Spatial> >();
-
+	
 	
 	
 	
@@ -1078,13 +1104,16 @@ public class ArchApp extends Application
 		}
 	}	
 	
+	
+	
 	/** Moves the given spatial to the new position of furniture f */
 	private void updatefurniture(Spatial spatial, Furniture f)
 	{
-		// move the furniture to the new position!
+		// recalculate the furniture's position and move it
 		Point center = f.getRotationCenter();
 		spatial.setLocalTranslation(center.x,-100f,center.y);
-		//take care of its rotation
+		
+		// recalculate the furniture's rotation and adjust it
 		double rotation = f.getRotation();
 		Quaternion q = spatial.getLocalRotation();
 		rotation *= 0.5;
@@ -1096,7 +1125,11 @@ public class ArchApp extends Application
 		Quaternion c = new Quaternion(w,x,y,z);
 		spatial.setLocalRotation(c);
 		spatial.rotate(0f,-FastMath.HALF_PI,-FastMath.PI);
+		
+		// recalculate the furniture's physics (from position) and update it
+		//updatePhysics(spatial);
 	}
+	
 	
 	
 	/** Moves the given furniture. Returns if Coords c is not known yet or if f is not
