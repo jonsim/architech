@@ -71,7 +71,7 @@ public class ArchApp extends Application
 	private static final float    NIGHT_SHADOW_INTENSITY = 0;
 	private static Spatial        NIGHT_MAP = null;
 	private static Vector3f lookvec = new Vector3f(-540f, -50f, 360f);
-	private static Vector3f startvec = new Vector3f(590, -15, 80);
+	private static final Vector3f START_VEC = new Vector3f(590, -15, 80);
 	private boolean day = true;  // true = day, false = night
 	private DirectionalLight sun;
 	private AmbientLight ambient;
@@ -106,6 +106,7 @@ public class ArchApp extends Application
     private boolean isInitComplete = false;
     private Main main;
     private Edge3D floor = new Edge3D();
+	private Edge3D floor_plane = new Edge3D();
 	private Material white;
 
     
@@ -369,9 +370,7 @@ public class ArchApp extends Application
     
     PointLight pl1, pl2;
     private void setupScene()
-    {
-    	Edge3D floor_plane = new Edge3D();
-    	
+    {    	
     	//add the floor plane (large plane that extends beyond the floor to prevent falling off)
     	floor_plane.geometry = new Geometry("FloorPlane", new Quad(4000,4000));
     	floor_plane.geometry.setLocalTranslation(new Vector3f(2102,-101,-902));
@@ -429,26 +428,42 @@ public class ArchApp extends Application
     
     public void setupLighting ()
     {
+        sun = new DirectionalLight();
+        ambient = new AmbientLight();
+    	
     	// add shadow renderer
     	if (shadowing)
     	{
 	        rootNode.setShadowMode(ShadowMode.Off);
 	        psr = new PssmShadowRenderer(assetManager, 1024, 4);
 	        viewPort.addProcessor(psr);
-        	psr.setDirection(DAY_ANGLE);
-        	psr.setShadowIntensity(DAY_SHADOW_INTENSITY);
+	        if (day)
+	        {
+	        	psr.setDirection(DAY_ANGLE);
+	        	psr.setShadowIntensity(DAY_SHADOW_INTENSITY);
+	        }
+	        else
+	        {
+	        	psr.setDirection(NIGHT_ANGLE);
+	        	psr.setShadowIntensity(NIGHT_SHADOW_INTENSITY);	        	
+	        }
     	}
 
-		// add directional lighting (sun)
-        sun = new DirectionalLight();
-        sun.setDirection(DAY_ANGLE);
-        sun.setColor(new ColorRGBA((float) DAY_BRIGHTNESS[0]/255, (float) DAY_BRIGHTNESS[1]/255, (float) DAY_BRIGHTNESS[2]/255, 1));
-        rootNode.addLight(sun); 
-        
-        // add ambient lighting
-        ambient = new AmbientLight();
-        ambient.setColor(ColorRGBA.White.mult(DAY_AMBIENCE));
-        rootNode.addLight(ambient);
+    	// add directional and ambient lighting to the scene
+    	if (day)
+    	{
+    		sun.setDirection(DAY_ANGLE);
+    		sun.setColor(new ColorRGBA((float) DAY_BRIGHTNESS[0]/255, (float) DAY_BRIGHTNESS[1]/255, (float) DAY_BRIGHTNESS[2]/255, 1));
+    		ambient.setColor(ColorRGBA.White.mult(DAY_AMBIENCE));
+    	}
+    	else
+    	{
+    		sun.setDirection(NIGHT_ANGLE);
+    		sun.setColor(new ColorRGBA((float) NIGHT_BRIGHTNESS[0]/255, (float) NIGHT_BRIGHTNESS[1]/255, (float) NIGHT_BRIGHTNESS[2]/255, 1));
+    		ambient.setColor(ColorRGBA.White.mult(NIGHT_AMBIENCE));
+    	}
+		rootNode.addLight(sun);
+    	rootNode.addLight(ambient);
     }
     
     
@@ -457,22 +472,23 @@ public class ArchApp extends Application
     {
         DAY_MAP = SkyFactory.createSky(assetManager, "req/SkyDay.dds", false);
         NIGHT_MAP = SkyFactory.createSky(assetManager, "req/SkyNight.dds", false);
-        rootNode.attachChild(DAY_MAP);
+        if (day)
+        	rootNode.attachChild(DAY_MAP);
+        else
+        	rootNode.attachChild(NIGHT_MAP);
     }
     
     
     
     private void setupPlayer ()
     {
-        //flyCam.setMoveSpeed(200);
-     
         // player collision
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(20, 70, 1);
         player = new CharacterControl(capsuleShape, 0.01f);
         player.setJumpSpeed(20);
         player.setFallSpeed(160);
         player.setGravity(400);
-        player.setPhysicsLocation(startvec);
+        player.setPhysicsLocation(START_VEC);
         
         bulletAppState.getPhysicsSpace().add(player);    	
     }
@@ -485,6 +501,10 @@ public class ArchApp extends Application
 
     public void toggleDay()
     {
+    	removeFromPhysics(floor);
+    	rootNode.detachChild(floor_plane.geometry);
+    	removeFromPhysics(floor_plane);
+    	
     	if (!day)
     	{
             rootNode.attachChild(DAY_MAP);
@@ -548,10 +568,14 @@ public class ArchApp extends Application
         bulletAppState.getPhysicsSpace().add(furn.physics);
     }
     
+    
+    
     private void removeFromPhysics (Furniture3D furn)
     {
     	bulletAppState.getPhysicsSpace().remove(furn.physics);
     }
+    
+    
     
     private void updatePhysics (Furniture3D furn)
     {
@@ -559,19 +583,27 @@ public class ArchApp extends Application
     	addToPhysics(furn);
     }
     
+    
+    
     private void addToPhysics (Edge3D edge)
     {
-    	edge.collision = CollisionShapeFactory.createSingleMeshShape(edge.geometry);
-    	edge.physics = new RigidBodyControl(edge.collision, 0);
+    	//edge.collision = CollisionShapeFactory.createSingleMeshShape(edge.geometry);
+    	//edge.physics = new RigidBodyControl(edge.collision, 0);
+    	edge.physics = new RigidBodyControl(0);
     	edge.geometry.addControl(edge.physics);
         
         bulletAppState.getPhysicsSpace().add(edge.physics);
     }
     
+    
+    
     private void removeFromPhysics (Edge3D edge)
     {
+    	edge.geometry.removeControl(edge.physics);
     	bulletAppState.getPhysicsSpace().remove(edge.physics);
     }
+    
+    
     
     // NB: updatePhysics for Edge3D is not currently needed because edges are completely
     // removed and remade when the walls are 'updated'. The respective add/remove functions
@@ -584,6 +616,11 @@ public class ArchApp extends Application
     
     
     
+    private void removeAllFromPhysics ()
+    {
+    	bulletAppState.getPhysicsSpace().removeAll(rootNode);
+    }
+    
     
     
     
@@ -592,6 +629,7 @@ public class ArchApp extends Application
     
 	private void clearall()
     {
+		removeAllFromPhysics();
 		rootNode.detachAllChildren();
 		setupScene();
     }
@@ -605,7 +643,7 @@ public class ArchApp extends Application
 	private class Edge3D
 	{
 		Geometry           geometry;
-		MeshCollisionShape collision;
+		//MeshCollisionShape collision;
 		RigidBodyControl   physics;
 	}
 
@@ -777,7 +815,11 @@ public class ArchApp extends Application
 				edges.remove(e);
 				Iterator<Edge3D> itr = wall.geom.iterator();
 				while(itr.hasNext())
-					rootNode.detachChild(itr.next().geometry);
+				{
+					Edge3D edge = itr.next();
+					removeFromPhysics(edge);
+					rootNode.detachChild(edge.geometry);
+				}
 			}
 		}
 	}
@@ -795,7 +837,11 @@ public class ArchApp extends Application
 			wall = iterator.next();
 			Iterator<Edge3D> itr = wall.geom.iterator();
 			while(itr.hasNext())
-				rootNode.attachChild(itr.next().geometry);		
+			{
+				Edge3D edge = itr.next();
+				addToPhysics(edge);
+				rootNode.attachChild(edge.geometry);
+			}
 		}
 	}
 
@@ -805,7 +851,7 @@ public class ArchApp extends Application
 	
 	/** Moves the given edge. Returns if Coords c is not known yet or if e is not
       *  known */
-	void updateEdgeChanged(Coords c, Edge e)
+	void updateEdgeChanged (Coords c, Edge e)
 	{
 		if (c == null || e == null)
 			throw new IllegalArgumentException("null");
@@ -829,14 +875,14 @@ public class ArchApp extends Application
 	/**********************WALL FUNCTIONS**********************/
 
     private WallGeometry makeWall(Edge e)
-    {   
+    {
     	int x1 = (int) e.getV1().getX();
     	int y1 = (int) e.getV1().getY();
     	int x2 = (int) e.getV2().getX();
     	int y2 = (int) e.getV2().getY();
     	float ctrlx = (int) e.getCtrlX();
     	float ctrly = (int) e.getCtrlY();
-    	int straight = 0;
+    	boolean straight = false;
     	int xx = 0, yy = 0;
     	
     	if (ctrlx     == ((x1 + x2) / 2))
@@ -852,100 +898,19 @@ public class ArchApp extends Application
     	if (ctrly-1.0 == ((y1 + y2) / 2))
     		yy++;
     	if (xx > 0 & yy > 0)
-    		straight=1;
+    		straight = true;
+    	
     	WallGeometry wallGeometry = new WallGeometry();
-    	if (straight == 0)
+    	
+    	// draw a curved/straight line
+    	if (!straight)
     	{
-    		//CURVED LINE
     		QuadCurve2D qcurve = e.getqcurve();			
     		recurvsion(wallGeometry,qcurve,4);
     	}
     	else
-    	{	    
-    		/*//STRAIGHT LINE
-    		//Furniture[] dws = e.getDoorWindow(); 	
-    		//if(dws!=null){
-    		int doorwidth = 20;
-    		int doorpanel = 20;
-			//if(x1==180 & y1==0 & x2==300 & y2==0){
-	    		//Furniture[] dws = new Furniture[1];
-	    			    		
-	    		int cx=0,cy=0;
-	    		if(x2>x1){cx = x1 + Math.abs((x2 -x1)/2);}
-	    		if(x2==x1) {cx = x2;}
-	    		if(x1>x2){cx = x1 - Math.abs((x2 -x1)/2);}
-	    		if(y2>y1){cy = y1 + Math.abs((y2 -y1)/2);}
-	    		if(y2==y1){cy=y2;}
-	    		if(y1>y2){cy = y1 - Math.abs((y2 -y1)/2);}
-	    		
-	    		/*dws[0] = new Furniture(new FurnitureSQLData(2, 2f, 2f, 2,"bing"),new Point(cx,cy),null);
-	    		double dx1,dy1,dx2 ,dy2;
-	    		double o = Math.abs(y2 - y1);
-	    		double a = Math.abs(x2 - x1);
-	    		if(o==0){
-	    			dx1 = dws[0].getRotationCenter().getX()-doorwidth;	    			
-	    			dy1 = y1;
-	    			dx2 = dws[0].getRotationCenter().getX()+doorwidth;
-	    			dy2 = y2;
-	    			if(x1>x2){double temp = dx1; dx1 = dx2; dx2 = temp;}
-	    		}else{if(a==0){
-	    			dx1 = x1;
-	    			dy1 = dws[0].getRotationCenter().getY()-doorwidth;
-	    			dx2 = x2;
-	    			dy2 = dws[0].getRotationCenter().getY()+doorwidth;
-	    			if(y1>y2){double temp = dy1; dy1 = dy2; dy2 = temp;}
-	    		}else{  		
-	    		System.out.println(o/a);
-	    		double theta = Math.atan(o/a);
-	    		
-	    		double xtri =  doorwidth * (Math.cos(theta));
-	    		double ytri =  doorwidth * (Math.sin(theta));
-	    		if(x2<x1){xtri = -xtri;}
-	    		if(y2<y1){ytri = -ytri;}
-	    		dx1 = dws[0].getRotationCenter().getX()-xtri;
-	    		dy1 = dws[0].getRotationCenter().getY()-ytri;
-	    		dx2 = dws[0].getRotationCenter().getX()+xtri;
-	    		dy2 = dws[0].getRotationCenter().getY()+ytri;
-	    		
-	    		double dx1,dy1,dx2 ,dy2;
-	    		double o = Math.abs(y2 - y1);
-	    		double a = Math.abs(x2 - x1);
-	    		if(o==0){
-	    			dx1 = cx-doorwidth;	    			
-	    			dy1 = y1;
-	    			dx2 = cx+doorwidth;
-	    			dy2 = y2;
-	    			if(x1>x2){double temp = dx1; dx1 = dx2; dx2 = temp;}
-	    		}else{if(a==0){
-	    			dx1 = x1;
-	    			dy1 = cy-doorwidth;
-	    			dx2 = x2;
-	    			dy2 = cy+doorwidth;
-	    			if(y1>y2){double temp = dy1; dy1 = dy2; dy2 = temp;}
-	    		}else{  		
-	    		double theta = Math.atan(o/a);
-	    		
-	    		double xtri =  doorwidth * (Math.cos(theta));
-	    		double ytri =  doorwidth * (Math.sin(theta));
-	    		if(x2<x1){xtri = -xtri;}
-	    		if(y2<y1){ytri = -ytri;}
-	    		dx1 = cx-xtri;
-	    		dy1 = cy-ytri;
-	    		dx2 = cx+xtri;
-	    		dy2 = cy+ytri;
-
-	    		}}
-	    		drawline(wallGeometry,(int)x1,(int)dx1,(int)y1,(int)dy1,100,-100,1);
-	    		drawline(wallGeometry,(int)dx2,(int)x2,(int)dy2,(int)y2,100,-100,1);
-	    		drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,0);*/
-    		
-	    		
-			//}
-    		//}
-			//else{			
-
-    		drawline(wallGeometry,x1,x2,y1,y2,100,-100,1); 
-			//}
+    	{
+    		drawline(wallGeometry, x1, x2, y1, y2, 100, -100, true);
     	}
 
     	return wallGeometry;
@@ -956,21 +921,26 @@ public class ArchApp extends Application
 	/** Moves the two wall planes to the new position given by edge e */
 	private void updatewall(WallGeometry wallGeometry, Edge e)
 	{
+		System.out.println("updatewall called");
+		// remove all edges in the WallGeometry from the scene
 		Iterator<Edge3D> itr = wallGeometry.geom.iterator();
 		while(itr.hasNext())
 		{
-			Edge3D next = itr.next();
-			removeFromPhysics(next);
-			rootNode.detachChild(next.geometry);
+			Edge3D edge = itr.next();
+			removeFromPhysics(edge);
+			rootNode.detachChild(edge.geometry);
 		}
 	
-		// move the wall, this makes a completely new one (for now)!
+		// makes new edges in the new locations
 		WallGeometry completelyNew = makeWall(e);
 		wallGeometry.geom.clear();	
 		itr = completelyNew.geom.iterator();
+		
+		// TODO: the following 2 iterators can probably be merged
 		while (itr.hasNext())
 			wallGeometry.geom.add(itr.next());
 	
+		// attaches all the new edges to the scene (addToPhysics is called within makeWall(e) so is not needed again)
 		itr = wallGeometry.geom.iterator();
 		while (itr.hasNext())
 			rootNode.attachChild(itr.next().geometry);
@@ -978,11 +948,11 @@ public class ArchApp extends Application
     
 	
 	
-    private int recurvsion(WallGeometry top, QuadCurve2D curve,int level)
+    private int recurvsion (WallGeometry top, QuadCurve2D curve, int level)
     {
     	if (level == 0)
     	{
-    		drawline(top, (int)curve.getX1(), (int)curve.getX2(), (int)curve.getY1(), (int)curve.getY2(),100,-100,1);
+    		drawline(top, (int)curve.getX1(), (int)curve.getX2(), (int)curve.getY1(), (int)curve.getY2(), 100, -100, true);
     		return -1;
     	}
     	else
@@ -997,7 +967,9 @@ public class ArchApp extends Application
     	}
     }
     
-    private void drawline(WallGeometry wallGeometry, int x1, int x2, int y1, int y2,int height,int disp,int coll)
+    
+    
+    private void drawline (WallGeometry wallGeometry, int x1, int x2, int y1, int y2, int height, int disp, boolean coll)
     {
     	int length, leny, lenx = 0;
     	float rotation = 0;
@@ -1007,7 +979,7 @@ public class ArchApp extends Application
 		if (lenx == 0)
 		{
 			length = leny;
-			rotation =- (float) FastMath.HALF_PI;
+			rotation =- FastMath.HALF_PI;
 		}
 		else
 		{
@@ -1030,25 +1002,25 @@ public class ArchApp extends Application
 		
 		// Draw a quad between the 2 given vertices
 		Edge3D quad1 = new Edge3D();
-		Edge3D quad2 = new Edge3D();
 		quad1.geometry = new Geometry("Box", new Quad(length, height));
 		quad1.geometry.setLocalTranslation(new Vector3f(x1, disp, y1));
 		quad1.geometry.rotate(0f, rotation, 0f);
 		quad1.geometry.setMaterial(wallmat);
     	if (shadowing)
     		quad1.geometry.setShadowMode(ShadowMode.CastAndReceive);
-    	if (physics & coll == 1)
+    	if (physics & coll)
     		addToPhysics(quad1);
 		wallGeometry.geom.add(quad1);
 
 		// Double up the quad
+		Edge3D quad2 = new Edge3D();
 		quad2.geometry = new Geometry ("Box", new Quad(length,height));
 		quad2.geometry.setLocalTranslation(new Vector3f(x2, disp, y2));
-		quad2.geometry.rotate(0f, (float) (rotation + FastMath.PI), 0f);
+		quad2.geometry.rotate(0f, rotation + FastMath.PI, 0f);
 		quad2.geometry.setMaterial(wallmat);
 		if (shadowing)
 			quad2.geometry.setShadowMode(ShadowMode.CastAndReceive);
-		if (physics & coll == 1)
+		if (physics & coll)
 			addToPhysics(quad2);
     	wallGeometry.geom.add(quad2);
     	return; 
@@ -1100,7 +1072,7 @@ public class ArchApp extends Application
         
         // model settings
         furn.spatial.scale(5, 5, 5);
-        furn.spatial.rotate(0f, - FastMath.HALF_PI,0f);        
+        furn.spatial.rotate(0f, -FastMath.HALF_PI, 0f);        
         furn.spatial.setLocalTranslation(center.x,-100f,center.y);
     	if (shadowing)
     		furn.spatial.setShadowMode(ShadowMode.CastAndReceive);
@@ -1177,13 +1149,14 @@ public class ArchApp extends Application
 		furn.spatial.setLocalTranslation(center.x,-100f,center.y);
 		
 		// recalculate the furniture's rotation and adjust it
-		double rotation = f.getRotation() * 0.5;
-		float sina = FastMath.sin(((float) rotation));
-		float x = (float) (0.0 * sina);
-		float y = (float) (1.0 * sina);
-		float z = (float) (0.0 * sina);
-		float w = (float) FastMath.cos((float) rotation);
-		Quaternion c = new Quaternion(w,x,y,z);
+		float rotation = (float) (f.getRotation() * 0.5);
+		float sinr = FastMath.sin(rotation);
+		float cosr = FastMath.cos(rotation);
+		/*float x = sinr * 0.0f;
+		float y = sinr * 1.0f;
+		float z = sinr * 0.0f;*/
+		//Quaternion c = new Quaternion(cosr, x, y, z);
+		Quaternion c = new Quaternion(cosr, 0, sinr, 0);
 		furn.spatial.setLocalRotation(c);
 		furn.spatial.rotate(0, -FastMath.HALF_PI, -FastMath.PI);
 		
