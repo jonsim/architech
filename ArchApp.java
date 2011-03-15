@@ -41,7 +41,6 @@ import com.jme3.util.SkyFactory;
 
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
-import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.collision.shapes.MeshCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
@@ -62,7 +61,7 @@ public class ArchApp extends Application
 	
 	// lighting globals
 	private static final short[]  DAY_BRIGHTNESS = {245, 240, 200};	// RGB colour (0-255) of the sun light
-	private static final float    DAY_AMBIENCE = 0.7f;	// amount of ambient light in the scene (0 is none)
+	private static final float    DAY_AMBIENCE = 2.0f;	// amount of ambient light in the scene (0 is none)
 	private static final Vector3f DAY_ANGLE = new Vector3f(0.8f, -2, -0.2f);  // vector direction of the sun
 	private static final float    DAY_SHADOW_INTENSITY = 0.5f;  // 0 = no shadows, 1 = pitch black shadows
 	private static Spatial        DAY_MAP = null;  // must be initialised in SimpleInitApp() due to dependence on assetManager
@@ -106,8 +105,8 @@ public class ArchApp extends Application
     private AppActionListener actionListener = new AppActionListener();
     private boolean isInitComplete = false;
     private Main main;
-    private Geometry floor;
-    private Material white;
+    private Edge3D floor = new Edge3D();
+	private Material white;
 
     
     
@@ -333,19 +332,12 @@ public class ArchApp extends Application
 
     private void setupMaterials ()
     {
-        //grass = new Material(assetManager, "Common/MatDefs/Misc/SimpleTextured.j3md");
-        //grass.setTexture("DiffuseMap", assetManager.loadTexture("req/wall1.jpg"));
-        /*grass.setBoolean("UseMaterialColors", true);
-        grass.setColor("Diffuse",  ColorRGBA.White);
-        grass.setColor("Specular",  ColorRGBA.Red);
-        grass.setColor("Ambient",  ColorRGBA.Blue);*/
-        //grass.setFloat("Shininess", 10);
         grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 		grass.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
         grass.setFloat("Shininess", 1000);
         
         white = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-		white.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
+        white.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
         white.setFloat("Shininess", 1000);
 
         wallmat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
@@ -360,15 +352,15 @@ public class ArchApp extends Application
 		synchronized(syncLockObject)
 		{
 	        grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-			grass.setTexture("DiffuseMap", assetManager.loadTexture("img/"+name));
+			grass.setTexture("DiffuseMap", assetManager.loadTexture("img/" + name));
 	        grass.setFloat("Shininess", 1000);
-	        rootNode.detachChild(floor);
+	        rootNode.detachChild(floor.geometry);
 	    	Box floorbox = new Box( new Vector3f(500,-101,-1000),500,0.1f,1000);
-		    floor = new Geometry("Box",floorbox);
-		    floor.setMaterial(grass);
-		    floor.rotate(0f,(float) -Math.toRadians(90),0f);
-		    addToPhysics(floor);
-		    rootNode.attachChild(floor);
+		    floor.geometry = new Geometry("Box", floorbox);
+		    floor.geometry.setMaterial(grass);
+		    floor.geometry.rotate(0f,(float) -Math.toRadians(90),0f);
+		    //addToPhysics(floor);
+		    rootNode.attachChild(floor.geometry);
 		    ((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
 		}
     }
@@ -377,33 +369,35 @@ public class ArchApp extends Application
     
     PointLight pl1, pl2;
     private void setupScene()
-    {	    
-    	//add the floor
-        Geometry geom = new Geometry("Box", new Quad(4000,4000));
-        geom.setMaterial(grass);
-        geom.setShadowMode(ShadowMode.Receive);
-        geom.setLocalTranslation(new Vector3f(2102,-101,-902));
-        geom.rotate((float) -Math.toRadians(90),(float) Math.toRadians(180),0f );
-        addToPhysics(geom);
-        rootNode.attachChild(geom);
-        
-	    //add the floor
-    	Box floorbox = new Box( new Vector3f(500,-101,-1000),500,0.1f,1000);
-	    floor = new Geometry("Box",floorbox);
-	    floor.setMaterial(white);
-	    floor.rotate(0f,(float) -Math.toRadians(90),0f);
-	    //floor.setShadowMode(ShadowMode.Receive);
+    {
+    	Edge3D floor_plane = new Edge3D();
+    	
+    	//add the floor plane (large plane that extends beyond the floor to prevent falling off)
+    	floor_plane.geometry = new Geometry("FloorPlane", new Quad(4000,4000));
+    	floor_plane.geometry.setLocalTranslation(new Vector3f(2102,-101,-902));
+    	floor_plane.geometry.rotate((float) -Math.toRadians(90),(float) Math.toRadians(180),0f );
+    	floor_plane.geometry.setMaterial(grass);
+    	if (shadowing)
+    		floor_plane.geometry.setShadowMode(ShadowMode.Receive);
+    	addToPhysics(floor_plane);
+    	rootNode.attachChild(floor_plane.geometry);
+    	
+	    //add the floor (the box which users stand on, and is textured with the fill-colours)
+	    floor.geometry = new Geometry("Floor", new Box(new Vector3f(500, -101, -1000), 500, 0.1f, 1000));
+	    floor.geometry.rotate(0f,(float) -Math.toRadians(90),0f);
+	    floor.geometry.setMaterial(white);
+	    if (shadowing)
+	    	floor.geometry.setShadowMode(ShadowMode.Receive);
 	    addToPhysics(floor);
-	    rootNode.attachChild(floor);
+	    rootNode.attachChild(floor.geometry);
 	    
-	    Box cei = new Box( new Vector3f(420,0,150), 180,0.1f,90);
-        Geometry top = new Geometry("Box", cei);
-        top.setMaterial(white);
-	    rootNode.attachChild(top);
-	    cei = new Box( new Vector3f(330,0,300), 90,0.1f,60);
-        top = new Geometry("Box", cei);
-        top.setMaterial(white);
-	    rootNode.attachChild(top);
+	    // add the (2) ceiling panels
+        Geometry top1 = new Geometry("Ceiling", new Box(new Vector3f(420, 0, 150), 180, 0.1f, 90));
+        top1.setMaterial(white);
+	    rootNode.attachChild(top1);
+        Geometry top2 = new Geometry("Ceiling", new Box(new Vector3f(330, 0, 300), 90, 0.1f, 60));
+        top2.setMaterial(white);
+	    rootNode.attachChild(top2);
 
 	    // add lightbulbs
 	    Spatial light1 = assetManager.loadModel("req/lightbulb/lightbulb.obj");
@@ -545,49 +539,50 @@ public class ArchApp extends Application
     
     
     /**********************PHYSICS FUNCTIONS**********************/
-
-	RigidBodyControl body;
 	
-    private void addToPhysics (Spatial s)
+    private void addToPhysics (Furniture3D furn)
     {
-    	CollisionShape sShape = CollisionShapeFactory.createMeshShape(s);
-    	body = new RigidBodyControl(sShape, 0);
-    	//body.setApplyPhysicsLocal(true);
-        s.addControl(body);
+    	furn.physics = new RigidBodyControl(0);
+    	furn.spatial.addControl(furn.physics);
         
-        bulletAppState.getPhysicsSpace().add(body);
+        bulletAppState.getPhysicsSpace().add(furn.physics);
     }
     
-    /*private void addToPhysics (Furniture f)
+    private void removeFromPhysics (Furniture3D furn)
     {
-    	CollisionShape fsShape = CollisionShapeFactory.createMeshShape(f.Spatial);
-    	RigidBodyControl body = new RigidBodyControl(fsShape, 0);
-        f.Spatial.addControl(body);
+    	bulletAppState.getPhysicsSpace().remove(furn.physics);
+    }
+    
+    private void updatePhysics (Furniture3D furn)
+    {
+    	removeFromPhysics(furn);
+    	addToPhysics(furn);
+    }
+    
+    private void addToPhysics (Edge3D edge)
+    {
+    	edge.collision = CollisionShapeFactory.createSingleMeshShape(edge.geometry);
+    	edge.physics = new RigidBodyControl(edge.collision, 0);
+    	edge.geometry.addControl(edge.physics);
         
-        bulletAppState.getPhysicsSpace().add(body);
+        bulletAppState.getPhysicsSpace().add(edge.physics);
+    }
+    
+    private void removeFromPhysics (Edge3D edge)
+    {
+    	bulletAppState.getPhysicsSpace().remove(edge.physics);
+    }
+    
+    // NB: updatePhysics for Edge3D is not currently needed because edges are completely
+    // removed and remade when the walls are 'updated'. The respective add/remove functions
+    // call the physics commands as required.
+    /*private void updatePhysics (Edge3D edge)
+    {
+    	removeFromPhysics(edge);
+    	addToPhysics(edge);
     }*/
     
     
-    //TODO
-    /*private void updatePhysics (Spatial s)
-    {
-    	//s.updateLogicalState(timer.getTimePerFrame() * speed);
-    	body.setApplyPhysicsLocal(true);
-    	body.update(timer.getTimePerFrame() * speed);
-    	bulletAppState.getPhysicsSpace().update(timer.getTimeInSeconds());
-    }*/
-    
-    
-    
-    private void addToPhysics (Geometry g)
-    {
-    	MeshCollisionShape gShape = CollisionShapeFactory.createSingleMeshShape(g);
-    	body = new RigidBodyControl(gShape, 0);
-    	//body.setApplyPhysicsLocal(true);
-        g.addControl(body);
-        
-        bulletAppState.getPhysicsSpace().add(body);
-    }
     
     
     
@@ -605,16 +600,42 @@ public class ArchApp extends Application
 	
 	
 	
-	/**********************WALL GEOMETRY CLASS**********************/
+	/**********************EDGE3D CLASS**********************/
+	
+	private class Edge3D
+	{
+		Geometry           geometry;
+		MeshCollisionShape collision;
+		RigidBodyControl   physics;
+	}
 
 	private class WallGeometry
 	{
-		ArrayList<Geometry> geom = new ArrayList<Geometry>();
+		ArrayList<Edge3D> geom    = new ArrayList<Edge3D>();
 	}
+	
 	private final HashMap<Coords, HashMap<Edge, WallGeometry> > tabEdgeGeometry
 		= new HashMap<Coords, HashMap<Edge, WallGeometry> >();
-	private final HashMap<Coords, HashMap<Furniture, Spatial> > tabFurnitureSpatials
-		= new HashMap<Coords, HashMap<Furniture, Spatial> >();
+	
+	
+	
+	
+	
+	/**********************FURNITURE3D CLASS**********************/
+	
+	private class Furniture3D
+	{
+		Spatial          spatial;
+		RigidBodyControl physics;
+		
+		Furniture3D (String path)
+		{
+			this.spatial = assetManager.loadModel(path);
+		}
+	}
+	
+	private final HashMap<Coords, HashMap<Furniture, Furniture3D> > tabFurnitureSpatials
+		= new HashMap<Coords, HashMap<Furniture, Furniture3D> >();
 	
 	
 	
@@ -631,7 +652,7 @@ public class ArchApp extends Application
 		if (edges != null)
 			edges.clear();
 
-		HashMap<Furniture, Spatial> furniture = tabFurnitureSpatials.remove(tab);
+		HashMap<Furniture, Furniture3D> furniture = tabFurnitureSpatials.remove(tab);
 		if (furniture != null)
 			furniture.clear();
 	}
@@ -642,7 +663,8 @@ public class ArchApp extends Application
 	 *  been seen before then new objects will be created for it.						*/
 	void tabChanged(Coords newTab)
 	{
-		if (!isInitComplete) return;
+		if (!isInitComplete)
+			return;
 		tabChangedIgnoreInitComplete(newTab);
 
 		// Stops you having to click to update the 3D (for tab changes)
@@ -676,21 +698,21 @@ public class ArchApp extends Application
             	// the edges from the given coords
             	edges = new HashMap<Edge, WallGeometry>();
             	for (Edge e : newTab.getEdges())
-            		edges.put(e, makewall(e));
+            		edges.put(e, makeWall(e));
 
             	tabEdgeGeometry.put(newTab, edges);
             }
 
             // Do furniture, if this tab already exists, this will not be null and it
             // will get redrawn from below, not recreated!
-            HashMap<Furniture, Spatial> furniture = tabFurnitureSpatials.get(newTab);
+            HashMap<Furniture, Furniture3D> furniture = tabFurnitureSpatials.get(newTab);
             if (furniture == null)
             {
             	// make a brand new furniture container for the new tab and add all
             	// the furniture from the given coords
-            	furniture = new HashMap<Furniture, Spatial>();
+            	furniture = new HashMap<Furniture, Furniture3D>();
             	for (Furniture f : newTab.getFurniture())
-            		furniture.put(f, addfurniture(f));
+            		furniture.put(f, makeFurniture(f));
 
             	tabFurnitureSpatials.put(newTab, furniture);
             }
@@ -724,12 +746,12 @@ public class ArchApp extends Application
 			WallGeometry wall = edges.get(e);
 			if (wall == null)
 			{
-				wall = makewall(e); // make the new wall
+				wall = makeWall(e); // make the new wall
 				edges.put(e, wall);               
 			
-				Iterator itr = wall.geom.iterator();
+				Iterator<Edge3D> itr = wall.geom.iterator();
 				while(itr.hasNext())
-					rootNode.attachChild((Geometry) itr.next());
+					rootNode.attachChild(itr.next().geometry);
 			}
 		}
 	}
@@ -753,9 +775,9 @@ public class ArchApp extends Application
 			if (wall != null)
 			{
 				edges.remove(e);
-				Iterator itr = wall.geom.iterator();
+				Iterator<Edge3D> itr = wall.geom.iterator();
 				while(itr.hasNext())
-					rootNode.detachChild((Geometry) itr.next());
+					rootNode.detachChild(itr.next().geometry);
 			}
 		}
 	}
@@ -771,9 +793,9 @@ public class ArchApp extends Application
 		while (iterator.hasNext())
 		{
 			wall = iterator.next();
-			Iterator itr = wall.geom.iterator();
+			Iterator<Edge3D> itr = wall.geom.iterator();
 			while(itr.hasNext())
-				rootNode.attachChild((Geometry) itr.next());		
+				rootNode.attachChild(itr.next().geometry);		
 		}
 	}
 
@@ -806,7 +828,7 @@ public class ArchApp extends Application
 	
 	/**********************WALL FUNCTIONS**********************/
 
-    private WallGeometry makewall(Edge e)
+    private WallGeometry makeWall(Edge e)
     {   
     	int x1 = (int) e.getV1().getX();
     	int y1 = (int) e.getV1().getY();
@@ -929,25 +951,33 @@ public class ArchApp extends Application
     	return wallGeometry;
 	}
     
+    
+    
 	/** Moves the two wall planes to the new position given by edge e */
 	private void updatewall(WallGeometry wallGeometry, Edge e)
 	{
-		Iterator itr = wallGeometry.geom.iterator();
+		Iterator<Edge3D> itr = wallGeometry.geom.iterator();
 		while(itr.hasNext())
-			rootNode.detachChild((Geometry) itr.next());		
+		{
+			Edge3D next = itr.next();
+			removeFromPhysics(next);
+			rootNode.detachChild(next.geometry);
+		}
 	
 		// move the wall, this makes a completely new one (for now)!
-		WallGeometry completelyNew = makewall(e);
+		WallGeometry completelyNew = makeWall(e);
 		wallGeometry.geom.clear();	
 		itr = completelyNew.geom.iterator();
-		while(itr.hasNext())
-			wallGeometry.geom.add((Geometry) itr.next());
+		while (itr.hasNext())
+			wallGeometry.geom.add(itr.next());
 	
 		itr = wallGeometry.geom.iterator();
-		while(itr.hasNext())
-			rootNode.attachChild((Geometry) itr.next());
+		while (itr.hasNext())
+			rootNode.attachChild(itr.next().geometry);
 	}
     
+	
+	
     private int recurvsion(WallGeometry top, QuadCurve2D curve,int level)
     {
     	if (level == 0)
@@ -999,26 +1029,28 @@ public class ArchApp extends Application
 		}
 		
 		// Draw a quad between the 2 given vertices
-		Geometry adding = new Geometry ("Box", new Quad(length, height));
-		adding.setLocalTranslation(new Vector3f(x1, disp, y1));
-		adding.rotate(0f, rotation, 0f);
-		adding.setMaterial(wallmat);
+		Edge3D quad1 = new Edge3D();
+		Edge3D quad2 = new Edge3D();
+		quad1.geometry = new Geometry("Box", new Quad(length, height));
+		quad1.geometry.setLocalTranslation(new Vector3f(x1, disp, y1));
+		quad1.geometry.rotate(0f, rotation, 0f);
+		quad1.geometry.setMaterial(wallmat);
     	if (shadowing)
-    		adding.setShadowMode(ShadowMode.CastAndReceive);
+    		quad1.geometry.setShadowMode(ShadowMode.CastAndReceive);
     	if (physics & coll == 1)
-    		addToPhysics(adding);
-		wallGeometry.geom.add(adding);
+    		addToPhysics(quad1);
+		wallGeometry.geom.add(quad1);
 
 		// Double up the quad
-		adding = new Geometry ("Box", new Quad(length,height));
-		adding.setLocalTranslation(new Vector3f(x2, disp, y2));
-		adding.rotate(0f, (float) (rotation + FastMath.PI), 0f);
-		adding.setMaterial(wallmat);
+		quad2.geometry = new Geometry ("Box", new Quad(length,height));
+		quad2.geometry.setLocalTranslation(new Vector3f(x2, disp, y2));
+		quad2.geometry.rotate(0f, (float) (rotation + FastMath.PI), 0f);
+		quad2.geometry.setMaterial(wallmat);
 		if (shadowing)
-			adding.setShadowMode(ShadowMode.CastAndReceive);
+			quad2.geometry.setShadowMode(ShadowMode.CastAndReceive);
 		if (physics & coll == 1)
-			addToPhysics(adding);
-    	wallGeometry.geom.add(adding);
+			addToPhysics(quad2);
+    	wallGeometry.geom.add(quad2);
     	return; 
     }
 	
@@ -1029,7 +1061,7 @@ public class ArchApp extends Application
 	/**********************FURNITURE FUNCTIONS**********************/
 
 	/** Adds the given furniture. Returns if Coords c is not known yet or if f is already
-      *  added */
+      *  added */    
 	void addFurniture(Coords c, Furniture f)
 	{
 		if (c == null || f == null)
@@ -1037,44 +1069,41 @@ public class ArchApp extends Application
 
 		synchronized(syncLockObject)
 		{
-			HashMap<Furniture, Spatial> furniture = tabFurnitureSpatials.get(c);
+			HashMap<Furniture, Furniture3D> furniture = tabFurnitureSpatials.get(c);
 			if (furniture == null)
 				return;
 
-			Spatial spatial = furniture.get(f);
-			if (spatial == null)
+			Furniture3D furn = furniture.get(f);
+			if (furn == null)
 			{
-				spatial = addfurniture(f);
-				furniture.put(f, spatial);
-				rootNode.attachChild(spatial);
+				furn = makeFurniture(f);
+				furniture.put(f, furn);
+				
+				rootNode.attachChild(furn.spatial);
 			}
 		}
 	}
 
 	
 	
-	private Spatial addfurniture(Furniture f)
+	private Furniture3D makeFurniture(Furniture f)
 	{
-        Spatial furn = null;
-        //Material furn_mat;
+		Furniture3D furn;
 		Point center = f.getRotationCenter();
         String name = f.getObjPath();
         
         // if object specified does not exist
         if(name == null || name.equals("none"))
-        	furn = assetManager.loadModel("req/armchair/armchair.obj");
+        	furn = new Furniture3D("req/armchair_1/armchair_1.obj");
         else
-        {
-        	String path = "req/" + name.substring(0,name.length()-4) +"/" +name;
-            furn = assetManager.loadModel(path);
-        }
+            furn = new Furniture3D("req/" + name.substring(0, name.length() - 4) + "/" + name);
         
         // model settings
-        furn.scale(5, 5, 5);
-        furn.rotate(0f, - FastMath.HALF_PI,0f);        
-        furn.setLocalTranslation(center.x,-100f,center.y);
+        furn.spatial.scale(5, 5, 5);
+        furn.spatial.rotate(0f, - FastMath.HALF_PI,0f);        
+        furn.spatial.setLocalTranslation(center.x,-100f,center.y);
     	if (shadowing)
-    		furn.setShadowMode(ShadowMode.CastAndReceive);
+    		furn.spatial.setShadowMode(ShadowMode.CastAndReceive);
     	if (physics)
     		addToPhysics(furn);
 
@@ -1092,56 +1121,74 @@ public class ArchApp extends Application
          
 		synchronized(syncLockObject)
 		{
-			HashMap<Furniture, Spatial> furniture = tabFurnitureSpatials.get(c);
+			HashMap<Furniture, Furniture3D> furniture = tabFurnitureSpatials.get(c);
 			if (furniture == null)
 				return;
 
-			Spatial spatial = furniture.get(f);
-			if (spatial != null)
+			Furniture3D furn = furniture.get(f);
+			if (furn != null)
 			{
 				furniture.remove(f);
-				rootNode.detachChild(spatial);
+				if (physics)
+					removeFromPhysics(furn);
+				rootNode.detachChild(furn.spatial);
 			}
 		}
 	}
 
 	
-	
-    /** Goes through all the furniture in the given hashmap and adds them to the rootNode */
-	private void redrawAllFurniture(HashMap<Furniture, Spatial> furniture)
+	/* Goes through all the walls in the given hashmap and adds them to the rootNode 
+	private void redrawAllEdges(HashMap<Edge, WallGeometry> edges)
 	{
-		Collection<Spatial> spatials = furniture.values();
-		Iterator<Spatial> iterator = spatials.iterator();
+		Collection<WallGeometry> walls = edges.values();
+		Iterator<WallGeometry> iterator = walls.iterator();
+		WallGeometry wall;
 		while (iterator.hasNext())
 		{
-			rootNode.attachChild(iterator.next());
+			wall = iterator.next();
+			Iterator itr = wall.geom.iterator();
+			while(itr.hasNext())
+				rootNode.attachChild((Geometry) itr.next());		
+		}
+	}*/
+	
+	
+    /** Goes through all the furniture in the given hashmap and adds them to the rootNode */
+	private void redrawAllFurniture(HashMap<Furniture, Furniture3D> furnitures)
+	{
+		Collection<Furniture3D> furniture = furnitures.values();
+		Iterator<Furniture3D> iterator = furniture.iterator();
+		Furniture3D furn;
+		while (iterator.hasNext())
+		{
+			furn = iterator.next();
+			addToPhysics(furn);
+			rootNode.attachChild(furn.spatial);
 		}
 	}	
 	
 	
 	
 	/** Moves the given spatial to the new position of furniture f */
-	private void updatefurniture(Spatial spatial, Furniture f)
+	private void updatefurniture(Furniture3D furn, Furniture f)
 	{
 		// recalculate the furniture's position and move it
 		Point center = f.getRotationCenter();
-		spatial.setLocalTranslation(center.x,-100f,center.y);
+		furn.spatial.setLocalTranslation(center.x,-100f,center.y);
 		
 		// recalculate the furniture's rotation and adjust it
-		double rotation = f.getRotation();
-		Quaternion q = spatial.getLocalRotation();
-		rotation *= 0.5;
-		float sina = FastMath.sin(((float)rotation));
-		float x = (float)(0.0 * sina);
-		float y = (float)(1.0 * sina);
-		float z = (float)(0.0 * sina);
-		float w = (float) FastMath.cos((float)rotation);
+		double rotation = f.getRotation() * 0.5;
+		float sina = FastMath.sin(((float) rotation));
+		float x = (float) (0.0 * sina);
+		float y = (float) (1.0 * sina);
+		float z = (float) (0.0 * sina);
+		float w = (float) FastMath.cos((float) rotation);
 		Quaternion c = new Quaternion(w,x,y,z);
-		spatial.setLocalRotation(c);
-		spatial.rotate(0f,-FastMath.HALF_PI,-FastMath.PI);
+		furn.spatial.setLocalRotation(c);
+		furn.spatial.rotate(0, -FastMath.HALF_PI, -FastMath.PI);
 		
 		// recalculate the furniture's physics (from position) and update it
-		//updatePhysics(spatial);
+		updatePhysics(furn);
 	}
 	
 	
@@ -1155,13 +1202,13 @@ public class ArchApp extends Application
          
 		synchronized(syncLockObject)
 		{
-			HashMap<Furniture, Spatial> furniture = tabFurnitureSpatials.get(c);
+			HashMap<Furniture, Furniture3D> furniture = tabFurnitureSpatials.get(c);
 			if (furniture == null)
 				return;
 
-			Spatial spatial = furniture.get(f);
-			if (spatial != null)
-				updatefurniture(spatial, f);
+			Furniture3D furn = furniture.get(f);
+			if (furn != null)
+				updatefurniture(furn, f);
 		}
 	}
 
