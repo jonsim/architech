@@ -501,10 +501,6 @@ public class ArchApp extends Application
 
     public void toggleDay()
     {
-    	removeFromPhysics(floor);
-    	rootNode.detachChild(floor_plane.geometry);
-    	removeFromPhysics(floor_plane);
-    	
     	if (!day)
     	{
             rootNode.attachChild(DAY_MAP);
