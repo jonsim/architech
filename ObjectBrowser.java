@@ -44,6 +44,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    private int itemID = -1;
    private int typeID = -1;
    private int itemType = -1;
+   private int isTweaked = 0;
    private int currentLibrary = -1;
    private int categoryIndex = -1;
    private int prevCurrentLib = -1;
@@ -215,14 +216,23 @@ public class ObjectBrowser implements KeyListener, MouseListener {
       return false;
    }
 	
-	private void getDimensions(int itemTypeID) {
+	private void getDimensions(int itemTypeID, int isTweaked) {
 		draggedObject = null;
 		try {
-			statement = connection.prepareStatement("select * from TYPE where ID='" + itemTypeID + "'");
-			rs = statement.executeQuery();
-			if(rs.next()) {
-				draggedObject = new FurnitureObject(objectName, rs.getFloat("Length"), rs.getFloat("Width"), rs.getFloat("Height"));
-			}
+       if (isTweaked == 0) {
+			    statement = connection.prepareStatement("select * from TYPE where ID='" + itemTypeID + "'");
+			    rs = statement.executeQuery();
+			    if(rs.next()) {
+				     draggedObject = new FurnitureObject(objectName, rs.getFloat("Length"), rs.getFloat("Width"), rs.getFloat("Height"));
+			    }
+       }
+       if (isTweaked == 1){
+          statement = connection.prepareStatement("select * from ITEM where Name='" + objectName + "'");
+			    rs = statement.executeQuery();
+			    if(rs.next()) {
+				     draggedObject = new FurnitureObject(objectName, rs.getFloat("Length"), rs.getFloat("Width"), rs.getFloat("Height"));
+			    }
+       }
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -257,6 +267,22 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			e.printStackTrace();
 		}
 		return itemType;
+	}
+
+	private int getTweaked(String itemName)
+	{
+		isTweaked = 0;
+		try {
+			statement = connection.prepareStatement("select * from ITEM where Name='" + itemName + "'");
+			rs = statement.executeQuery();
+			if(rs.next()) {
+				isTweaked = rs.getInt("Tweaked");
+				//return itemID;
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return isTweaked;
 	}
 
 	private int getTypeID(String typeName)
@@ -600,7 +626,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		}
 		else 
 		{
-			getDimensions(getItemType(objectName));
+			getDimensions(getItemType(objectName), getTweaked(objectName));
 			int ID = getID(itemName);
 			String objPath = getModel(objectName);
 			float width = draggedObject.X * 50;
@@ -644,7 +670,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			int index = library.locationToIndex(e.getPoint());
 			objectName = fields.get(index).toString();
 System.out.println("Object Name = " + objectName);			
-			getDimensions(getItemType(objectName));
+			getDimensions(getItemType(objectName), getTweaked(objectName));
 			String test = getModel(objectName);
 			System.out.println("ObjPath - - - - - - - - - - "+test);
 			if(draggedObject != null) {
