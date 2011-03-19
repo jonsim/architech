@@ -40,6 +40,10 @@ public class FrontEnd implements WindowListener, ChangeListener {
    public void refreshtt(){
 	   TwoDandThreeD.revalidate();
    }
+   
+   public HandlerVertexSelect gethvs(){
+	   return getCurrentTab().gethvs();
+   }
 
    public JFrame getwindow(){
 	   return window;

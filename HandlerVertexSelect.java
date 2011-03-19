@@ -62,6 +62,13 @@ public class HandlerVertexSelect {
             objectBrowser.toDecoration();
         }
     }
+    
+    public void texcurrent(String tex){
+        for (int k = 0; k < wallEdges.size(); k++) {
+            wallEdges.get(k).settex(tex);
+            objectBrowser.getm().viewport3D.coordsChangeOccurred(new CoordsChangeEvent(coords, 2, wallEdges.get(k)));
+        }
+    }
 
     //Checks if the selected vertex is adjacent to any of the vertices in the selected list and adds it.
     private boolean isAdjacent(Coords.Vertex v, ArrayList<Coords.Vertex> selectedVertices) {

@@ -60,6 +60,8 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 
 		initPane();
 	}
+	
+	public Main getm(){return main;}
 
 	private void initPane() {
 		pane = new JPanel(new GridBagLayout());
@@ -345,13 +347,14 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		 if(index > 0 ) {
 			  library.addListSelectionListener(listSelectionListener);
 			  library.ensureIndexIsVisible(0);
-        wall = true;
+              wall = true;
 			  pane.revalidate();
 		 }
   }
 
   private void showWallpaper(Object object) {
     if(library.getSelectedIndex() >= 0) {
+    		System.out.println("selected");
 			Insets top_left_bottom_right = new Insets(10,10,10,10);
 			GridBagConstraints gbc;
 			gbc = FrontEnd.buildGBC(0, 2, 0.5, 0.5, GridBagConstraints.CENTER, top_left_bottom_right);
@@ -378,16 +381,17 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 						{
 							picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"NoImage.png") ));
 							Border border = BorderFactory.createLineBorder(Color.GRAY);
-		          picPan.setBorder(border);
-              description.setText("");
+							picPan.setBorder(border);
+							description.setText("");
 					    description.setCaretPosition(0);
 						}
 						else
 					    {
-							picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+image) ));
+							main.frontEnd.gethvs().texcurrent("img/wallpapers/"+image);
+							picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+image)));
 							Border border = BorderFactory.createLineBorder(Color.GRAY);
-		          picPan.setBorder(border);
-              description.setText(rs.getString("Description"));
+							picPan.setBorder(border);
+							description.setText(rs.getString("Description"));
 					    description.setCaretPosition(0);
 						}
 					//} else {
@@ -457,9 +461,9 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			SQLStatement("select * from ITEM where Type='38'", "Name");
 			prevCurrentLib = currentLibrary;
 			currentLibrary = 3;
-      currentType = 38;
+		    currentType = 38;
 			library.setSelectedIndex(-1);
-      selectWallpaper();
+			selectWallpaper();
 			pane.revalidate();
   }
 

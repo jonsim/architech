@@ -342,7 +342,7 @@ public class ArchApp extends Application
         white.setFloat("Shininess", 1000);
 
         wallmat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-		wallmat.setTexture("DiffuseMap", assetManager.loadTexture("req/wall1.jpg"));
+		wallmat.setTexture("DiffuseMap", assetManager.loadTexture("img/wallpapers/default.jpg"));
         wallmat.setFloat("Shininess", 1000);
     }
     
@@ -897,16 +897,15 @@ public class ArchApp extends Application
     		straight = true;
     	
     	WallGeometry wallGeometry = new WallGeometry();
-    	
     	// draw a curved/straight line
     	if (!straight)
     	{
     		QuadCurve2D qcurve = e.getqcurve();			
-    		recurvsion(wallGeometry,qcurve,4);
+    		recurvsion(wallGeometry,qcurve,4,e.tex());
     	}
     	else
     	{
-    		drawline(wallGeometry, x1, x2, y1, y2, 100, -100, true);
+    		drawline(wallGeometry, x1, x2, y1, y2, 100, -100, true,e.tex());
     	}
 
     	return wallGeometry;
@@ -929,7 +928,7 @@ public class ArchApp extends Application
 	
 		// makes new edges in the new locations
 		WallGeometry completelyNew = makeWall(e);
-		wallGeometry.geom.clear();	
+		wallGeometry.geom.clear();
 		itr = completelyNew.geom.iterator();
 		
 		// TODO: the following 2 iterators can probably be merged
@@ -941,14 +940,12 @@ public class ArchApp extends Application
 		while (itr.hasNext())
 			rootNode.attachChild(itr.next().geometry);
 	}
-    
 	
-	
-    private int recurvsion (WallGeometry top, QuadCurve2D curve, int level)
+    private int recurvsion (WallGeometry top, QuadCurve2D curve, int level, String ppath)
     {
     	if (level == 0)
     	{
-    		drawline(top, (int)curve.getX1(), (int)curve.getX2(), (int)curve.getY1(), (int)curve.getY2(), 100, -100, true);
+    		drawline(top, (int)curve.getX1(), (int)curve.getX2(), (int)curve.getY1(), (int)curve.getY2(), 100, -100, true,ppath);
     		return -1;
     	}
     	else
@@ -957,15 +954,13 @@ public class ArchApp extends Application
     		QuadCurve2D left =  new QuadCurve2D.Float();
     		QuadCurve2D right = new QuadCurve2D.Float();
     		curve.subdivide(left, right);
-    		recurvsion(top, left, nlevel);
-    		recurvsion(top, right, nlevel);
+    		recurvsion(top, left, nlevel,ppath);
+    		recurvsion(top, right, nlevel,ppath);
     		return 0;
     	}
     }
     
-    
-    
-    private void drawline (WallGeometry wallGeometry, int x1, int x2, int y1, int y2, int height, int disp, boolean coll)
+    private void drawline (WallGeometry wallGeometry, int x1, int x2, int y1, int y2, int height, int disp, boolean coll,String ppath)
     {
     	int length, leny, lenx = 0;
     	float rotation = 0;
@@ -1001,7 +996,10 @@ public class ArchApp extends Application
 		quad1.geometry = new Geometry("Box", new Quad(length, height));
 		quad1.geometry.setLocalTranslation(new Vector3f(x1, disp, y1));
 		quad1.geometry.rotate(0f, rotation, 0f);
-		quad1.geometry.setMaterial(wallmat);
+        Material paper = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+		paper.setTexture("DiffuseMap", assetManager.loadTexture(ppath));
+        paper.setFloat("Shininess", 1000);
+		quad1.geometry.setMaterial(paper);
     	if (shadowing)
     		quad1.geometry.setShadowMode(ShadowMode.CastAndReceive);
     	if (physics & coll)
@@ -1013,7 +1011,7 @@ public class ArchApp extends Application
 		quad2.geometry = new Geometry ("Box", new Quad(length,height));
 		quad2.geometry.setLocalTranslation(new Vector3f(x2, disp, y2));
 		quad2.geometry.rotate(0f, rotation + FastMath.PI, 0f);
-		quad2.geometry.setMaterial(wallmat);
+		quad2.geometry.setMaterial(paper);
 		if (shadowing)
 			quad2.geometry.setShadowMode(ShadowMode.CastAndReceive);
 		if (physics & coll)

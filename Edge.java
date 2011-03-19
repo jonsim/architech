@@ -19,6 +19,7 @@ public class Edge {
    private final Line2D.Float tangent1 = new Line2D.Float();
    private final Line2D.Float tangent2 = new Line2D.Float();
    private final LinkedList<Furniture> doorWindow = new LinkedList<Furniture>();
+   private String texpath = "";
 
    /** Creates a new edge from the given vertices. Doesn't add it to the coordStore.
     *  If null is given for a vertex then that vertex will be made at 0,0,0
@@ -28,6 +29,7 @@ public class Edge {
 
       this.v1 = v1;
       this.v2 = v2;
+      texpath = "img/wallpapers/default.jpg";
 
       if (ctrl == null) resetCtrlPositionToHalfway();
       else setCtrl(ctrl);
@@ -46,6 +48,14 @@ public class Edge {
    public QuadCurve2D.Float getqcurve()
    {
 	   return topDownViewCurve;
+   }
+   
+   public String tex(){
+	   return texpath;
+   }
+   public void settex(String path){
+	   texpath = path;
+	   return;
    }
 
    /** Updates v1, refuses to update if you give it null. Also updates the ctrl

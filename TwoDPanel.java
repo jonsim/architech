@@ -115,6 +115,10 @@ class TwoDPanel extends JPanel implements ChangeListener {
     public double getZoomScale() {
         return zoomScale;
     }
+    
+    public HandlerVertexSelect gethvs(){
+    	return handlerVertexSelect;
+    }
 
     /** Draws grid, objects and vertices, highlights currently aimed at vertex */
     @Override
