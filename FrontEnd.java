@@ -71,6 +71,12 @@ public class FrontEnd implements WindowListener, ChangeListener {
 
       tabbedPane.addChangeListener(this);
    }
+   
+   public void changetw(){
+	   TwoDandThreeD.setTopComponent(new TWHolder(main));
+	   TwoDandThreeD.setDividerLocation(TwoDandThreeD.getMaximumDividerLocation());
+	   TwoDandThreeD.revalidate();
+   }
 
    /** Initialises the twoDandThreeD variable */
    private void initTwoDAndThreeD() {

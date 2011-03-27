@@ -41,6 +41,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    private FurnitureObject draggedObject;
    private String objectName;
    private String typeName;
+   private String categoryName;
    private int itemID = -1;
    private int typeID = -1;
    private int itemType = -1;
@@ -143,7 +144,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		library.addMouseListener(this);
 		library.addKeyListener(this);
 		library.setDragEnabled(true);
-		SQLStatement("select * from CATEGORIES", "Category");
+		SQLStatement("select * from CATEGORIES ORDER BY Category", "Category");
 		currentLibrary = 0;
 
 		library.setDragEnabled(true);
@@ -247,7 +248,6 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			rs = statement.executeQuery();
 			if(rs.next()) {
 				itemID = rs.getInt("ID");
-				//return itemID;
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -263,7 +263,6 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			rs = statement.executeQuery();
 			if(rs.next()) {
 				itemType = rs.getInt("Type");
-				//return itemID;
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -279,7 +278,6 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			rs = statement.executeQuery();
 			if(rs.next()) {
 				isTweaked = rs.getInt("Tweaked");
-				//return itemID;
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -311,9 +309,9 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		if(index > 0 && currentType == -1 && !typeName.equals(dashedSeparator)) {
 			library.addListSelectionListener(listSelectionListener);
 			int typeIndex = getTypeID(typeName);
-			currentType = index;
+      currentType = typeIndex;
 			fields.clear();
-			SQLStatement("select * from ITEM where Type="+ typeIndex, "Name");
+			SQLStatement("select * from ITEM where Type="+ typeIndex +" ORDER BY Name", "Name");
 			currentLibrary = 2;
 			fields.addElement(dashedSeparator);
 			fields.addElement(backButtonText);
@@ -328,12 +326,21 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		index++;
 		if(index > 0 && currentCategory == -1) {
 			library.addListSelectionListener(listSelectionListener);
-			currentCategory = index;
+      categoryName = fields.get(index-1).toString();
+      try{
+         statement = connection.prepareStatement("select * from CATEGORIES where Category='" + categoryName + "'");
+			   rs = statement.executeQuery();
+         if(rs.next()) {
+				    currentCategory = rs.getInt("ID");
+			   } 
+      } catch(Exception e) {
+			      e.printStackTrace();
+		  }
 			fields.clear();
-			SQLStatement("select * from TYPE where Category1="+index+
-				" or Category2="+index+" or Category3="+index, "Type");
+			SQLStatement("select * from TYPE where Category1="+currentCategory+
+				" or Category2="+currentCategory+" or Category3="+currentCategory+" ORDER BY Type", "Type");
 			currentLibrary = 1;
-			categoryIndex = index;
+			categoryIndex = currentCategory;
 			fields.addElement(dashedSeparator);
 			fields.addElement(backButtonText);
 			library.setSelectedIndex(-1);
@@ -373,32 +380,24 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 					String request = "select * from ITEM where Type='38' AND Name='"+object+"'";
 					statement = connection.prepareStatement(request);
 					rs = statement.executeQuery();
-					//System.out.println("object ===== "+object);
-					//System.out.println("Type Name ===== "+typeName);
-					//if(rs.next()) {
-						String image = rs.getString("Image");
-						if (image.equals("none")==true)
-						{
-							picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"NoImage.png") ));
-							Border border = BorderFactory.createLineBorder(Color.GRAY);
-							picPan.setBorder(border);
-							description.setText("");
-					    description.setCaretPosition(0);
-						}
-						else
-					    {
-							main.frontEnd.gethvs().texcurrent("img/wallpapers/"+image);
-							picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+image)));
-							Border border = BorderFactory.createLineBorder(Color.GRAY);
-							picPan.setBorder(border);
-							description.setText(rs.getString("Description"));
-					    description.setCaretPosition(0);
-						}
-					//} else {
-						//picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"NoImage.png") ));
-						//Border border = BorderFactory.createLineBorder(Color.GRAY);
-		        //picPan.setBorder(border);
-					//}
+					String image = rs.getString("Image");
+					if (image.equals("none")==true)
+					{
+						picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"NoImage.png") ));
+						Border border = BorderFactory.createLineBorder(Color.GRAY);
+						picPan.setBorder(border);
+						description.setText("");
+					  description.setCaretPosition(0);
+					}
+					else
+					{
+						main.frontEnd.gethvs().texcurrent("img/wallpapers/"+image);
+						picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+image)));
+						Border border = BorderFactory.createLineBorder(Color.GRAY);
+						picPan.setBorder(border);
+						description.setText(rs.getString("Description"));
+					   description.setCaretPosition(0);
+					}
 				}
 			} catch(Exception e) {
 				e.printStackTrace();
@@ -414,7 +413,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			library.removeListSelectionListener(listSelectionListener);
 			currentCategory = -1;
 			fields.clear();
-			SQLStatement("select * from CATEGORIES", "Category");
+			SQLStatement("select * from CATEGORIES ORDER BY Category", "Category");
 			currentLibrary = 0;
 			library.setSelectedIndex(-1);
 			pane.revalidate();
@@ -428,7 +427,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			currentCategory = -1;
       currentType = -1;
 			fields.clear();
-			SQLStatement("select * from CATEGORIES", "Category");
+			SQLStatement("select * from CATEGORIES ORDER BY Category", "Category");
 			currentLibrary = 0;
 			library.setSelectedIndex(-1);
 			pane.revalidate();
@@ -441,8 +440,8 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			typeID = -1;
 			currentType = -1;
 			fields.clear();
-			SQLStatement("select * from TYPE where Category1="+categoryIndex+
-				" or Category2="+categoryIndex+" or Category3="+categoryIndex, "Type");
+			SQLStatement("select * from TYPE where Category1="+currentCategory+
+				" or Category2="+currentCategory+" or Category3="+currentCategory+" ORDER BY Type", "Type");
 			currentLibrary = 1;
 			fields.addElement(dashedSeparator);
 			fields.addElement(backButtonText);
@@ -458,7 +457,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			fields.clear();
 			fields.addElement(wallpaperTitle);
 			fields.addElement(dashedSeparator);
-			SQLStatement("select * from ITEM where Type='38'", "Name");
+			SQLStatement("select * from ITEM where Type='38'"+" ORDER BY Name", "Name");
 			prevCurrentLib = currentLibrary;
 			currentLibrary = 3;
 		    currentType = 38;

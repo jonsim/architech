@@ -9,6 +9,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -42,7 +43,7 @@ import javax.swing.filechooser.FileFilter;
 
 import com.jme3.system.JmeCanvasContext;
 
-public class Tweaker extends JFrame implements ActionListener{
+public class Tweaker extends JPanel implements ActionListener{
 	
 	private TWPane preview;
 	public float red;
@@ -50,7 +51,7 @@ public class Tweaker extends JFrame implements ActionListener{
 	public float blue;
 	JPanel buttons;
 	JPanel controlarea;
-   JScrollPane controlScroller;
+    JScrollPane controlScroller;
 	int controlcount = 0;
 	int idcount = 0;
 	JLabel piclabel;
@@ -79,21 +80,22 @@ public class Tweaker extends JFrame implements ActionListener{
 		return (String)typelist.getSelectedItem();
 	}
 
-    public Tweaker( Main main) {   
+    public Tweaker(Main main) {   
+       super(new GridBagLayout());
        this.main = main;
-	   setUndecorated(true);      
+	   //setUndecorated(true);      
        // set minimum size to initialised size, before maximisation
-       setTitle("ArchiTECH Tweaker");
+       //setTitle("ArchiTECH Tweaker");
        Image icon = (new ImageIcon("img/frontend/icon.png")).getImage();
-       setIconImage(icon);
-       setMinimumSize(getSize());
-       setExtendedState(JFrame.MAXIMIZED_BOTH);
+       //setIconImage(icon);
+       //setMinimumSize(getSize());
+       //setExtendedState(JFrame.MAXIMIZED_BOTH);
        red = (float) 0.1;
-       setLocationRelativeTo(null);
-       setDefaultCloseOperation(EXIT_ON_CLOSE);
+       //setLocationRelativeTo(null);
+       //setDefaultCloseOperation(EXIT_ON_CLOSE);
        
        GridBagConstraints c = new GridBagConstraints();
-       getContentPane().add(pane);
+       //getContentPane().add(pane);
        
        JPanel top = new JPanel(new GridBagLayout());// the top half of the screen
        JPanel bottom = new JPanel(new GridBagLayout());// the bottom section of the screen
@@ -103,6 +105,7 @@ public class Tweaker extends JFrame implements ActionListener{
        JPanel tog = new JPanel(new GridBagLayout());// misc container for save/cancel buttons and text fields
        picture = new JPanel(new GridBagLayout());// holds texture picture and browse button
        Dimension scrDim = Toolkit.getDefaultToolkit().getScreenSize();// screen dimensions
+       scrDim.setSize(scrDim.getWidth()-200,scrDim.getHeight()-100);
  
        // add main window label to the graphics container
        JLabel label = new JLabel("<html><h2><font face='Gill Sans MT'>ArchiTECH Tweaker");
@@ -240,8 +243,8 @@ public class Tweaker extends JFrame implements ActionListener{
        top.setMaximumSize( new Dimension( (int) scrDim.getWidth(), (int) scrDim.getHeight() - 420 ) );
        bottom.setMinimumSize( new Dimension( (int) scrDim.getWidth(), 420 ) );
        bottom.setMaximumSize( new Dimension( (int) scrDim.getWidth(), 420 ) );
-       addItem(pane, top, 0, 0, 1, 1, GridBagConstraints.CENTER);
-	    addItem(pane, bottom, 0, 1, 1, 1, GridBagConstraints.CENTER);
+       addItem(this, top, 0, 0, 1, 1, GridBagConstraints.CENTER);
+	   addItem(this, bottom, 0, 1, 1, 1, GridBagConstraints.CENTER);
 
        //preview.shutdown3D();
        preview.startcan();
@@ -494,7 +497,7 @@ public class Tweaker extends JFrame implements ActionListener{
 				 pane.revalidate();}
 			else if(comm.contains("can")){
 					 preview.shutdown3D();
-					 this.dispose();
+					 this.setEnabled(false);
 					 main.viewport3D.remake3D();
 			         try{Thread.sleep(2000);}
 			         catch (InterruptedException ie){}

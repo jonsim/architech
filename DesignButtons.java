@@ -65,22 +65,28 @@ public class DesignButtons implements ActionListener {
    private void initButtons() {
       selectTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "hand.png")));
       selectTool.addActionListener(this);
+      selectTool.setToolTipText("Use the select tool to select and move vertices/edges");
 
       lineTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "line.png")));
       lineTool.addActionListener(this);
+      lineTool.setToolTipText("Use the line tool to place vertices and drag to draw walls");
 
       curveTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "cline.png")));
       curveTool.addActionListener(this);
+      curveTool.setToolTipText("Use the curve tool to draw curved walls");
 
       gridTool = new JToggleButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "grid.png")));
       gridTool.addActionListener(this);
       gridTool.setSelected(true);
+      gridTool.setToolTipText("Turns the grid on/off");
       
       dayToggle = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "daynight.png")));
       dayToggle.addActionListener(this);
+      dayToggle.setToolTipText("Switch between night and day");
       
       tweaker = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "pas.png")));
       tweaker.addActionListener(this);
+      tweaker.setToolTipText("Open the tweaker in order to edit furniture");
 
       currentTool = lineTool;
 
@@ -196,10 +202,11 @@ public class DesignButtons implements ActionListener {
          viewport3D.toggleDay();
 
       } else if (tweaker == source) {
-         viewport3D.shutdown3D(); //<-- this is why the 3d won't come back
-         frontEnd.getwindow().setVisible(false);
-         Tweaker hello = new Tweaker(frontEnd.main);
-         hello.setVisible(true);
+          viewport3D.shutdown3D();
+    	  frontEnd.changetw();
+         //frontEnd.getwindow().setVisible(false);
+         //Tweaker hello = new Tweaker(frontEnd.main);
+         //hello.setVisible(true);
       } else {
          Main.showFatalExceptionTraceWindow(
                  new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
