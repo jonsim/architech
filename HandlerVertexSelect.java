@@ -83,7 +83,9 @@ public class HandlerVertexSelect {
                         if (selectedArray.contains(v) == false){
                            selectedArray.add(v);
                         }
-                        wallEdges.add(e[k]);
+                        if (wallEdges.contains(e[k]) == false){
+                            wallEdges.add(e[k]);
+                        }
                         valid = true;
                     }
                 }
@@ -132,5 +134,22 @@ public class HandlerVertexSelect {
         selCount = 0;
         objectBrowser.wall = false;
         objectBrowser.toReset();
+    }
+
+    public void addToSelected(Coords.Vertex[] v) {
+       int i = 0;
+       Point p = new Point();
+       while(i < v.length) {
+           if(!selectedArray.contains(v[i])) {
+               selectedArray.add(v[i]);
+           }
+           i++;
+       }
+       i = 0;
+       while(i < v.length) {
+           p.setLocation(v[i].getX(), v[i].getY());
+           isAdjacent(v[i], selectedArray);
+           i++;
+       }
     }
 }

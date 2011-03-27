@@ -45,6 +45,9 @@ class TwoDPanel extends JPanel implements ChangeListener {
     private double fillFlatness = 0.001;
     private boolean gettingScreenshot = false;
     private String currname = null;
+	
+    private Rectangle selectionRectangle = new Rectangle();
+    private Point rectStart = new Point();
 
     /** If file is null creates a blank coords with the tab name nameIfNullFile,
      *  otherwise it tries to open the given file and load a coords from it, if
@@ -246,6 +249,12 @@ class TwoDPanel extends JPanel implements ChangeListener {
             g2.setColor(Color.CYAN);
             hoverFurniture.paint(g2);
         }
+		
+		Color fill = new Color(Color.BLUE.getRed(), Color.BLUE.getGreen(), Color.BLUE.getBlue(), 50);
+        g2.setColor(fill);
+        g2.fill(selectionRectangle);
+        g2.setColor(Color.BLUE);
+        g2.draw(selectionRectangle);
 
         }
     }
@@ -362,6 +371,28 @@ class TwoDPanel extends JPanel implements ChangeListener {
         currname = "ss"+nows+".jpg";        	
     }
 
+    private void selectDragBoxVertices() {
+        Edge[] edges = coords.getEdges();
+        ArrayList<Coords.Vertex> vertices = new ArrayList<Coords.Vertex>();
+        int i = 0;
+        Coords.Vertex v;
+        Point p = new Point();
+        while(i < edges.length) {
+            v = edges[i].getV1();
+            p.setLocation(v.getX(), v.getY());
+            if(selectionRectangle.contains(p)) {
+                vertices.add(v);
+            }
+            v = edges[i].getV2();
+            p.setLocation(v.getX(), v.getY());
+            if(selectionRectangle.contains(p)) {
+                vertices.add(v);
+            }
+            i++;
+        }
+        handlerVertexSelect.addToSelected((Coords.Vertex[])vertices.toArray(new Coords.Vertex[vertices.size()]));
+    }
+
     private class TwoDPanelMouseListener implements MouseListener {
 
         /** Invoked when a mouse button has been pressed on a component. */
@@ -398,6 +429,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
                     handlerFurnitureMove.start(p);
                     repaint();
                 } else {
+					rectStart.setLocation(p);
+                    selectionRectangle.setLocation(p);
                     handlerFurnitureMove.forgetRememberedFurniture();
                 }
 
@@ -422,6 +455,10 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 return;
             }
 
+            selectDragBoxVertices();
+	    selectionRectangle.setSize(0,0);
+            selectionRectangle.setLocation(-1,-1);
+
             Point p = new Point();
             p.setLocation(e.getPoint().getX() / zoomScale, e.getPoint().getY() / zoomScale);
 
@@ -436,7 +473,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 boolean breaker = false;
                 while(i < polygonEdges.size()) {
                     while(j < polygonEdges.get(i).size()) {
-                        if(polygonEdges.get(i).get(j).equals(handlerEdgeCurve.getEdge())) {
+                        if(polygonEdges.get(i).get(j).getV1().equals(handlerVertexMove.getVertex())
+                           || polygonEdges.get(i).get(j).getV2().equals(handlerVertexMove.getVertex())) {
                         	Color temp = polygonFills.get(i);
                         	fillRoom(polygonEdges.get(i));
                         	polygonFills.set(polygonFills.size()-1, temp);
@@ -550,6 +588,17 @@ class TwoDPanel extends JPanel implements ChangeListener {
                     // this case is user has select tool, clicks in space, drags and releases.
                     // need to stop the previous one, if one is already running
                     // can't really properly do curve middle as it hasn't been started
+					int width = Math.abs(rectStart.x-p.x);
+                    int length = Math.abs(rectStart.y-p.y);
+                    selectionRectangle.setLocation(rectStart);
+                    if(rectStart.getX() > p.getX()) {
+                        selectionRectangle.setLocation(p.x, selectionRectangle.y);
+                    }
+                    if(rectStart.getY() > p.getY()) {
+                        selectionRectangle.setLocation(selectionRectangle.x, p.y);
+                    }
+                    selectionRectangle.setSize(width, length);
+                    repaint();
                 }
 
             } else if (designButtons.isCurveTool()) {
