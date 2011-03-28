@@ -340,10 +340,9 @@ public class Coords {
    }
 
    public boolean detectCollisions(Furniture f) {
-	  Point topLeft = new Point();
-	  Point topRight = new Point();
-	  Point bottomLeft = new Point();
-	  Point bottomRight = new Point();
+          Point c1 = new Point();
+          Point c2 = new Point();
+          int i = 0;
 	  ListIterator<Edge> edgeIterator = edges.listIterator();
 	  double y1;
       double y2;
@@ -373,29 +372,88 @@ public class Coords {
       while(furnitureIterator.hasNext()) {
          Furniture fur = furnitureIterator.next();
 		 if(fur != f) {
-			topLeft = fur.getTopLeft();
-			topRight = fur.getTopRight();
-			bottomLeft = fur.getBottomLeft();
-			bottomRight = fur.getBottomRight();
-			if(pointIsOverFurniture(f, topLeft.getX(), topLeft.getY()) ||
-			   pointIsOverFurniture(f, topRight.getX(), topRight.getY()) ||
-			   pointIsOverFurniture(f, bottomLeft.getX(), bottomLeft.getY()) ||
-			   pointIsOverFurniture(f, bottomRight.getX(), bottomRight.getY())) {
-				return true;
-			}
-			topLeft = f.getTopLeft();
-			topRight = f.getTopRight();
-			bottomLeft = f.getBottomLeft();
-			bottomRight = f.getBottomRight();
-			if(pointIsOverFurniture(fur, topLeft.getX(), topLeft.getY()) ||
-			   pointIsOverFurniture(fur, topRight.getX(), topRight.getY()) ||
-			   pointIsOverFurniture(fur, bottomLeft.getX(), bottomLeft.getY()) ||
-			   pointIsOverFurniture(fur, bottomRight.getX(), bottomRight.getY())) {
-				return true;
-			}
+            if(rectangleIntersect(f, fur)) return true;
 	     }
       }
 	  return false;
+   }
+
+   private boolean rectangleIntersect(Furniture f1, Furniture f2) {
+       Point p1 = new Point();
+       Point p2 = new Point();
+       Point topLeft = f2.getTopLeft();
+       Point topRight = f2.getTopRight();
+       Point bottomLeft = f2.getBottomLeft();
+       Point bottomRight = f2.getBottomRight();
+       int i = 0;
+       while(i < 4) {
+           if(i == 0) {
+               p1 = f1.getTopLeft();
+               p2 = f1.getTopRight();
+           } else if(i == 1) {
+               p1 = f1.getBottomLeft();
+               p2 = f1.getBottomRight();
+           } else if(i == 2) {
+               p1 = f1.getTopLeft();
+               p2 = f1.getBottomLeft();
+           } else if(i == 3) {
+               p1 = f1.getTopRight();
+               p2 = f1.getBottomRight();
+           }
+           if(straightLineIntersect(p1, p2, topLeft, topRight)) return true;
+           if(straightLineIntersect(p1, p2, bottomLeft, bottomRight)) return true;
+           if(straightLineIntersect(p1, p2, topLeft, bottomLeft)) return true;
+           if(straightLineIntersect(p1, p2, topRight, bottomRight)) return true;
+           i++;
+       }
+       return false;
+   }
+
+   private boolean straightLineIntersect(Point a1, Point a2, Point b1, Point b2) {
+       double[] a = getEquation(a1, a2);
+       double[] b = getEquation(b1, b2);
+       double x;
+       double c;
+       double y;
+       int maxaX = Math.max(a1.x, a2.x);
+       int maxbX = Math.max(b1.x, b2.x);
+       int minaX = Math.min(a1.x, a2.x);
+       int minbX = Math.min(b1.x, b2.x);
+       int maxaY = Math.max(a1.y, a2.y);
+       int maxbY = Math.max(b1.y, b2.y);
+       int minaY = Math.min(a1.y, a2.y);
+       int minbY = Math.min(b1.y, b2.y);
+       if(a == null || b == null) return false;
+       // They are parallel
+       if(a[0] == b[0]) return false;
+       if(a[0] > b[0]) {
+           x = a[0]-b[0];
+           c = b[1]-a[1];
+       } else {
+           x = b[0]-a[0];
+           c = a[1]-b[1];
+       }
+       c = c/x;
+       // now intersection is where x = c
+       y = c*a[0] + a[1];
+       if(y <= maxaY && y >= minaY && y <= maxbY && y >= minbY
+          && c <= maxaX && c >= minaX && c <= maxbX && c >= minbX) return true;
+       return false;
+   }
+
+   // eqn[0] is the x coefficient, eqn[1] is the constant
+   private double[] getEquation(Point p1, Point p2) {
+       double[] eqn = new double[2];
+       double dy;
+       double dx;
+       if(p1.x == p2.x) return null;
+       Point max = (p1.x > p2.x) ? p1 : p2;
+       Point min = (p1.x > p2.x) ? p2 : p1;
+       dy = max.y - min.y;
+       dx = max.x - min.x;
+       eqn[0] = dy/dx;
+       eqn[1] = min.y-(eqn[0]*min.x);
+       return eqn;
    }
    
    private QuadCurve2D.Float rotateQuad(QuadCurve2D quadCurve, double rotation, double centreX, double centreY) {
