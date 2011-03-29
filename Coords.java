@@ -340,42 +340,42 @@ public class Coords {
    }
 
    public boolean detectCollisions(Furniture f) {
-          Point c1 = new Point();
-          Point c2 = new Point();
-          int i = 0;
-	  ListIterator<Edge> edgeIterator = edges.listIterator();
-	  double y1;
-      double y2;
-      double x1;
-      double x2;
-	  double eqn[] = new double[3];
-	  double ctrlY;
-      double ctrlX;
-      while(edgeIterator.hasNext()) {
-         Edge e = edgeIterator.next();
-		 QuadCurve2D quadCurve = new QuadCurve2D.Float();
-		 quadCurve = rotateQuad(e.topDownViewCurve, -f.getRotation(), f.getRotationCenterX(), f.getRotationCenterY());
-         x1 = quadCurve.getX1();
-         x2 = quadCurve.getX2();
-		 y1 = quadCurve.getY1();
-         y2 = quadCurve.getY2();
-         ctrlX = quadCurve.getCtrlX();
-		 ctrlY = quadCurve.getCtrlY();
-		 if(intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY()-f.getHeight()/2, x1, ctrlX, x2, f.getRotationCenterX()-f.getWidth()/2, f.getRotationCenterX()+f.getWidth()/2) ||
-		    intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY()+f.getHeight()/2, x1, ctrlX, x2, f.getRotationCenterX()-f.getWidth()/2, f.getRotationCenterX()+f.getWidth()/2) ||
-			intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX()-f.getWidth()/2, y1, ctrlY, y2, f.getRotationCenterY()-f.getHeight()/2, f.getRotationCenterY()+f.getHeight()/2) ||
-			intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX()+f.getWidth()/2, y1, ctrlY, y2, f.getRotationCenterY()-f.getHeight()/2, f.getRotationCenterY()+f.getHeight()/2)) {
-				return true;
-		}
-      }
-	  ListIterator<Furniture> furnitureIterator = furniture.listIterator();
-      while(furnitureIterator.hasNext()) {
-         Furniture fur = furnitureIterator.next();
-		 if(fur != f) {
-            if(rectangleIntersect(f, fur)) return true;
-	     }
-      }
-	  return false;
+       int i = 0;
+       ListIterator<Edge> edgeIterator = edges.listIterator();
+       double y1;
+       double y2;
+       double x1;
+       double x2;
+       double eqn[] = new double[3];
+       double ctrlY;
+       double ctrlX;
+       while (edgeIterator.hasNext()) {
+           Edge e = edgeIterator.next();
+           QuadCurve2D quadCurve = new QuadCurve2D.Float();
+           quadCurve = rotateQuad(e.topDownViewCurve, -f.getRotation(), f.getRotationCenterX(), f.getRotationCenterY());
+           x1 = quadCurve.getX1();
+           x2 = quadCurve.getX2();
+           y1 = quadCurve.getY1();
+           y2 = quadCurve.getY2();
+           ctrlX = quadCurve.getCtrlX();
+           ctrlY = quadCurve.getCtrlY();
+           if (intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, f.getRotationCenterX() + f.getWidth() / 2)
+                   || intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY() + f.getHeight() / 2, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, f.getRotationCenterX() + f.getWidth() / 2)
+                   || intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, f.getRotationCenterY() + f.getHeight() / 2)
+                   || intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX() + f.getWidth() / 2, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, f.getRotationCenterY() + f.getHeight() / 2)) {
+               return true;
+           }
+       }
+       ListIterator<Furniture> furnitureIterator = furniture.listIterator();
+       while (furnitureIterator.hasNext()) {
+           Furniture fur = furnitureIterator.next();
+           if (fur != f) {
+               if (rectangleIntersect(f, fur)) {
+                   return true;
+               }
+           }
+       }
+       return false;
    }
 
    private boolean rectangleIntersect(Furniture f1, Furniture f2) {
@@ -423,8 +423,22 @@ public class Coords {
        int maxbY = Math.max(b1.y, b2.y);
        int minaY = Math.min(a1.y, a2.y);
        int minbY = Math.min(b1.y, b2.y);
-       if(a == null || b == null) return false;
-       // They are parallel
+       // null is for vertical lines
+       if(a == null && b == null) return false;
+       if(a == null) {
+           y = b[0]*a1.x + b[1];
+           if(y < maxaY && y > minaY) {
+               if(maxbX > a1.x && minbX < a1.x) return true;
+           }
+           return false;
+       }
+       if(b == null) {
+           y = a[0]*b1.x + a[1];
+           if(y < maxbY && y > minbY) {
+               if(maxaX > b1.x && minaX < b1.x) return true;
+           }
+           return false;
+       }
        if(a[0] == b[0]) return false;
        if(a[0] > b[0]) {
            x = a[0]-b[0];
@@ -437,7 +451,9 @@ public class Coords {
        // now intersection is where x = c
        y = c*a[0] + a[1];
        if(y <= maxaY && y >= minaY && y <= maxbY && y >= minbY
-          && c <= maxaX && c >= minaX && c <= maxbX && c >= minbX) return true;
+          && c <= maxaX && c >= minaX && c <= maxbX && c >= minbX) {
+           return true;
+       }
        return false;
    }
 
@@ -446,6 +462,7 @@ public class Coords {
        double[] eqn = new double[2];
        double dy;
        double dx;
+       // null means it is vertical
        if(p1.x == p2.x) return null;
        Point max = (p1.x > p2.x) ? p1 : p2;
        Point min = (p1.x > p2.x) ? p2 : p1;
