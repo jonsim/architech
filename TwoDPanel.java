@@ -293,8 +293,10 @@ class TwoDPanel extends JPanel implements ChangeListener {
         repaint();
     }
 
-    private ArrayList<Edge> sortEdges(ArrayList<Edge> edgeList) {
-        if(edgeList.isEmpty()) return null;
+    private ArrayList<Edge> sortEdges(ArrayList<Edge> edges) {
+        if(edges.isEmpty()) return null;
+        ArrayList<Edge> edgeList = new ArrayList<Edge>();
+        edgeList.addAll(edges);
         int i = 0;
         boolean removed = false;
         boolean changed = false;
