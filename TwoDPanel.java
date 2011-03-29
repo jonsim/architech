@@ -473,10 +473,11 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 int i = 0;
                 int j = 0;
                 boolean breaker = false;
+                Edge edge = handlerEdgeCurve.getEdge();
                 while(i < polygonEdges.size()) {
                     while(j < polygonEdges.get(i).size()) {
-                        if(polygonEdges.get(i).get(j).getV1().equals(handlerVertexMove.getVertex())
-                           || polygonEdges.get(i).get(j).getV2().equals(handlerVertexMove.getVertex())) {
+                        if(polygonEdges.get(i).get(j).getV1().equals(edge.getV1())
+                           || polygonEdges.get(i).get(j).getV2().equals(edge.getV1())) {
                         	Color temp = polygonFills.get(i);
                         	fillRoom(polygonEdges.get(i));
                         	polygonFills.set(polygonFills.size()-1, temp);
