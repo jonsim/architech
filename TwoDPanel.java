@@ -472,24 +472,26 @@ class TwoDPanel extends JPanel implements ChangeListener {
             if (inProgressHandler == handlerEdgeCurve) {
                 int i = 0;
                 int j = 0;
-                boolean breaker = false;
+                int k = 0;
                 Edge edge = handlerEdgeCurve.getEdge();
-                while(i < polygonEdges.size()) {
+                while(i < polygonEdges.size()-k) {
                     while(j < polygonEdges.get(i).size()) {
                         if(polygonEdges.get(i).get(j).getV1().equals(edge.getV1())
-                           || polygonEdges.get(i).get(j).getV2().equals(edge.getV1())) {
+                           || polygonEdges.get(i).get(j).getV2().equals(edge.getV1())
+                           || polygonEdges.get(i).get(j).getV1().equals(edge.getV2())
+                           || polygonEdges.get(i).get(j).getV2().equals(edge.getV2())) {
                         	Color temp = polygonFills.get(i);
                         	fillRoom(polygonEdges.get(i));
                         	polygonFills.set(polygonFills.size()-1, temp);
                             polygons.remove(i);
                             polygonFills.remove(i);
                             polygonEdges.remove(i);
-                            breaker = true;
+                            i--;
+                            k++;
                             break;
                         }
                         j++;
                     }
-                    if(breaker) break;
                     j = 0;
                     i++;
                 }
@@ -506,25 +508,25 @@ class TwoDPanel extends JPanel implements ChangeListener {
             } else if (inProgressHandler == handlerVertexMove) {
                 int i = 0;
                 int j = 0;
-                boolean breaker = false;
-                while(i < polygonEdges.size()) {
-                    while(j < polygonEdges.get(i).size()) {
-                        if(polygonEdges.get(i).get(j).getV1().equals(handlerVertexMove.getVertex())
-                           || polygonEdges.get(i).get(j).getV2().equals(handlerVertexMove.getVertex())) {
-                            Color temp = polygonFills.get(i);
-                            fillRoom(polygonEdges.get(i));
-                            polygonFills.set(polygonFills.size()-1, temp);
-                            polygons.remove(i);
-                            polygonFills.remove(i);
-                            polygonEdges.remove(i);
-                            breaker = true;
-                            break;
-                        }
-                        j++;
-                    }
-                    if(breaker) break;
-                    j = 0;
-                    i++;
+                int k = 0;
+                while(i < polygonEdges.size()-k) {
+                   while(j < polygonEdges.get(i).size()) {
+                      if(polygonEdges.get(i).get(j).getV1().equals(handlerVertexMove.getVertex())
+                         || polygonEdges.get(i).get(j).getV2().equals(handlerVertexMove.getVertex())) {
+                           Color temp = polygonFills.get(i);
+                           fillRoom(polygonEdges.get(i));
+                           polygonFills.set(polygonFills.size()-1, temp);
+                           polygons.remove(i);
+                           polygonFills.remove(i);
+                           polygonEdges.remove(i);
+                           i--;
+                           k++;
+                           break;
+                      }
+                      j++;
+                   }
+                   j = 0;
+                   i++;
                 }
                 
                 inProgressHandler = null;
