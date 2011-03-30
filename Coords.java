@@ -427,15 +427,15 @@ public class Coords {
        if(a == null && b == null) return false;
        if(a == null) {
            y = b[0]*a1.x + b[1];
-           if(y < maxaY && y > minaY) {
-               if(maxbX > a1.x && minbX < a1.x) return true;
+           if(y <= maxaY && y >= minaY) {
+               if(maxbX >= a1.x && minbX <= a1.x) return true;
            }
            return false;
        }
        if(b == null) {
            y = a[0]*b1.x + a[1];
-           if(y < maxbY && y > minbY) {
-               if(maxaX > b1.x && minaX < b1.x) return true;
+           if(y <= maxbY && y >= minbY) {
+               if(maxaX >= b1.x && minaX <= b1.x) return true;
            }
            return false;
        }
