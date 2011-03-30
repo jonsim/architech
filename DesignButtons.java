@@ -1,5 +1,8 @@
 
 import javax.swing.*;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.MenuItemUI;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Hashtable;
@@ -62,10 +65,10 @@ public class DesignButtons implements ActionListener {
 
    /** Initialises the private button variables */
    private void initButtons() {
-	  Insets margins = new Insets(0,10,0,10);
+	  Insets margins = new Insets(0,0,0,0);
       selectTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "hand.png")));
       selectTool.addActionListener(this);
-        //selectTool.setMargin(margins);
+      selectTool.setMargin(margins);
       selectTool.setToolTipText("Use the select tool to select and move vertices/edges");
 
       lineTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "line.png")));
@@ -89,7 +92,7 @@ public class DesignButtons implements ActionListener {
       dayToggle.setMargin(margins);
       dayToggle.setToolTipText("Switch between night and day");
       
-      tweaker = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "pas.png")));
+      tweaker = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "tweak.png")));
       tweaker.addActionListener(this);
       tweaker.setMargin(margins);
       tweaker.setToolTipText("Open the tweaker in order to edit furniture");

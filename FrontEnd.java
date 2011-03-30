@@ -220,7 +220,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
       JPanel right = new JPanel(new GridBagLayout());
       
       //build left
-      c = buildGBC(0, 0, 0.5, 0.0, topCenterAnchor, none);
+      c = buildGBC(0, 0, 0.5, 0.0, topCenterAnchor, new Insets(0,0,10,0));
       left.add(designButtons.getPane(), c);      
       c = buildGBC(0, 1, 0.5, 0.5, leftAnchor, new Insets(0,5,5,5));
       c.fill = GridBagConstraints.BOTH;
