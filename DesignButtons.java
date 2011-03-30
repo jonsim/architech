@@ -11,17 +11,17 @@ public class DesignButtons implements ActionListener {
    public final Viewport3D viewport3D;
    private final FrontEnd frontEnd;
    private JPanel pane;
-   private JButton selectTool, lineTool, curveTool, currentTool, dayToggle, tweaker;
+   private JButton selectTool, lineTool, curveTool,  currentTool, dayToggle, tweaker;
    private JSlider zoomTool;
-   private Cursor selectCursor, lineCursor, curveCursor;
+   private Cursor selectCursor, lineCursor;
    private JToggleButton gridTool;
+   private final Color back = new Color(74,74,74);
 
    /** Initialises the private variables as usual */
    DesignButtons(FrontEnd frontEnd, Viewport3D viewport3D) {
       if (frontEnd == null || viewport3D == null) {
          throw new IllegalArgumentException("null parameter");
       }
-
       this.frontEnd = frontEnd;
       this.viewport3D = viewport3D;
       initCursors();
@@ -56,42 +56,46 @@ public class DesignButtons implements ActionListener {
 
    /** Initialises the private cursor variables */
    private void initCursors() {
-      selectCursor = new Cursor(Cursor.DEFAULT_CURSOR);
-      lineCursor = new Cursor(Cursor.DEFAULT_CURSOR);
-      curveCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+      selectCursor = new Cursor(Cursor.HAND_CURSOR);
+      lineCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
    }
 
    /** Initialises the private button variables */
    private void initButtons() {
+	  Insets margins = new Insets(0,10,0,10);
       selectTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "hand.png")));
       selectTool.addActionListener(this);
+        //selectTool.setMargin(margins);
       selectTool.setToolTipText("Use the select tool to select and move vertices/edges");
 
       lineTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "line.png")));
       lineTool.addActionListener(this);
+      lineTool.setMargin(margins);
       lineTool.setToolTipText("Use the line tool to place vertices and drag to draw walls");
 
       curveTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "cline.png")));
       curveTool.addActionListener(this);
+      curveTool.setMargin(margins);
       curveTool.setToolTipText("Use the curve tool to draw curved walls");
 
       gridTool = new JToggleButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "grid.png")));
       gridTool.addActionListener(this);
       gridTool.setSelected(true);
+      gridTool.setMargin(margins);
       gridTool.setToolTipText("Turns the grid on/off");
       
       dayToggle = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "daynight.png")));
       dayToggle.addActionListener(this);
+      dayToggle.setMargin(margins);
       dayToggle.setToolTipText("Switch between night and day");
       
       tweaker = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "pas.png")));
       tweaker.addActionListener(this);
+      tweaker.setMargin(margins);
       tweaker.setToolTipText("Open the tweaker in order to edit furniture");
 
       currentTool = lineTool;
-
       zoomTool = new JSlider(JSlider.HORIZONTAL, 0, 20, 10);
-
       initZoomTool();
       reCalcButtonStates();
    }
@@ -132,8 +136,30 @@ public class DesignButtons implements ActionListener {
       //Insets bottom = new Insets(0, 0, 5, 0);
       Insets none = new Insets(0, 0, 0, 0);
 
+      //pane = new JPanel(new GridBagLayout());
       pane = new JPanel(new GridBagLayout());
-      pane.setBorder(BorderFactory.createTitledBorder("Design Buttons"));
+      pane.setOpaque(false);
+      /*JToolBar dbuttons = new JToolBar("Design buttons");
+      dbuttons.setFloatable(false);
+      dbuttons.addSeparator();
+      dbuttons.add(selectTool);
+      dbuttons.addSeparator();
+      dbuttons.add(lineTool);
+      dbuttons.addSeparator();
+      dbuttons.add(curveTool);
+      dbuttons.addSeparator();
+      dbuttons.add(gridTool);  
+      dbuttons.addSeparator();
+      dbuttons.add(zoomTool);
+      dbuttons.addSeparator();
+      dbuttons.add(dayToggle);
+      dbuttons.addSeparator();
+      dbuttons.add(tweaker); 
+      dbuttons.addSeparator();*/
+      pane.add(selectTool);
+      //pane.add(dbuttons);
+      
+      //pane.setBorder(BorderFactory.createTitledBorder("Design Buttons"));
 
       GridBagConstraints c;
 
@@ -155,11 +181,11 @@ public class DesignButtons implements ActionListener {
       c = FrontEnd.buildGBC(5, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(tweaker, c);
 
-      c = FrontEnd.buildGBC(6, 1, 0.5, 0.5, topCenterAnchor, none);
+      c = FrontEnd.buildGBC(6, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(zoomTool, c);
 
-      c = FrontEnd.buildGBC(6, 0, 0.5, 0.5, bottomCenterAnchor, none);
-      pane.add(new JLabel("Zoom"), c);
+      c = FrontEnd.buildGBC(6, 0, 0.5, 0.5, bottomCenterAnchor, right);
+      pane.add(new JLabel("<html><font color='white'>Zoom"), c);
    }
 
    /** Returns the pane containing the buttons / GUI stuff */
@@ -191,7 +217,7 @@ public class DesignButtons implements ActionListener {
          reCalcButtonStates();
 
       } else if (curveTool == source) {
-         frontEnd.setWindowCursor(curveCursor);
+         frontEnd.setWindowCursor(lineCursor);
          currentTool = curveTool;
          reCalcButtonStates();
 

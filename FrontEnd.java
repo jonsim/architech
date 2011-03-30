@@ -1,6 +1,8 @@
 import java.net.URL;
 import javax.swing.*;
 import javax.swing.event.*;
+import javax.swing.plaf.basic.BasicSplitPaneDivider;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -12,7 +14,9 @@ import java.io.*;
 public class FrontEnd implements WindowListener, ChangeListener {
    public static final String ICON_LOCATION = "img/frontend/icon.png";
    public static final String WINDOW_TITLE = "ArchiTECH";
-
+   private final Color back = new Color(74,74,74);
+   private final Color high = new Color(9,77,154);
+   private final Color divcol = new Color(74,74,74);
    private final JFrame window = new JFrame(WINDOW_TITLE);
    private final JSplitPane TwoDandThreeD = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
    private final JTabbedPane tabbedPane = new JTabbedPane() {
@@ -36,11 +40,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
    private FrontEndMenu frontEndMenu;
    private DesignButtons designButtons;
    public Main main;
-   
-   public void refreshtt(){
-	   TwoDandThreeD.revalidate();
-   }
-   
+     
    public HandlerVertexSelect gethvs(){
 	   return getCurrentTab().gethvs();
    }
@@ -76,16 +76,24 @@ public class FrontEnd implements WindowListener, ChangeListener {
 	   TwoDandThreeD.setTopComponent(new TWHolder(main));
 	   TwoDandThreeD.setDividerLocation(TwoDandThreeD.getMaximumDividerLocation());
 	   TwoDandThreeD.revalidate();
+
    }
 
    /** Initialises the twoDandThreeD variable */
    private void initTwoDAndThreeD() {
       TwoDandThreeD.setTopComponent(tabbedPane);
-      TwoDandThreeD.setOneTouchExpandable(true);
+      //TwoDandThreeD.setOneTouchExpandable(true);
       TwoDandThreeD.setDividerSize(11);
       TwoDandThreeD.setBorder(null);
+	  TwoDandThreeD.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, high));
       TwoDandThreeD.setResizeWeight(0.45);
+      Image img = getImage(this,"img/frontend/eye.png");
+      Point centre = new Point(0,0);
+      Cursor eye = Toolkit.getDefaultToolkit().createCustomCursor(img, centre, "Add");  
+      main.viewport3D.getCanvas().setCursor(eye);
       TwoDandThreeD.setBottomComponent(main.viewport3D.getCanvas());
+	  Container div = (BasicSplitPaneDivider) TwoDandThreeD.getComponent(0);
+	  div.setBackground(divcol);		
    }
 
    /** Re-initialises the twoDandThreeD variable when we switch back to the main app from the tweaker */
@@ -184,31 +192,56 @@ public class FrontEnd implements WindowListener, ChangeListener {
       int topLeftAnchor = GridBagConstraints.NORTHWEST;
       int topRightAnchor = GridBagConstraints.NORTHEAST;
 
+      Insets none = new Insets(0,0,0,0);
       Insets top_left_right = new Insets(10,10,0,10);
       Insets top_left_bottom_right = new Insets(10,10,10,10);
       Insets top_right = new Insets(10,0,0,10);
       Insets top_bottom_right = new Insets(10,0,10,10);
 
-      pane.setLayout(new GridBagLayout());
-      GridBagConstraints c;
+      pane.setLayout(new BorderLayout());
+      GridBagConstraints c;      
 
       tabbedPane.setPreferredSize(new Dimension(400,180));
+      tabbedPane.setBackground(Color.BLACK);
+      tabbedPane.setForeground(Color.WHITE);
       main.viewport3D.getCanvas().setPreferredSize(new Dimension(400,180));
-      main.objectBrowser.getPane().setPreferredSize(new Dimension(160,180));
-
-      c = buildGBC(0, 0, 0.5, 0.0, topCenterAnchor, top_left_right);
-      pane.add(designButtons.getPane(), c);
-
-      c = buildGBC(1, 0, 0.0, 0.0, topCenterAnchor, top_right);
-      pane.add(main.objectButtons.getPane(), c);
-
-      c = buildGBC(0, 1, 0.5, 0.5, leftAnchor, top_left_bottom_right);
+      main.objectBrowser.getSplit().setPreferredSize(new Dimension(160,180));
+      
+      JPanel left = new JPanel(new GridBagLayout()){
+    	  public void paintComponent (Graphics g)
+    		{
+    			super.paintComponent(g);
+    			Graphics2D g2d = (Graphics2D) g;
+    			//Image prev = getImage(this,"img/frontend/faded.png")
+    			//prev = prev.getScaledInstance( 128, 128,  java.awt.Image.SCALE_SMOOTH ) ; 
+    			g2d.drawImage(getImage(this,"img/frontend/faded.png"),0,0,null);
+    		}
+      };
+      JPanel right = new JPanel(new GridBagLayout());
+      
+      //build left
+      c = buildGBC(0, 0, 0.5, 0.0, topCenterAnchor, none);
+      left.add(designButtons.getPane(), c);      
+      c = buildGBC(0, 1, 0.5, 0.5, leftAnchor, new Insets(0,5,5,5));
       c.fill = GridBagConstraints.BOTH;
-      pane.add(TwoDandThreeD, c);
-
-      c = buildGBC(1, 1, 0.07, 0.5, topLeftAnchor, top_bottom_right);
+      left.add(TwoDandThreeD, c);
+      left.setBackground(back);     
+      
+      //build right
+      c = buildGBC(1, 1, 0.07, 0.5, topLeftAnchor, new Insets(5,5,5,5));
       c.fill = GridBagConstraints.BOTH;
-      pane.add(main.objectBrowser.getPane(), c);
+      right.add(main.objectBrowser.getSplit(), c);
+      right.setBackground(back);
+      right.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, high));
+      
+      //add to horiz split pane
+	  JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, left, right);
+	  Container div = (BasicSplitPaneDivider) split.getComponent(2);
+	  div.setBackground(divcol);
+	  Dimension scr = Toolkit.getDefaultToolkit().getScreenSize();
+	  split.setDividerLocation(scr.width/2+scr.width/3);	 
+	  split.setDividerSize(11);
+      pane.add(split,BorderLayout.CENTER);
    }
 
    /** Asks the user to choose a file to open */
