@@ -90,9 +90,9 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 	    splitBottom.setPreferredSize(new Dimension(160, 180));
 	    split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, splitTop, splitBottom);
 		split.setBackground(Color.WHITE);
-		split.setDividerSize(11);
+		split.setDividerSize(1);
 		Container div = (BasicSplitPaneDivider) split.getComponent(2);
-		div.setBackground(divcol);
+		div.setBackground(Color.WHITE);
 		split.setCursor(new Cursor(Cursor.HAND_CURSOR));
 	    Dimension scrDim = Toolkit.getDefaultToolkit().getScreenSize();// screen dimensions
 	    scrDim.setSize(scrDim.getWidth()-200,scrDim.getHeight()-(scrDim.getHeight()/8));

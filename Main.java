@@ -135,7 +135,7 @@ public class Main {
    /** There is a chance this won't work but who cares if the UI looks shit */
    private static void setSystemLookAndFeel() {
       try {
-         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+         UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
       } catch (UnsupportedLookAndFeelException e) {
          /* Who cares? */
       } catch (ClassNotFoundException e) {

@@ -202,8 +202,6 @@ public class FrontEnd implements WindowListener, ChangeListener {
       GridBagConstraints c;      
 
       tabbedPane.setPreferredSize(new Dimension(400,180));
-      tabbedPane.setBackground(Color.BLACK);
-      tabbedPane.setForeground(Color.WHITE);
       main.viewport3D.getCanvas().setPreferredSize(new Dimension(400,180));
       main.objectBrowser.getSplit().setPreferredSize(new Dimension(160,180));
       

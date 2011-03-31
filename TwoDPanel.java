@@ -410,7 +410,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 if (inProgressHandler != null) {
                     System.err.println("NEED TO STOP PREVIOUS HANDLER");
                 }
-                setCursor(new Cursor(Cursor.HAND_CURSOR));
+                //setCursor(new Cursor(Cursor.HAND_CURSOR));
                 inProgressHandler = handlerEdgeDraw;
                 handlerEdgeDraw.start(p, designButtons.isGridOn());
                 handlerFurnitureMove.forgetRememberedFurniture();
@@ -548,7 +548,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 handlerVertexSelect.click(p);
             }
 
-            setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            //setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 
             requestFocus();
         }

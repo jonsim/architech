@@ -125,7 +125,7 @@ public class DesignButtons implements ActionListener {
    private void initPane() {
       //int leftAnchor = GridBagConstraints.LINE_START;
       //int rightAnchor = GridBagConstraints.LINE_END;
-      //int centerAnchor = GridBagConstraints.CENTER;
+      int centerAnchor = GridBagConstraints.CENTER;
       int topCenterAnchor = GridBagConstraints.NORTH;
       //int topLeftAnchor = GridBagConstraints.NORTHWEST;
       //int topRightAnchor = GridBagConstraints.NORTHEAST;
@@ -175,7 +175,7 @@ public class DesignButtons implements ActionListener {
       c = FrontEnd.buildGBC(2, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(curveTool, c);
 
-      c = FrontEnd.buildGBC(3, 1, 0.5, 0.5, topCenterAnchor, right);
+      c = FrontEnd.buildGBC(3, 1, 0.5, 0.5, centerAnchor, right);
       pane.add(gridTool, c);
       
       c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, topCenterAnchor, right);
