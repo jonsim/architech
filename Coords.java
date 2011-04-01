@@ -738,11 +738,21 @@ public class Coords {
 
       // if the vertex is currently snapped, it might not be changing position, don't fire events
       if (!(v.p.x()==x && v.p.y()==y && v.p.z()==z)) {
+         Edge[] affectedEdges = v.edgeUses.toArray(new Edge[0]);
+         for (Edge e : affectedEdges) {
+            if( e.isStraight() )
+               e.doRecalcCtrl = true;
+         }
+
          v.set(x, y, z);
 
          // fire a shit load of events
-         Edge[] affectedEdges = v.edgeUses.toArray(new Edge[0]);
          for (Edge e : affectedEdges) {
+            if( e.doRecalcCtrl ) {
+               e.doRecalcCtrl = false;
+               e.resetCtrlPositionToHalfway();
+            }
+
             fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
          }
       }

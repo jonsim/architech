@@ -20,6 +20,7 @@ public class Edge {
    private final Line2D.Float tangent2 = new Line2D.Float();
    private final LinkedList<Furniture> doorWindow = new LinkedList<Furniture>();
    private String texpath = "";
+   public boolean doRecalcCtrl = false;
 
    /** Creates a new edge from the given vertices. Doesn't add it to the coordStore.
     *  If null is given for a vertex then that vertex will be made at 0,0,0
