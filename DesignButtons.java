@@ -1,7 +1,11 @@
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.MenuItemUI;
+import javax.swing.plaf.basic.BasicButtonUI;
+import javax.swing.plaf.metal.MetalButtonUI;
+import javax.swing.plaf.metal.MetalSliderUI;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -16,7 +20,7 @@ public class DesignButtons implements ActionListener {
    private JPanel pane;
    private JButton selectTool, lineTool, curveTool,  currentTool, dayToggle, tweaker;
    private JSlider zoomTool;
-   private Cursor selectCursor, lineCursor;
+   private Cursor selectCursor, lineCursor,curveCursor;
    private JToggleButton gridTool;
    private final Color back = new Color(74,74,74);
 
@@ -61,6 +65,7 @@ public class DesignButtons implements ActionListener {
    private void initCursors() {
       selectCursor = new Cursor(Cursor.HAND_CURSOR);
       lineCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+      curveCursor = new Cursor(Cursor.MOVE_CURSOR);
    }
 
    /** Initialises the private button variables */
@@ -69,37 +74,43 @@ public class DesignButtons implements ActionListener {
       selectTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "hand.png")));
       selectTool.addActionListener(this);
       selectTool.setMargin(margins);
+      selectTool.setUI(new metbut());
       selectTool.setToolTipText("Use the select tool to select and move vertices/edges");
 
       lineTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "line.png")));
       lineTool.addActionListener(this);
       lineTool.setMargin(margins);
+      lineTool.setUI(new metbut());
       lineTool.setToolTipText("Use the line tool to place vertices and drag to draw walls");
 
       curveTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "cline.png")));
       curveTool.addActionListener(this);
       curveTool.setMargin(margins);
+      curveTool.setUI(new metbut());
       curveTool.setToolTipText("Use the curve tool to draw curved walls");
 
       gridTool = new JToggleButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "grid.png")));
       gridTool.addActionListener(this);
       gridTool.setSelected(true);
       gridTool.setMargin(margins);
+      gridTool.setUI(new metbut());
       gridTool.setToolTipText("Turns the grid on/off");
       
       dayToggle = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "daynight.png")));
       dayToggle.addActionListener(this);
       dayToggle.setMargin(margins);
+      dayToggle.setUI(new metbut());
       dayToggle.setToolTipText("Switch between night and day");
       
       tweaker = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "tweak.png")));
       tweaker.addActionListener(this);
       tweaker.setMargin(margins);
+      tweaker.setUI(new metbut());
       tweaker.setToolTipText("Open the tweaker in order to edit furniture");
 
       currentTool = lineTool;
       zoomTool = new JSlider(JSlider.HORIZONTAL, 0, 20, 10);
-      initZoomTool();
+      initZoomTool();      
       reCalcButtonStates();
    }
 
@@ -139,31 +150,8 @@ public class DesignButtons implements ActionListener {
       //Insets bottom = new Insets(0, 0, 5, 0);
       Insets none = new Insets(0, 0, 0, 0);
 
-      //pane = new JPanel(new GridBagLayout());
       pane = new JPanel(new GridBagLayout());
       pane.setOpaque(false);
-      /*JToolBar dbuttons = new JToolBar("Design buttons");
-      dbuttons.setFloatable(false);
-      dbuttons.addSeparator();
-      dbuttons.add(selectTool);
-      dbuttons.addSeparator();
-      dbuttons.add(lineTool);
-      dbuttons.addSeparator();
-      dbuttons.add(curveTool);
-      dbuttons.addSeparator();
-      dbuttons.add(gridTool);  
-      dbuttons.addSeparator();
-      dbuttons.add(zoomTool);
-      dbuttons.addSeparator();
-      dbuttons.add(dayToggle);
-      dbuttons.addSeparator();
-      dbuttons.add(tweaker); 
-      dbuttons.addSeparator();*/
-      pane.add(selectTool);
-      //pane.add(dbuttons);
-      
-      //pane.setBorder(BorderFactory.createTitledBorder("Design Buttons"));
-
       GridBagConstraints c;
 
       c = FrontEnd.buildGBC(0, 1, 0.5, 0.5, topCenterAnchor, right);
@@ -220,7 +208,7 @@ public class DesignButtons implements ActionListener {
          reCalcButtonStates();
 
       } else if (curveTool == source) {
-         frontEnd.setWindowCursor(lineCursor);
+         frontEnd.setWindowCursor(curveCursor);
          currentTool = curveTool;
          reCalcButtonStates();
 
@@ -244,3 +232,4 @@ public class DesignButtons implements ActionListener {
       frontEnd.requestFocusToCurrentTwoDScrollPane();
    }
 }
+class metbut extends MetalButtonUI {}
