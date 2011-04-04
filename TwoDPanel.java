@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.dnd.DropTarget;
 import java.awt.geom.PathIterator;
+import java.awt.geom.QuadCurve2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 
@@ -39,7 +40,9 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
     private ArrayList<Polygon> polygons = new ArrayList<Polygon>();
     private ArrayList<Color> polygonFills = new ArrayList<Color>();
-    public ArrayList<ArrayList<Edge>> polygonEdges = new ArrayList<ArrayList<Edge>>();
+    private ArrayList<ArrayList<Edge>> polygonEdges = new ArrayList<ArrayList<Edge>>();
+    private ArrayList<ArrayList<Boolean>> polygonReverse = new ArrayList<ArrayList<Boolean>>();
+
     private String saveLocation = getClass().getResource("img").getPath() + "/";
     private String saveName = "3DFloor.jpg";
     private double fillFlatness = 0.001;
@@ -259,7 +262,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
         }
     }
 
-    private void fillRoom(ArrayList<Edge> edgeList) {
+    private void fillRoom(ArrayList<Edge> edgeList, int index) {
         if(edgeList == null) {
             JOptionPane.showMessageDialog(null, "There is no closed path");
             repaint();
@@ -271,8 +274,17 @@ class TwoDPanel extends JPanel implements ChangeListener {
         Polygon thisPoly = new Polygon();
         PathIterator ite;
         double[] segment;
+        QuadCurve2D quadCurve;
         while (i < edgeList.size()) {
-            ite = edgeList.get(i).topDownViewCurve.getPathIterator(null, fillFlatness);
+            // This bit reverses walls to ensure the order is correct and the fill updates correctly when moved
+            if(polygonReverse.get(index).get(i) == false)
+                ite = edgeList.get(i).topDownViewCurve.getPathIterator(null, fillFlatness);
+            else {
+                quadCurve = new QuadCurve2D.Float(edgeList.get(i).topDownViewCurve.x2, edgeList.get(i).topDownViewCurve.y2,
+                                                  edgeList.get(i).topDownViewCurve.ctrlx, edgeList.get(i).topDownViewCurve.ctrly,
+                                                  edgeList.get(i).topDownViewCurve.x1, edgeList.get(i).topDownViewCurve.y1);
+                ite = quadCurve.getPathIterator(null, fillFlatness);
+            }
             segment = new double[2];
             ite.currentSegment(segment);
             ite.next();
@@ -290,6 +302,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
         polygons.add(thisPoly);
         polygonFills.add(colourPalette.fillColour);
         polygonEdges.add(edgeList);
+        // polygonReverse.add() is in sortEdges as it needs to be done before but only once
         repaint();
     }
 
@@ -298,48 +311,44 @@ class TwoDPanel extends JPanel implements ChangeListener {
         ArrayList<Edge> edgeList = new ArrayList<Edge>();
         edgeList.addAll(edges);
         int i = 0;
-        boolean removed = false;
         boolean changed = false;
         ArrayList<Edge> sortedList = new ArrayList<Edge>();
+        ArrayList<Boolean> reverse = new ArrayList<Boolean>();
         Edge e;
-        Point ctrl = new Point();
-        Coords.Vertex v2 = edgeList.get(0).getV2();
+        Coords.Vertex v = edgeList.get(0).getV2();
         sortedList.add(edgeList.get(0));
+        reverse.add(false);
         edgeList.remove(0);
         while(!edgeList.isEmpty()) {
             while(i < edgeList.size()) {
                 e = edgeList.get(i);
-                if(e.getV1().equals(v2)) {
+                if(e.getV1().equals(v) || e.getV2().equals(v)) {
                     sortedList.add(e);
+                    // Tell fillRoom which have been reversed
+                    if(e.getV2().equals(v)) reverse.add(true);
+                    else reverse.add(false);
                     edgeList.remove(e);
-                    removed = true;
                     changed = true;
                     break;
                 }
                 i++;
             }
-            if(!removed) {
-                i = 0;
-                while(i < edgeList.size()) {
-                    e = edgeList.get(i);
-                    if(e.getV2().equals(v2)) {
-                        ctrl.setLocation(e.getCtrlX(), e.getCtrlY());
-                        sortedList.add(new Edge(e.getV2(), e.getV1(), ctrl));
-                        edgeList.remove(e);
-                        changed = true;
-                        break;
-                    }
-                    i++;
-                }
-            }
             i = 0;
-            removed = false;
             if(!changed) return null;
             changed = false;
-            v2 = sortedList.get(sortedList.size()-1).getV2();
+            // Make sure that you're searching for the correct vertex next time round
+            if(reverse.get(reverse.size()-1) == false) v = sortedList.get(sortedList.size()-1).getV2();
+            else v = sortedList.get(sortedList.size()-1).getV1();
         }
-        if(!sortedList.get(0).getV1().equals(sortedList.get(sortedList.size()-1).getV2()))
-            return null;
+        // This checks that the loop actually closes itself
+        if(reverse.get(reverse.size()-1) == false) {
+            if(!sortedList.get(0).getV1().equals(sortedList.get(sortedList.size()-1).getV2()))
+                return null;
+        } else {
+            if(!sortedList.get(0).getV1().equals(sortedList.get(sortedList.size()-1).getV1()))
+                return null;
+        }
+        polygonReverse.add(reverse);
         return sortedList;
     }
 
@@ -393,6 +402,18 @@ class TwoDPanel extends JPanel implements ChangeListener {
             i++;
         }
         handlerVertexSelect.addToSelected((Coords.Vertex[])vertices.toArray(new Coords.Vertex[vertices.size()]));
+    }
+
+    private void updateFilledRoom(int i) {
+        // Remove it, and refill it with the updated shape
+        Color temp = polygonFills.get(i);
+        polygonReverse.add(polygonReverse.get(i));
+        fillRoom(polygonEdges.get(i), i);
+        polygonFills.set(polygonFills.size() - 1, temp);
+        polygons.remove(i);
+        polygonFills.remove(i);
+        polygonEdges.remove(i);
+        polygonReverse.remove(i);
     }
 
     private class TwoDPanelMouseListener implements MouseListener {
@@ -481,12 +502,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
                                     || polygonEdges.get(i).get(j).getV2().equals(edge.getV1())
                                     || polygonEdges.get(i).get(j).getV1().equals(edge.getV2())
                                     || polygonEdges.get(i).get(j).getV2().equals(edge.getV2())) {
-                                Color temp = polygonFills.get(i);
-                                fillRoom(polygonEdges.get(i));
-                                polygonFills.set(polygonFills.size() - 1, temp);
-                                polygons.remove(i);
-                                polygonFills.remove(i);
-                                polygonEdges.remove(i);
+                                updateFilledRoom(i);
                                 i--;
                                 k++;
                                 break;
@@ -515,23 +531,16 @@ class TwoDPanel extends JPanel implements ChangeListener {
                     while (j < polygonEdges.get(i).size()) {
                         if (polygonEdges.get(i).get(j).getV1().equals(handlerVertexMove.getVertex())
                                 || polygonEdges.get(i).get(j).getV2().equals(handlerVertexMove.getVertex())) {
-                            Color temp = polygonFills.get(i);
-                            fillRoom(polygonEdges.get(i));
-                            polygonFills.set(polygonFills.size() - 1, temp);
-                            polygons.remove(i);
-                            polygonFills.remove(i);
-                            polygonEdges.remove(i);
+                            updateFilledRoom(i);
                             i--;
                             k++;
                             break;
                         }
                         j++;
                     }
-                    System.out.println();
                     j = 0;
                     i++;
                 }
-                repaint();
 
                 inProgressHandler = null;
                 handlerVertexMove.stop(p, designButtons.isGridOn());
@@ -672,42 +681,45 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
             if(c == KeyEvent.VK_F) {
                 ArrayList<Edge> sortedEdges = sortEdges(handlerVertexSelect.getSelectedE());
-                fillRoom(sortedEdges);
+                fillRoom(sortedEdges, polygons.size());
+                ArrayList<Integer> blockList = new ArrayList<Integer>();
                 int i = 0;
                 int j = 0;
                 int k = 0;
-                int count = 0;
                 boolean breaker = false;
-                ArrayList<Coords.Vertex> vList = handlerVertexSelect.getSelectedV();
-                // Brents function returns the last vertex twice for some reason
-                // either resolve that in his code (probably better), or ignore
-                // it and hope for the best (definitely lazier).
                 // This just makes it remove a fill if it is just overwriting one
-                while(i < polygonEdges.size()-1) {
-                    if(polygonEdges.get(i).size() == vList.size()) {
-                        while(j < polygonEdges.get(i).size()) {
-                            while(k < vList.size()) {
-                                if(vList.get(k).equals(polygonEdges.get(i).get(j).getV1())) {
-                                    count++;
+                if(sortedEdges != null) {
+                    while (i < polygonEdges.size() - 1) {
+                        if (polygonEdges.get(i).size() == sortedEdges.size()) {
+                            while (blockList.contains(j)) {
+                                j++;
+                            }
+                            while (j < polygonEdges.get(i).size()) {
+                                while (k < sortedEdges.size()) {
+                                    if (polygonEdges.get(i).get(j) == sortedEdges.get(k)) {
+                                        blockList.add(j);
+                                        break;
+                                    }
+                                    k++;
+                                }
+                                if (blockList.size() == sortedEdges.size()) {
+                                    polygons.remove(i);
+                                    polygonFills.remove(i);
+                                    polygonEdges.remove(i);
+                                    breaker = true;
                                     break;
                                 }
-                                k++;
+                                k = 0;
+                                j++;
                             }
-                            if(count == vList.size()) {
-                                polygons.remove(i);
-                                polygonFills.remove(i);
-                                polygonEdges.remove(i);
-                                breaker = true;
-                                break;
-                            }
-                            k = 0;
-                            j++;
                         }
-                        if(breaker) break;
+                        if (breaker) {
+                            break;
+                        }
                         j = 0;
-                        count = 0;
+                        i++;
+                        blockList.clear();
                     }
-                    i++;
                 }
                 getFloorScreenshot();
                 System.out.println("NUNN");
