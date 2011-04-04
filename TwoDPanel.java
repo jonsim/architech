@@ -431,7 +431,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
                     handlerFurnitureMove.start(p);
                     repaint();
                 } else {
-					rectStart.setLocation(p);
+                    rectStart.setLocation(p);
                     selectionRectangle.setLocation(p);
                     handlerFurnitureMove.forgetRememberedFurniture();
                 }
@@ -474,26 +474,28 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 int j = 0;
                 int k = 0;
                 Edge edge = handlerEdgeCurve.getEdge();
-                while(i < polygonEdges.size()-k) {
-                    while(j < polygonEdges.get(i).size()) {
-                        if(polygonEdges.get(i).get(j).getV1().equals(edge.getV1())
-                           || polygonEdges.get(i).get(j).getV2().equals(edge.getV1())
-                           || polygonEdges.get(i).get(j).getV1().equals(edge.getV2())
-                           || polygonEdges.get(i).get(j).getV2().equals(edge.getV2())) {
-                        	Color temp = polygonFills.get(i);
-                        	fillRoom(polygonEdges.get(i));
-                        	polygonFills.set(polygonFills.size()-1, temp);
-                            polygons.remove(i);
-                            polygonFills.remove(i);
-                            polygonEdges.remove(i);
-                            i--;
-                            k++;
-                            break;
+                if (edge != null) {
+                    while (i < polygonEdges.size() - k) {
+                        while (j < polygonEdges.get(i).size()) {
+                            if (polygonEdges.get(i).get(j).getV1().equals(edge.getV1())
+                                    || polygonEdges.get(i).get(j).getV2().equals(edge.getV1())
+                                    || polygonEdges.get(i).get(j).getV1().equals(edge.getV2())
+                                    || polygonEdges.get(i).get(j).getV2().equals(edge.getV2())) {
+                                Color temp = polygonFills.get(i);
+                                fillRoom(polygonEdges.get(i));
+                                polygonFills.set(polygonFills.size() - 1, temp);
+                                polygons.remove(i);
+                                polygonFills.remove(i);
+                                polygonEdges.remove(i);
+                                i--;
+                                k++;
+                                break;
+                            }
+                            j++;
                         }
-                        j++;
+                        j = 0;
+                        i++;
                     }
-                    j = 0;
-                    i++;
                 }
 
                 inProgressHandler = null;
@@ -509,26 +511,28 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 int i = 0;
                 int j = 0;
                 int k = 0;
-                while(i < polygonEdges.size()-k) {
-                   while(j < polygonEdges.get(i).size()) {
-                      if(polygonEdges.get(i).get(j).getV1().equals(handlerVertexMove.getVertex())
-                         || polygonEdges.get(i).get(j).getV2().equals(handlerVertexMove.getVertex())) {
-                           Color temp = polygonFills.get(i);
-                           fillRoom(polygonEdges.get(i));
-                           polygonFills.set(polygonFills.size()-1, temp);
-                           polygons.remove(i);
-                           polygonFills.remove(i);
-                           polygonEdges.remove(i);
-                           i--;
-                           k++;
-                           break;
-                      }
-                      j++;
-                   }
-                   j = 0;
-                   i++;
+                while (i < polygonEdges.size() - k) {
+                    while (j < polygonEdges.get(i).size()) {
+                        if (polygonEdges.get(i).get(j).getV1().equals(handlerVertexMove.getVertex())
+                                || polygonEdges.get(i).get(j).getV2().equals(handlerVertexMove.getVertex())) {
+                            Color temp = polygonFills.get(i);
+                            fillRoom(polygonEdges.get(i));
+                            polygonFills.set(polygonFills.size() - 1, temp);
+                            polygons.remove(i);
+                            polygonFills.remove(i);
+                            polygonEdges.remove(i);
+                            i--;
+                            k++;
+                            break;
+                        }
+                        j++;
+                    }
+                    System.out.println();
+                    j = 0;
+                    i++;
                 }
-                
+                repaint();
+
                 inProgressHandler = null;
                 handlerVertexMove.stop(p, designButtons.isGridOn());
 
@@ -589,11 +593,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 } else if (inProgressHandler == handlerFurnitureMove) {
                     handlerFurnitureMove.middle(p, e.isControlDown());
 
-                } else {
-                    // this case is user has select tool, clicks in space, drags and releases.
-                    // need to stop the previous one, if one is already running
-                    // can't really properly do curve middle as it hasn't been started
-					int width = Math.abs(rectStart.x-p.x);
+                } else if(javax.swing.SwingUtilities.isLeftMouseButton(e)) {
+		    int width = Math.abs(rectStart.x-p.x);
                     int length = Math.abs(rectStart.y-p.y);
                     selectionRectangle.setLocation(rectStart);
                     if(rectStart.getX() > p.getX()) {

@@ -303,68 +303,28 @@ public class Coords {
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_CHANGED, f));
    }
    
-   public boolean detectVertexCollisions(Vertex v) {
-	  Edge e;
-	  Furniture f;
-	  ListIterator<Edge> edgeIterator = v.edgeUses.listIterator();
-	  ListIterator<Furniture> furnitureIterator = furniture.listIterator();
-	  double y1;
-      double y2;
-      double x1;
-      double x2;
-	  double eqn[] = new double[3];
-	  double ctrlY;
-      double ctrlX;
-	  while(edgeIterator.hasNext()) {
-         e = edgeIterator.next();
-		 QuadCurve2D quadCurve = new QuadCurve2D.Float();
-		 while(furnitureIterator.hasNext()) {
-            f = furnitureIterator.next();
-		    quadCurve = rotateQuad(e.topDownViewCurve, -f.getRotation(), f.getRotationCenterX(), f.getRotationCenterY());
-            x1 = quadCurve.getX1();
-            x2 = quadCurve.getX2();
-		    y1 = quadCurve.getY1();
-            y2 = quadCurve.getY2();
-            ctrlX = quadCurve.getCtrlX();
-		    ctrlY = quadCurve.getCtrlY();
-		    if(intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY()-f.getHeight()/2, x1, ctrlX, x2, f.getRotationCenterX()-f.getWidth()/2, f.getRotationCenterX()+f.getWidth()/2) ||
-		       intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY()+f.getHeight()/2, x1, ctrlX, x2, f.getRotationCenterX()-f.getWidth()/2, f.getRotationCenterX()+f.getWidth()/2) ||
-			   intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX()-f.getWidth()/2, y1, ctrlY, y2, f.getRotationCenterY()-f.getHeight()/2, f.getRotationCenterY()+f.getHeight()/2) ||
-			   intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX()+f.getWidth()/2, y1, ctrlY, y2, f.getRotationCenterY()-f.getHeight()/2, f.getRotationCenterY()+f.getHeight()/2)) {
-				   return true;
-		    }
-	     }
-		 furnitureIterator = furniture.listIterator();
-	  }
-	  return false;
+    public boolean detectVertexCollisions(Vertex v) {
+        Edge e;
+        Furniture f;
+        ListIterator<Edge> edgeIterator = v.edgeUses.listIterator();
+        ListIterator<Furniture> furnitureIterator = furniture.listIterator();
+        while (edgeIterator.hasNext()) {
+            e = edgeIterator.next();
+            while (furnitureIterator.hasNext()) {
+                f = furnitureIterator.next();
+                if(furnitureWallIntersect(f, e)) return true;
+            }
+            furnitureIterator = furniture.listIterator();
+        }
+	return false;
    }
 
    public boolean detectCollisions(Furniture f) {
        int i = 0;
        ListIterator<Edge> edgeIterator = edges.listIterator();
-       double y1;
-       double y2;
-       double x1;
-       double x2;
-       double eqn[] = new double[3];
-       double ctrlY;
-       double ctrlX;
        while (edgeIterator.hasNext()) {
            Edge e = edgeIterator.next();
-           QuadCurve2D quadCurve = new QuadCurve2D.Float();
-           quadCurve = rotateQuad(e.topDownViewCurve, -f.getRotation(), f.getRotationCenterX(), f.getRotationCenterY());
-           x1 = quadCurve.getX1();
-           x2 = quadCurve.getX2();
-           y1 = quadCurve.getY1();
-           y2 = quadCurve.getY2();
-           ctrlX = quadCurve.getCtrlX();
-           ctrlY = quadCurve.getCtrlY();
-           if (intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, f.getRotationCenterX() + f.getWidth() / 2)
-                   || intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY() + f.getHeight() / 2, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, f.getRotationCenterX() + f.getWidth() / 2)
-                   || intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, f.getRotationCenterY() + f.getHeight() / 2)
-                   || intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX() + f.getWidth() / 2, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, f.getRotationCenterY() + f.getHeight() / 2)) {
-               return true;
-           }
+           if(furnitureWallIntersect(f, e)) return true;
        }
        ListIterator<Furniture> furnitureIterator = furniture.listIterator();
        while (furnitureIterator.hasNext()) {
@@ -374,6 +334,31 @@ public class Coords {
                    return true;
                }
            }
+       }
+       return false;
+   }
+
+   private boolean furnitureWallIntersect(Furniture f, Edge e) {
+       double y1;
+       double y2;
+       double x1;
+       double x2;
+       double eqn[] = new double[3];
+       double ctrlY;
+       double ctrlX;
+       QuadCurve2D quadCurve = new QuadCurve2D.Float();
+       quadCurve = rotateQuad(e.topDownViewCurve, -f.getRotation(), f.getRotationCenterX(), f.getRotationCenterY());
+       x1 = quadCurve.getX1();
+       x2 = quadCurve.getX2();
+       y1 = quadCurve.getY1();
+       y2 = quadCurve.getY2();
+       ctrlX = quadCurve.getCtrlX();
+       ctrlY = quadCurve.getCtrlY();
+       if (intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, f.getRotationCenterX() + f.getWidth() / 2)
+               || intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY() + f.getHeight() / 2, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, f.getRotationCenterX() + f.getWidth() / 2)
+               || intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, f.getRotationCenterY() + f.getHeight() / 2)
+               || intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX() + f.getWidth() / 2, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, f.getRotationCenterY() + f.getHeight() / 2)) {
+           return true;
        }
        return false;
    }
