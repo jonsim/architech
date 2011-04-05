@@ -31,10 +31,7 @@ import javax.swing.*;
  *
  * @author God
  */
-public class TWPalette extends JPopupMenu implements KeyListener,ChangeListener, MouseListener, ActionListener {
-
-    protected JColorChooser tcc;
-    public Color fillColour = Color.black;
+public class TWPalette extends JPopupMenu implements ChangeListener, MouseListener, ActionListener {
     boolean stickonce;
     private JButton browbut;
     private JPanel picture;
@@ -51,7 +48,6 @@ public class TWPalette extends JPopupMenu implements KeyListener,ChangeListener,
     TWPalette() {
     	this.addMouseListener(this);  
         JPanel colour = new JPanel();
-    	colour.addKeyListener(this);
         colour.setBorder(BorderFactory.createTitledBorder("Colour"));
         colour.setPreferredSize(new Dimension(500,220));  
         final JColorChooser colourChooser = new JColorChooser();
@@ -95,7 +91,6 @@ public class TWPalette extends JPopupMenu implements KeyListener,ChangeListener,
     }
 
     public void stateChanged(ChangeEvent e) {
-        fillColour = tcc.getColor();
     }
 
     public void mousePressed(MouseEvent e) {
@@ -155,23 +150,6 @@ public class TWPalette extends JPopupMenu implements KeyListener,ChangeListener,
 		 }
 	 }	
 
-	@Override
-	public void keyPressed(KeyEvent e) {
-		// TODO Auto-generated method stub
-		System.out.println(e.getKeyCode());
-	}
-
-	@Override
-	public void keyReleased(KeyEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void keyTyped(KeyEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
 }
 
 class ExtensionGroup extends FileFilter {

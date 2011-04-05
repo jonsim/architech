@@ -43,6 +43,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
     private Furniture hoverFurniture = null;
 
     private ColourPalette colourPalette;
+    private boolean palonshow = false;
 
     private ArrayList<Polygon> polygons = new ArrayList<Polygon>();
     private ArrayList<Color> polygonFills = new ArrayList<Color>();
@@ -95,25 +96,24 @@ class TwoDPanel extends JPanel implements ChangeListener {
         addKeyListener(new TwoDPanelKeyListener());
         addMouseListener(new TwoDPanelMouseListener());
         addMouseMotionListener(new TwoDPanelMouseMotionListener());
-
+        
         colourPalette = new ColourPalette();
-        addMouseListener(new MouseAdapter() {
-
-            @Override
-            public void mouseReleased(MouseEvent Me) {
-                if (Me.isPopupTrigger()) {
-                    colourPalette.show(null, Me.getXOnScreen()-30, Me.getYOnScreen()-150);
-                    repaint();
-                } else {
-                    colourPalette.hide();
-                    repaint();
-                }
-            }
-        });
     }
     
     public ColourPalette getpal(){
     	return colourPalette;
+    }
+    
+    public void togglepal(int x, int y){
+    	if(palonshow){
+    		colourPalette.hide();
+            repaint();
+            palonshow = false;
+    	} else{
+	    	colourPalette.show(null, x, y);
+	    	repaint();
+	    	palonshow = true;
+    	}
     }
 
     /** Gets the coords being displayed on this JPanel */
@@ -385,25 +385,27 @@ class TwoDPanel extends JPanel implements ChangeListener {
         this.paint(g);
         g.dispose();
         BufferedImage floor = image;
-        ImageFilter filter = new RGBImageFilter()
+        ImageFilter ceilfilter = new RGBImageFilter()
         {
             public final int filterRGB(int x, int y, int rgb)
             {
+            	//invert the colours
             	Color col = new Color(rgb,true);
             	if(col.equals(new Color(255,255,255))){
             		col = new Color(0,0,0);
             	}else{
             		col = new Color(255,255,255);
             	}
-            	//col = new Color(Math.abs(col.getRed() - 255),Math.abs(col.getGreen() - 255), Math.abs(col.getBlue() - 255));
             	int negative =  col.getRGB();
+            	//use binary shifts to make black -> transparent
             	int alpha = (negative << 8) & 0xFF000000;
+            	//colour the other bits cream
             	if(alpha == Color.BLACK.getRGB()){
             		alpha = (new Color(208,191,184)).getRGB();
             	}
             	return alpha;}
         };
-        ImageProducer ip = new FilteredImageSource(image.getSource(), filter);
+        ImageProducer ip = new FilteredImageSource(image.getSource(), ceilfilter);
         Image fim =  Toolkit.getDefaultToolkit().createImage(ip);  
         image = new BufferedImage(fim.getWidth(null),fim.getHeight(null),BufferedImage.TYPE_INT_ARGB);
         Graphics bg = image.getGraphics();

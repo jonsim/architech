@@ -17,7 +17,7 @@ public class ColourPalette extends JPopupMenu implements ChangeListener, MouseLi
     ColourPalette() {
         tcc = new JColorChooser(Color.black);
         tcc.getSelectionModel().addChangeListener(this);
-        tcc.setBorder(BorderFactory.createTitledBorder("Choose Text Color"));
+        tcc.setBorder(BorderFactory.createTitledBorder("Choose Fill Colour"));
         this.add(tcc, BorderLayout.PAGE_END);
         tcc.setPreviewPanel(new JPanel());
         this.addMouseListener(this);
@@ -45,6 +45,6 @@ public class ColourPalette extends JPopupMenu implements ChangeListener, MouseLi
     }
 
     public void mouseExited(MouseEvent e) {
-        hide();
+        //hide();
     }
 }

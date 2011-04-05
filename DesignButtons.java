@@ -21,7 +21,8 @@ public class DesignButtons implements ActionListener {
    private final FrontEnd frontEnd;
    private ObjectBrowser objectBrowser;
    private JPanel pane;
-   private JButton selectTool, lineTool, curveTool,  currentTool, dayToggle, tweaker, fillTool;
+   private JButton selectTool, lineTool, curveTool,currentTool, dayToggle, tweaker, fillTool;
+   private JButton dropD;
    private JButton TwUp,TwDown,TwLeft,TwRight,TwFor,TwBack,TwCol,TwTex,TwPlus,TwMinus,TwRotl,TwRotr;
    private JButton TwPx,TwMx,TwPy,TwMy,TwPz,TwMz;
    private JSlider zoomTool;
@@ -29,6 +30,8 @@ public class DesignButtons implements ActionListener {
    private JToggleButton gridTool;
    private final Color back = new Color(74,74,74);
    private TWPalette twPalette;
+   private boolean palonshow = false;
+   private boolean tweakmode = false;
 
    /** Initialises the private variables as usual */
    DesignButtons(FrontEnd frontEnd, Viewport3D viewport3D) {
@@ -118,6 +121,13 @@ public class DesignButtons implements ActionListener {
       fillTool.setUI(new MetalButtonUI());
       fillTool.setToolTipText("Fill the currently selected room");
       
+      dropD = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "dropd.png")));
+      dropD.setPreferredSize(new Dimension(44,7));
+      dropD.addActionListener(this);
+      dropD.setMargin(margins);
+      dropD.setUI(new MetalButtonUI());
+      dropD.setToolTipText("Select a fill colour");
+      
       tweaker = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "tweak.png")));
       tweaker.addActionListener(this);
       tweaker.setMargin(margins);
@@ -136,6 +146,7 @@ public class DesignButtons implements ActionListener {
 	   pane.revalidate();
 	   initTwButtons();
 	   initTwPane();
+	   tweakmode = true;
    }
    
    public void changetonormal(){
@@ -146,6 +157,7 @@ public class DesignButtons implements ActionListener {
 	   initPane();
 	   pane.revalidate();
 	   pane.repaint();
+	   tweakmode = false;
    }
    
    private void initTwButtons() {
@@ -250,36 +262,18 @@ public class DesignButtons implements ActionListener {
       TwCol.setMargin(margins);
       TwCol.setUI(new MetalButtonUI());
       TwCol.setToolTipText(""); //to be added
-      TwCol.addMouseListener(new MouseAdapter() {
-          @Override
-          public void mouseReleased(MouseEvent Me) {
-              if (Me.isPopupTrigger()) {
-                  twPalette.show(null, Me.getXOnScreen(), Me.getYOnScreen());
-                  pane.repaint();
-              } else {
-                  twPalette.hide();
-                  pane.repaint();
-              }
-          }
-      });
       TwTex = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "texture.png")));
       TwTex.addActionListener(this);
       TwTex.setActionCommand("tex");
-      TwTex.addMouseListener(new MouseAdapter() {
-          @Override
-          public void mouseReleased(MouseEvent Me) {
-              if (Me.isPopupTrigger()) {
-                  twPalette.show(null, Me.getXOnScreen(), Me.getYOnScreen());
-                  pane.repaint();
-              } else {
-                  twPalette.hide();
-                  pane.repaint();
-              }
-          }
-      });
       TwTex.setMargin(margins);
       TwTex.setUI(new MetalButtonUI());
       TwTex.setToolTipText(""); //to be added
+      dropD = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "dropd.png")));
+      dropD.setPreferredSize(new Dimension(30,7));
+      dropD.addActionListener(this);
+      dropD.setMargin(margins);
+      dropD.setUI(new MetalButtonUI());
+      dropD.setToolTipText("Select a colour or texture");
    }
 
    /** Initialises the zoomTool slider */
@@ -335,6 +329,8 @@ public class DesignButtons implements ActionListener {
       
       c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, centerAnchor, right);
       pane.add(fillTool, c);
+      c = FrontEnd.buildGBC(4, 2, 0.5, 0.5, centerAnchor, right);
+      pane.add(dropD, c);
       
       c = FrontEnd.buildGBC(5, 0, 0.5, 0.5, bottomCenterAnchor, right);
       pane.add(new JLabel("<html><font color='white'>Zoom"), c);
@@ -405,6 +401,8 @@ public class DesignButtons implements ActionListener {
 	      pane.add(TwCol, c);
 	      c = FrontEnd.buildGBC(17, 1, 0.5, 0.5, topCenterAnchor, right);
 	      pane.add(TwTex, c);
+	      c = FrontEnd.buildGBC(16, 2, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(dropD, c);
 
 	   }  
 
@@ -446,14 +444,33 @@ public class DesignButtons implements ActionListener {
 
       } else if (dayToggle == source) {
          viewport3D.toggleDay();
-
+         
+      } else if (dropD==source) {
+    	  Point tooltip = dropD.getLocationOnScreen();
+    	  if(!tweakmode){
+	          frontEnd.getCurrentTab().getpanel().togglepal(tooltip.x, tooltip.y+10);
+    	  }
+    	  else{
+    		  if(palonshow==false){
+                  twPalette.show(null,tooltip.x, tooltip.y+10);
+                  pane.repaint();
+                  palonshow = true;
+    		  }else {
+                  twPalette.hide();
+                  pane.repaint();
+                  palonshow = false;
+              }    		  
+    	  }
       } else if (tweaker == source) {
           viewport3D.shutdown3D();
     	  frontEnd.changetw();
+    	  
       } else if(fillTool == source){
     	  frontEnd.getCurrentTab().getpanel().fillfloor();
+    	  
       } else if(comm.equals("col")){
     	  objectBrowser.getprev().paintitem(objectBrowser.getselected(),0,twPalette.ppath(),twPalette.pname(),0f,twPalette.getr(),twPalette.getg(),twPalette.getb());
+      
       }else if(comm.equals("tex")){
     	  if(twPalette.ppath()==null){
     		  JOptionPane.showMessageDialog(null, "No Picture Selected!","Texture Error", 1);
