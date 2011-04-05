@@ -21,7 +21,7 @@ public class DesignButtons implements ActionListener {
    private final FrontEnd frontEnd;
    private ObjectBrowser objectBrowser;
    private JPanel pane;
-   private JButton selectTool, lineTool, curveTool,  currentTool, dayToggle, tweaker;
+   private JButton selectTool, lineTool, curveTool,  currentTool, dayToggle, tweaker, fillTool;
    private JButton TwUp,TwDown,TwLeft,TwRight,TwFor,TwBack,TwCol,TwTex,TwPlus,TwMinus,TwRotl,TwRotr;
    private JButton TwPx,TwMx,TwPy,TwMy,TwPz,TwMz;
    private JSlider zoomTool;
@@ -111,6 +111,12 @@ public class DesignButtons implements ActionListener {
       dayToggle.setMargin(margins);
       dayToggle.setUI(new MetalButtonUI());
       dayToggle.setToolTipText("Switch between night and day");
+      
+      fillTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "fill.png")));
+      fillTool.addActionListener(this);
+      fillTool.setMargin(margins);
+      fillTool.setUI(new MetalButtonUI());
+      fillTool.setToolTipText("Fill the currently selected room");
       
       tweaker = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "tweak.png")));
       tweaker.addActionListener(this);
@@ -327,17 +333,19 @@ public class DesignButtons implements ActionListener {
       c = FrontEnd.buildGBC(3, 1, 0.5, 0.5, centerAnchor, right);
       pane.add(gridTool, c);
       
-      c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, topCenterAnchor, right);
+      c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, centerAnchor, right);
+      pane.add(fillTool, c);
+      
+      c = FrontEnd.buildGBC(5, 0, 0.5, 0.5, bottomCenterAnchor, right);
+      pane.add(new JLabel("<html><font color='white'>Zoom"), c);
+      c = FrontEnd.buildGBC(5, 1, 0.5, 0.5, topCenterAnchor, new Insets(0,0,0,30));
+      pane.add(zoomTool, c);
+      
+      c = FrontEnd.buildGBC(6, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(dayToggle, c);
       
-      c = FrontEnd.buildGBC(5, 1, 0.5, 0.5, topCenterAnchor, right);
+      c = FrontEnd.buildGBC(7, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(tweaker, c);
-
-      c = FrontEnd.buildGBC(6, 1, 0.5, 0.5, topCenterAnchor, right);
-      pane.add(zoomTool, c);
-
-      c = FrontEnd.buildGBC(6, 0, 0.5, 0.5, bottomCenterAnchor, right);
-      pane.add(new JLabel("<html><font color='white'>Zoom"), c);
    }  
    
    private void initTwPane() {
@@ -442,6 +450,8 @@ public class DesignButtons implements ActionListener {
       } else if (tweaker == source) {
           viewport3D.shutdown3D();
     	  frontEnd.changetw();
+      } else if(fillTool == source){
+    	  frontEnd.getCurrentTab().getpanel().fillfloor();
       } else if(comm.equals("col")){
     	  objectBrowser.getprev().paintitem(objectBrowser.getselected(),0,twPalette.ppath(),twPalette.pname(),0f,twPalette.getr(),twPalette.getg(),twPalette.getb());
       }else if(comm.equals("tex")){

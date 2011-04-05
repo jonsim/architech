@@ -18,6 +18,10 @@ public class TwoDScrollPane extends JScrollPane {
       designButtons.getSlider().addChangeListener(twoDPanel);
    }
    
+   public TwoDPanel getpanel(){
+	   return twoDPanel;
+   }
+   
    public HandlerVertexSelect gethvs(){
 	   return twoDPanel.gethvs();
    }

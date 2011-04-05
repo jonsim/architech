@@ -1,3 +1,4 @@
+import java.awt.Color;
 import java.awt.Point;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
@@ -106,6 +108,7 @@ public class ArchApp extends Application
     private boolean isInitComplete = false;
     private Main main;
     private Edge3D floor = new Edge3D();
+    private Edge3D ceil = new Edge3D();
 	private Edge3D floor_plane = new Edge3D();
 	private Material white;
 
@@ -352,16 +355,15 @@ public class ArchApp extends Application
     {
 		synchronized(syncLockObject)
 		{
-	        grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-			grass.setTexture("DiffuseMap", assetManager.loadTexture("img/" + name));
-	        grass.setFloat("Shininess", 1000);
-	        rootNode.detachChild(floor.geometry);
-	    	Box floorbox = new Box( new Vector3f(500,-101,-1000),500,0.1f,1000);
-		    floor.geometry = new Geometry("Box", floorbox);
-		    floor.geometry.setMaterial(grass);
-		    floor.geometry.rotate(0f,(float) -Math.toRadians(90),0f);
-		    //addToPhysics(floor);
-		    rootNode.attachChild(floor.geometry);
+	        white = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+	        white.setTexture("DiffuseMap", assetManager.loadTexture("img/fs"+name));
+	        white.setFloat("Shininess", 1000);
+			floor.geometry.setMaterial(white);
+			Material ceilm = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+			ceilm.setTexture("ColorMap", assetManager.loadTexture("img/cs"+name));
+			ceilm.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+			ceil.geometry.setMaterial(ceilm);
+			ceil.geometry.setQueueBucket(Bucket.Transparent);
 		    ((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
 		}
     }
@@ -382,22 +384,21 @@ public class ArchApp extends Application
     	rootNode.attachChild(floor_plane.geometry);
     	
 	    //add the floor (the box which users stand on, and is textured with the fill-colours)
-	    floor.geometry = new Geometry("Floor", new Box(new Vector3f(500, -101, -1000), 500, 0.1f, 1000));
+	    floor.geometry = new Geometry("Floor", new Box(new Vector3f(500, -100, -1000), 500, 0.1f, 1000));
 	    floor.geometry.rotate(0f,(float) -Math.toRadians(90),0f);
 	    floor.geometry.setMaterial(white);
 	    if (shadowing)
 	    	floor.geometry.setShadowMode(ShadowMode.Receive);
-	    addToPhysics(floor);
 	    rootNode.attachChild(floor.geometry);
 	    
-	    // add the (2) ceiling panels
-        Geometry top1 = new Geometry("Ceiling", new Box(new Vector3f(420, 0, 150), 180, 0.1f, 90));
-        top1.setMaterial(white);
-	    rootNode.attachChild(top1);
-        Geometry top2 = new Geometry("Ceiling", new Box(new Vector3f(330, 0, 300), 90, 0.1f, 60));
-        top2.setMaterial(white);
-	    rootNode.attachChild(top2);
-
+	    ceil.geometry = new Geometry("Floor", new Box(new Vector3f(-500, 0, 1000), 500, 0.1f, 1000));
+	    ceil.geometry.rotate(0f,(float) -Math.toRadians(270),0f);
+	    ceil.geometry.setMaterial(grass);
+	    if (shadowing)
+	    	ceil.geometry.setShadowMode(ShadowMode.Receive);
+	    //addToPhysics(floor);
+	    rootNode.attachChild(ceil.geometry);
+	    
 	    // add lightbulbs
 	    Spatial light1 = assetManager.loadModel("req/lightbulb/lightbulb.obj");
 		light1.scale(4, 4, 4);

@@ -2,9 +2,15 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.dnd.DropTarget;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
 import java.awt.geom.QuadCurve2D;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
+import java.awt.image.ImageProducer;
+import java.awt.image.RGBImageFilter;
 import java.io.*;
 
 import javax.swing.*;
@@ -104,6 +110,10 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 }
             }
         });
+    }
+    
+    public ColourPalette getpal(){
+    	return colourPalette;
     }
 
     /** Gets the coords being displayed on this JPanel */
@@ -262,11 +272,11 @@ class TwoDPanel extends JPanel implements ChangeListener {
         }
     }
 
-    private void fillRoom(ArrayList<Edge> edgeList, int index) {
+    private int fillRoom(ArrayList<Edge> edgeList, int index) {
         if(edgeList == null) {
-            JOptionPane.showMessageDialog(null, "There is no closed path");
+            JOptionPane.showMessageDialog(null, "There is no closed room selected, so the floor can't be filled.","No Closed Path Selected", 1);
             repaint();
-            return;
+            return -1;
         }
         int i = 0;
         double x;
@@ -304,6 +314,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
         polygonEdges.add(edgeList);
         // polygonReverse.add() is in sortEdges as it needs to be done before but only once
         repaint();
+        return 0;
     }
 
     private ArrayList<Edge> sortEdges(ArrayList<Edge> edges) {
@@ -362,24 +373,51 @@ class TwoDPanel extends JPanel implements ChangeListener {
 		String[] children = direc.list();
 		for(int l = 0 ; l<children.length;l++){
 		if(children[l].lastIndexOf(".")!=-1){
-		if(children[l].substring(children[l].lastIndexOf(".")).equals(".jpg")){
-				if(children[l].contains("ss")){
+		if(children[l].substring(children[l].lastIndexOf(".")).equals(".png")){
+				if(children[l].contains("fs") || children[l].contains("cs")){
 					File file = new File(dir + "/" + children[l]);
 					file.delete();
 				}
 		}}}
-		DateFormat df = new SimpleDateFormat("ddMMhhmmss");
+		DateFormat df = new SimpleDateFormat("ddMM_hh_mm_ss");
         Date now = Calendar.getInstance().getTime();
-        String nows = df.format(now);		
+        String nows = df.format(now);
         this.paint(g);
         g.dispose();
+        BufferedImage floor = image;
+        ImageFilter filter = new RGBImageFilter()
+        {
+            public final int filterRGB(int x, int y, int rgb)
+            {
+            	Color col = new Color(rgb,true);
+            	if(col.equals(new Color(255,255,255))){
+            		col = new Color(0,0,0);
+            	}else{
+            		col = new Color(255,255,255);
+            	}
+            	//col = new Color(Math.abs(col.getRed() - 255),Math.abs(col.getGreen() - 255), Math.abs(col.getBlue() - 255));
+            	int negative =  col.getRGB();
+            	int alpha = (negative << 8) & 0xFF000000;
+            	return alpha;}
+        };
+        ImageProducer ip = new FilteredImageSource(image.getSource(), filter);
+        Image fim =  Toolkit.getDefaultToolkit().createImage(ip);  
+        image = new BufferedImage(fim.getWidth(null),fim.getHeight(null),BufferedImage.TYPE_INT_ARGB);
+        Graphics bg = image.getGraphics();
+        bg.drawImage(fim,0,0,null);
+        bg.dispose();       
+        AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);        
+        tx.translate(-image.getWidth(null), 0);
+        AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+        image = op.filter(image, null);
         try {
-            ImageIO.write(image, "jpg", new File(saveLocation + "ss"+nows+".jpg"));
+        	ImageIO.write(floor, "png", new File(saveLocation + "fs"+nows+".png"));
+            ImageIO.write(image, "png", new File(saveLocation + "cs"+nows+".png"));
         } catch (IOException IOE) {
         }
         gettingScreenshot = false;
         repaint();
-        currname = "ss"+nows+".jpg";        	
+        currname = nows+".png";
     }
 
     private void selectDragBoxVertices() {
@@ -517,7 +555,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 inProgressHandler = null;
                 handlerEdgeCurve.stop(p);
 
-                getFloorScreenshot();
+                //getFloorScreenshot();
 
             } else if (inProgressHandler == handlerEdgeDraw) {
                 inProgressHandler = null;
@@ -547,7 +585,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
                 callVertexSelect = true;
 
-                getFloorScreenshot();
+                //getFloorScreenshot();
 
             } else if (inProgressHandler == handlerFurnitureMove) {
                 inProgressHandler = null;
@@ -680,50 +718,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
             }
 
             if(c == KeyEvent.VK_F) {
-                ArrayList<Edge> sortedEdges = sortEdges(handlerVertexSelect.getSelectedE());
-                fillRoom(sortedEdges, polygons.size());
-                ArrayList<Integer> blockList = new ArrayList<Integer>();
-                int i = 0;
-                int j = 0;
-                int k = 0;
-                boolean breaker = false;
-                // This just makes it remove a fill if it is just overwriting one
-                if(sortedEdges != null) {
-                    while (i < polygonEdges.size() - 1) {
-                        if (polygonEdges.get(i).size() == sortedEdges.size()) {
-                            while (blockList.contains(j)) {
-                                j++;
-                            }
-                            while (j < polygonEdges.get(i).size()) {
-                                while (k < sortedEdges.size()) {
-                                    if (polygonEdges.get(i).get(j) == sortedEdges.get(k)) {
-                                        blockList.add(j);
-                                        break;
-                                    }
-                                    k++;
-                                }
-                                if (blockList.size() == sortedEdges.size()) {
-                                    polygons.remove(i);
-                                    polygonFills.remove(i);
-                                    polygonEdges.remove(i);
-                                    breaker = true;
-                                    break;
-                                }
-                                k = 0;
-                                j++;
-                            }
-                        }
-                        if (breaker) {
-                            break;
-                        }
-                        j = 0;
-                        i++;
-                        blockList.clear();
-                    }
-                }
-                getFloorScreenshot();
-                System.out.println("NUNN");
-                designButtons.viewport3D.getapp().reloadfloor(currname);
+                fillfloor();
             }
 
             if(c == KeyEvent.VK_SPACE) {
@@ -734,6 +729,53 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
         /** Invoked when a key is released */
         public void keyReleased(KeyEvent kevt) {
+        }
+    }
+    
+    public void fillfloor(){
+    	ArrayList<Edge> sortedEdges = sortEdges(handlerVertexSelect.getSelectedE());
+        if(fillRoom(sortedEdges, polygons.size())!=-1){
+        ArrayList<Integer> blockList = new ArrayList<Integer>();
+        int i = 0;
+        int j = 0;
+        int k = 0;
+        boolean breaker = false;
+        // This just makes it remove a fill if it is just overwriting one
+        if(sortedEdges != null) {
+            while (i < polygonEdges.size() - 1) {
+                if (polygonEdges.get(i).size() == sortedEdges.size()) {
+                    while (blockList.contains(j)) {
+                        j++;
+                    }
+                    while (j < polygonEdges.get(i).size()) {
+                        while (k < sortedEdges.size()) {
+                            if (polygonEdges.get(i).get(j) == sortedEdges.get(k)) {
+                                blockList.add(j);
+                                break;
+                            }
+                            k++;
+                        }
+                        if (blockList.size() == sortedEdges.size()) {
+                            polygons.remove(i);
+                            polygonFills.remove(i);
+                            polygonEdges.remove(i);
+                            breaker = true;
+                            break;
+                        }
+                        k = 0;
+                        j++;
+                    }
+                }
+                if (breaker) {
+                    break;
+                }
+                j = 0;
+                i++;
+                blockList.clear();
+            }
+        }
+        getFloorScreenshot();
+        designButtons.viewport3D.getapp().reloadfloor(currname);
         }
     }
 

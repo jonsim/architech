@@ -167,7 +167,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
    }
 
    /** Gets the current tab or null if there are no tabs */
-   private TwoDScrollPane getCurrentTab() {
+   public TwoDScrollPane getCurrentTab() {
       Component selected = tabbedPane.getSelectedComponent();
       if (selected != null && selected instanceof TwoDScrollPane) {
          return (TwoDScrollPane) selected;
