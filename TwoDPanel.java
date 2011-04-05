@@ -98,6 +98,11 @@ class TwoDPanel extends JPanel implements ChangeListener {
         addMouseMotionListener(new TwoDPanelMouseMotionListener());
         
         colourPalette = new ColourPalette();
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent Me) {
+            }
+        });
     }
     
     public ColourPalette getpal(){
@@ -727,14 +732,18 @@ class TwoDPanel extends JPanel implements ChangeListener {
             }
 
             if(c == KeyEvent.VK_SPACE) {
-                handlerVertexSelect.forgetSelectedVertices();
-                repaint();
+                deselectall();
             }
         }
 
         /** Invoked when a key is released */
         public void keyReleased(KeyEvent kevt) {
         }
+    }
+    
+    public void deselectall(){
+    	handlerVertexSelect.forgetSelectedVertices();
+        repaint();
     }
     
     public void fillfloor(){

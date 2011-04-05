@@ -22,7 +22,7 @@ public class DesignButtons implements ActionListener {
    private ObjectBrowser objectBrowser;
    private JPanel pane;
    private JButton selectTool, lineTool, curveTool,currentTool, dayToggle, tweaker, fillTool;
-   private JButton dropD;
+   private JButton deselectTool,dropD;
    private JButton TwUp,TwDown,TwLeft,TwRight,TwFor,TwBack,TwCol,TwTex,TwPlus,TwMinus,TwRotl,TwRotr;
    private JButton TwPx,TwMx,TwPy,TwMy,TwPz,TwMz;
    private JSlider zoomTool;
@@ -89,6 +89,12 @@ public class DesignButtons implements ActionListener {
       selectTool.setMargin(margins);
       selectTool.setUI(new MetalButtonUI());
       selectTool.setToolTipText("Use the select tool to select and move vertices/edges");
+      
+      deselectTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "deselect.png")));
+      deselectTool.addActionListener(this);
+      deselectTool.setMargin(margins);
+      deselectTool.setUI(new MetalButtonUI());
+      deselectTool.setToolTipText("Deselect all selected walls and corners");
 
       lineTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "line.png")));
       lineTool.addActionListener(this);
@@ -317,30 +323,33 @@ public class DesignButtons implements ActionListener {
 
       c = FrontEnd.buildGBC(0, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(selectTool, c);
-
+      
       c = FrontEnd.buildGBC(1, 1, 0.5, 0.5, topCenterAnchor, right);
-      pane.add(lineTool, c);
+      pane.add(deselectTool, c);
 
       c = FrontEnd.buildGBC(2, 1, 0.5, 0.5, topCenterAnchor, right);
+      pane.add(lineTool, c);
+
+      c = FrontEnd.buildGBC(3, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(curveTool, c);
 
-      c = FrontEnd.buildGBC(3, 1, 0.5, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, centerAnchor, right);
       pane.add(gridTool, c);
       
-      c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(5, 1, 0.5, 0.5, centerAnchor, right);
       pane.add(fillTool, c);
-      c = FrontEnd.buildGBC(4, 2, 0.5, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(5, 2, 0.5, 0.5, centerAnchor, right);
       pane.add(dropD, c);
       
-      c = FrontEnd.buildGBC(5, 0, 0.5, 0.5, bottomCenterAnchor, right);
+      c = FrontEnd.buildGBC(6, 0, 0.5, 0.5, bottomCenterAnchor, right);
       pane.add(new JLabel("<html><font color='white'>Zoom"), c);
-      c = FrontEnd.buildGBC(5, 1, 0.5, 0.5, topCenterAnchor, new Insets(0,0,0,30));
+      c = FrontEnd.buildGBC(6, 1, 0.5, 0.5, topCenterAnchor, new Insets(0,0,0,30));
       pane.add(zoomTool, c);
       
-      c = FrontEnd.buildGBC(6, 1, 0.5, 0.5, topCenterAnchor, right);
+      c = FrontEnd.buildGBC(7, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(dayToggle, c);
       
-      c = FrontEnd.buildGBC(7, 1, 0.5, 0.5, topCenterAnchor, right);
+      c = FrontEnd.buildGBC(8, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(tweaker, c);
    }  
    
@@ -444,6 +453,9 @@ public class DesignButtons implements ActionListener {
 
       } else if (dayToggle == source) {
          viewport3D.toggleDay();
+         
+      } else if (deselectTool == source) {
+    	  frontEnd.getCurrentTab().getpanel().deselectall();
          
       } else if (dropD==source) {
     	  Point tooltip = dropD.getLocationOnScreen();
