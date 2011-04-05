@@ -398,6 +398,9 @@ class TwoDPanel extends JPanel implements ChangeListener {
             	//col = new Color(Math.abs(col.getRed() - 255),Math.abs(col.getGreen() - 255), Math.abs(col.getBlue() - 255));
             	int negative =  col.getRGB();
             	int alpha = (negative << 8) & 0xFF000000;
+            	if(alpha == Color.BLACK.getRGB()){
+            		alpha = (new Color(208,191,184)).getRGB();
+            	}
             	return alpha;}
         };
         ImageProducer ip = new FilteredImageSource(image.getSource(), filter);
