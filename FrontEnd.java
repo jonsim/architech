@@ -18,6 +18,8 @@ public class FrontEnd implements WindowListener, ChangeListener {
    private final Color high = new Color(9,77,154);
    private final Color divcol = new Color(74,74,74);
    private final JFrame window = new JFrame(WINDOW_TITLE);
+   private JSplitPane horizsplit;
+   private JPanel topbuttons;
    private final JSplitPane TwoDandThreeD = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
    private final JTabbedPane tabbedPane = new JTabbedPane() {
       @Override
@@ -72,17 +74,36 @@ public class FrontEnd implements WindowListener, ChangeListener {
       tabbedPane.addChangeListener(this);
    }
    
+   public DesignButtons getDButtons(){
+	   return designButtons;
+   }
+   
+   public void revert(TWPane preview){
+	   preview.shutdown3D();
+	   reinitTwoDAndThreeD();
+	   designButtons.changetonormal();
+	   main.objectBrowser.changetonormal();
+   }
+   
+   
    public void changetw(){
-	   TwoDandThreeD.setTopComponent(new TWHolder(main));
+	   try 
+	   {Thread.sleep(1000);} 
+	   catch(InterruptedException e)
+	   {}
+	   TWPane preview = new TWPane(new Dimension(TwoDandThreeD.getSize().width-10,TwoDandThreeD.getSize().height));
+       JPanel canv = new JPanel();
+	   canv.add(preview.getCanvas());
+       TwoDandThreeD.setTopComponent(canv);
 	   TwoDandThreeD.setDividerLocation(TwoDandThreeD.getMaximumDividerLocation());
-	   TwoDandThreeD.revalidate();
-
+       TwoDandThreeD.revalidate();
+	   designButtons.changetotw(main.objectBrowser);
+	   main.objectBrowser.changetotw(preview);
    }
 
    /** Initialises the twoDandThreeD variable */
    private void initTwoDAndThreeD() {
       TwoDandThreeD.setTopComponent(tabbedPane);
-      //TwoDandThreeD.setOneTouchExpandable(true);
       TwoDandThreeD.setDividerSize(11);
       TwoDandThreeD.setBorder(null);
 	  TwoDandThreeD.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, high));
@@ -93,13 +114,16 @@ public class FrontEnd implements WindowListener, ChangeListener {
       main.viewport3D.getCanvas().setCursor(eye);
       TwoDandThreeD.setBottomComponent(main.viewport3D.getCanvas());
 	  Container div = (BasicSplitPaneDivider) TwoDandThreeD.getComponent(0);
-	  div.setBackground(divcol);		
+	  div.setBackground(divcol);
    }
 
    /** Re-initialises the twoDandThreeD variable when we switch back to the main app from the tweaker */
    public void reinitTwoDAndThreeD() {
       initTwoDAndThreeD();
       designButtons.getSlider().setMinimumSize( new Dimension( 200, 50 ) );
+      TwoDandThreeD.revalidate();
+      TwoDandThreeD.repaint();
+      getwindow().repaint();
    }
 
    /** Called whenever the current tab state is changed in tabbedPane */
@@ -219,7 +243,10 @@ public class FrontEnd implements WindowListener, ChangeListener {
       
       //build left
       c = buildGBC(0, 0, 0.5, 0.0, topCenterAnchor, new Insets(0,0,10,0));
-      left.add(designButtons.getPane(), c);      
+      topbuttons = new JPanel();
+      topbuttons.setOpaque(false);
+      topbuttons.add(designButtons.getPane());
+      left.add(topbuttons, c);      
       c = buildGBC(0, 1, 0.5, 0.5, leftAnchor, new Insets(0,5,5,5));
       c.fill = GridBagConstraints.BOTH;
       left.add(TwoDandThreeD, c);
@@ -233,13 +260,13 @@ public class FrontEnd implements WindowListener, ChangeListener {
       right.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, high));
       
       //add to horiz split pane
-	  JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, left, right);
-	  Container div = (BasicSplitPaneDivider) split.getComponent(2);
+	  horizsplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, left, right);
+	  Container div = (BasicSplitPaneDivider) horizsplit.getComponent(2);
 	  div.setBackground(divcol);
 	  Dimension scr = Toolkit.getDefaultToolkit().getScreenSize();
-	  split.setDividerLocation(scr.width/2+scr.width/3);	 
-	  split.setDividerSize(11);
-      pane.add(split,BorderLayout.CENTER);
+	  horizsplit.setDividerLocation(scr.width/2+scr.width/4);	 
+	  horizsplit.setDividerSize(11);
+      pane.add(horizsplit,BorderLayout.CENTER);
    }
 
    /** Asks the user to choose a file to open */

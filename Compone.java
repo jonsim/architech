@@ -15,7 +15,6 @@ public class Compone {
 	double scalez;
 	double rotateangle;
 	int code;
-	JPanel controls;
 	String fullpic;
 	int coloured;
 	float tiling;
@@ -37,7 +36,7 @@ public class Compone {
 		return filepath;
 	}
 	
-	Compone(Spatial td, int id, JPanel controller, String material, String path, String fname){
+	Compone(Spatial td, int id,String material, String path, String fname){
 		code = id;
 		threed = td;
 		fullpic = null;
@@ -51,7 +50,6 @@ public class Compone {
 		scalex = 1.0;
 		scaley = 1.0;
 		scalez = 1.0;
-		controls = controller;
 	}
 	
 	public void print(){
@@ -159,10 +157,6 @@ public class Compone {
 	
 	public int getid(){
 		return code;
-	}
-	
-	public JPanel getcon(){
-		return controls;
 	}
 	
 	public float gettile(){

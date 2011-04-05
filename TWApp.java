@@ -88,11 +88,9 @@ public class TWApp extends Application implements ActionListener {
 
     private boolean isInitComplete = false;
     public boolean isInitComplete(){return isInitComplete;}
-    private Tweaker main;
 
-    TWApp(Tweaker main) {
+    TWApp() {
        super();
-       this.main = main;
     }
     
     private class AppActionListener implements ActionListener {
@@ -247,7 +245,8 @@ public class TWApp extends Application implements ActionListener {
 		rootNode.addLight(dl);
     }
 
-    public void additem(String path, String fname,JPanel control){
+    public void additem(String path, String fname,int id){
+    	
     	if(path!=null) {assetManager.registerLocator(path,FileLocator.class.getName());}
     	Spatial temp = assetManager.loadModel(fname);
 	    temp.setLocalScale(3f);
@@ -267,13 +266,13 @@ public class TWApp extends Application implements ActionListener {
 			readall.close();
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, "No material file (mtl) found , aborting load","No MTL Found", 1);
-			main.remove(control);
+			//main.remove(control);
 			return;
 		}
 		String matfile = contents.toString();
-		Compone adding = new Compone(temp, currentid,control,matfile,path,fname);	    
+		Compone adding = new Compone(temp, id,matfile,path,fname);	    
 	    furniture.add(adding);
-	    currentid++;
+	    //currentid++;
 	    focus();
 	    return;
     }
@@ -317,23 +316,21 @@ public class TWApp extends Application implements ActionListener {
     	return 0;
     }
     
-    public void saveitem(){
-    	String name,description;
+    public void saveitem(String name, String description, String types, ObjectBrowser obrow){
+    	//String name,description;
     	int type;
     	if(furniture.size()==0){JOptionPane.showMessageDialog(null, "No objects have been added. Nothing to save","No Objects Added", 1);}
 	    	else{
-    		if(main.getname().equals("")){
+    		if(name.equals("")){
    			 JOptionPane.showMessageDialog(null, "Blank Name - please fill in that field","Blank Name", 1);
    			 }else{
-   		     if(main.getdesc().equals("")){
+   		     if(description.equals("")){
    					 JOptionPane.showMessageDialog(null, "Blank Description - please fill in that field","Blank Description", 1);
    			 }else{
-    		if(main.gettype().equals("None")){
+    		if(types.equals("None")){
    			 JOptionPane.showMessageDialog(null, "No Type selected - please select one","Blank Name", 1);
    			 }else{
-   		    name = main.getname();
-   		    description = main.getdesc();
-    		type = converttype(main.gettype());
+    		type = converttype(types);
         	URL folder = getClass().getResource("req");
         	String fpath = folder.getPath();
 	        (new File(fpath+"/"+name)).mkdir();
@@ -464,19 +461,19 @@ public class TWApp extends Application implements ActionListener {
 	    		focus();
 	    		//TAKE PRETTY SCREENSHOT
 	    		Dimension scrDim = Toolkit.getDefaultToolkit().getScreenSize();
-	    		int tx = (int) main.getLocationOnScreen().getX() + 80;
-	    		int ty = (int) main.getLocationOnScreen().getY() + 130;
-	    		int dx = (int) scrDim.getWidth()/2;
-	    		int dy = (int) scrDim.getHeight()/2;   		
+	    		int tx = (int) 0 + 80;
+	    		int ty = (int) 0 + 130;
+	    		int dx = (int) (scrDim.getWidth()/3)*2;
+	    		int dy = (int) (scrDim.getHeight()/3)*2;   		
 	    		Robot robot = new Robot();
 	    		BufferedImage bi = robot.createScreenCapture(new Rectangle(tx,ty,dx,dy));
 	    		folder = getClass().getResource("img");
 	        	fpath = folder.getPath();
 	    		ImageIO.write(bi, "jpg", new File(fpath + "/database/" + name+".jpg"));
 	    		//OUTPUT LENGTH, WIDTH, HEIGHT
-	    		//System.out.println(maxlength + " , " + maxheight + " , " +  maxwidth);  
-	        	main.addtodb(name,type,description,name+".jpg",name+".obj",maxwidth.floatValue(),maxlength.floatValue(),maxheight.floatValue());
-    	 		JOptionPane.showMessageDialog(null, "Saved Successfully!", "Success", 1);
+	    		//main.addtodb(name,type,description,name+".jpg",name+".obj",maxwidth.floatValue(),maxlength.floatValue(),maxheight.floatValue());
+	        	obrow.addObject(name,type,description,name+".jpg",name+".obj",maxwidth.floatValue(),maxlength.floatValue(),maxheight.floatValue());
+	        	JOptionPane.showMessageDialog(null, "Saved Successfully!", "Success", 1);
     			}catch(Exception e){e.printStackTrace(); JOptionPane.showMessageDialog(null, "Something went wrong during the saving" +
 	    				" process","OBJ Saving Error", 1);}	
    			 }}}}
@@ -497,9 +494,8 @@ public class TWApp extends Application implements ActionListener {
     }
 
     
-    public JPanel removeitem(int id){
+    public void removeitem(int id){
     	int position=0;
-    	JPanel ret = null;
     	int found = -1;
     	Iterator iterator = furniture.iterator();
 		while(iterator.hasNext()){
@@ -509,12 +505,11 @@ public class TWApp extends Application implements ActionListener {
 			position++;
 		}
 		if(found!=-1){
-			ret = furniture.get(found).getcon();
 			rootNode.detachChild(furniture.get(found).getsp());
 			furniture.remove(found);
 			focus();
 		}
-	    return ret;
+	    return;
     }
     
     public void moveitem(int id, char dir){
@@ -558,7 +553,7 @@ public class TWApp extends Application implements ActionListener {
 	    return;
     }
     
-    public void paintitem(int id,int swit,String path, String name, Float tex){
+    public void paintitem(int id,int swit,String path, String name, Float tex, float red, float green,float blue){
     	Material mat =null;
     	int position=0;
     	int found = -1;
@@ -574,9 +569,9 @@ public class TWApp extends Application implements ActionListener {
 	            //if painting
 	        	mat= new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 	    	    mat.setFloat("m_Shininess", 10f);
-	            mat.setColor("m_Diffuse", new ColorRGBA(main.red,main.green,main.blue,(float) 1.0));
+	            mat.setColor("m_Diffuse", new ColorRGBA(red,green,blue,(float) 1.0));
 	            mat.setBoolean("m_UseMaterialColors",true);
-	            furniture.get(found).colour(main.red,main.green,main.blue);
+	            furniture.get(found).colour(red,green,blue);
 	            }else{
 	            if(tex != 0f){if(furniture.get(found).getpic()==null) {return;}}
 	        	//if texturing

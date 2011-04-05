@@ -12,14 +12,12 @@ import javax.swing.JPanel;
 /** Provides a canvas (with getCanvas()) containing the 3d window */
 public class TWPane{
    private TWApp canvasApplication;
-   private Tweaker main;
 
    /** Used by JMEPaneEmpty to disable 3D */
    TWPane() {
    }
 
-   TWPane(Tweaker main) {
-      this.main = main;    
+   TWPane(Dimension cansize) {   
       Dimension scrDim = Toolkit.getDefaultToolkit().getScreenSize();
 
 //add clumsy 3D Window
@@ -28,12 +26,12 @@ public class TWPane{
       settings.setWidth(200);
       settings.setHeight(300);
       // create new canvas application
-      canvasApplication = new TWApp(main);
+      canvasApplication = new TWApp();
       canvasApplication.setSettings(settings);
       Logger.getLogger("").setLevel(Level.SEVERE);
       canvasApplication.createCanvas(); // create canvas!
       JmeCanvasContext ctx = (JmeCanvasContext) canvasApplication.getContext();
-      ctx.getCanvas().setPreferredSize(new Dimension( (int) scrDim.getWidth()-650-200, (int) scrDim.getHeight()-550-100));
+      ctx.getCanvas().setPreferredSize(cansize);
       ctx.setSystemListener(canvasApplication);
       }
 
@@ -50,11 +48,11 @@ public class TWPane{
    public void addf(String name){
 	   //canvasApplication.addf(name);
    }
-   public void additem(String path, String fname, JPanel control){canvasApplication.additem(path,fname,control);return;}
-   public JPanel removeitem(int id){return canvasApplication.removeitem(id);}
+   public void additem(String path, String fname, int id){canvasApplication.additem(path,fname,id);return;}
+   public void removeitem(int id){canvasApplication.removeitem(id);}
    public void moveitem(int id,char dir){canvasApplication.moveitem(id,dir);return;}
-   public void paintitem(int id,int swit,String path, String name, float tex){canvasApplication.paintitem(id,swit,path,name,tex);return;}
-   public void saveitem(){canvasApplication.saveitem();}
+   public void paintitem(int id,int swit,String path, String name, float tex,float red, float green, float blue){canvasApplication.paintitem(id,swit,path,name,tex,red,green,blue);return;}
+   public void saveitem(String name, String description, String type,ObjectBrowser obrow){canvasApplication.saveitem(name,description,type,obrow);}
    
    public void look3d(){
 	 //canvasApplication.look3d();

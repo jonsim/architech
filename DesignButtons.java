@@ -4,6 +4,7 @@ import javax.swing.border.Border;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.MenuItemUI;
 import javax.swing.plaf.basic.BasicButtonUI;
+import javax.swing.plaf.basic.BasicSliderUI;
 import javax.swing.plaf.metal.MetalButtonUI;
 import javax.swing.plaf.metal.MetalSliderUI;
 
@@ -14,15 +15,20 @@ import java.util.Hashtable;
 /** Holds the buttons for tools and features related to the 2D pane */
 public class DesignButtons implements ActionListener {
    public static final String IMG_DIR = "img/designbuttons/";
+   public static final String TWIMG_DIR = "img/twbuttons/";
 
    public final Viewport3D viewport3D;
    private final FrontEnd frontEnd;
+   private ObjectBrowser objectBrowser;
    private JPanel pane;
    private JButton selectTool, lineTool, curveTool,  currentTool, dayToggle, tweaker;
+   private JButton TwUp,TwDown,TwLeft,TwRight,TwFor,TwBack,TwCol,TwTex,TwPlus,TwMinus,TwRotl,TwRotr;
+   private JButton TwPx,TwMx,TwPy,TwMy,TwPz,TwMz;
    private JSlider zoomTool;
    private Cursor selectCursor, lineCursor,curveCursor;
    private JToggleButton gridTool;
    private final Color back = new Color(74,74,74);
+   private TWPalette twPalette;
 
    /** Initialises the private variables as usual */
    DesignButtons(FrontEnd frontEnd, Viewport3D viewport3D) {
@@ -33,7 +39,11 @@ public class DesignButtons implements ActionListener {
       this.viewport3D = viewport3D;
       initCursors();
       initButtons();
+      pane = new JPanel(new GridBagLayout());
+      pane.setOpaque(false);
       initPane();
+      objectBrowser=null;
+      twPalette = new TWPalette();
    }
 
    /** Returns the zoom slider object */
@@ -74,44 +84,196 @@ public class DesignButtons implements ActionListener {
       selectTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "hand.png")));
       selectTool.addActionListener(this);
       selectTool.setMargin(margins);
-      selectTool.setUI(new metbut());
+      selectTool.setUI(new MetalButtonUI());
       selectTool.setToolTipText("Use the select tool to select and move vertices/edges");
 
       lineTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "line.png")));
       lineTool.addActionListener(this);
       lineTool.setMargin(margins);
-      lineTool.setUI(new metbut());
+      lineTool.setUI(new MetalButtonUI());
       lineTool.setToolTipText("Use the line tool to place vertices and drag to draw walls");
 
       curveTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "cline.png")));
       curveTool.addActionListener(this);
       curveTool.setMargin(margins);
-      curveTool.setUI(new metbut());
+      curveTool.setUI(new MetalButtonUI());
       curveTool.setToolTipText("Use the curve tool to draw curved walls");
 
       gridTool = new JToggleButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "grid.png")));
       gridTool.addActionListener(this);
       gridTool.setSelected(true);
       gridTool.setMargin(margins);
-      gridTool.setUI(new metbut());
+      gridTool.setUI(new MetalButtonUI());;
       gridTool.setToolTipText("Turns the grid on/off");
       
       dayToggle = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "daynight.png")));
       dayToggle.addActionListener(this);
       dayToggle.setMargin(margins);
-      dayToggle.setUI(new metbut());
+      dayToggle.setUI(new MetalButtonUI());
       dayToggle.setToolTipText("Switch between night and day");
       
       tweaker = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "tweak.png")));
       tweaker.addActionListener(this);
       tweaker.setMargin(margins);
-      tweaker.setUI(new metbut());
+      tweaker.setUI(new MetalButtonUI());
       tweaker.setToolTipText("Open the tweaker in order to edit furniture");
 
       currentTool = lineTool;
       zoomTool = new JSlider(JSlider.HORIZONTAL, 0, 20, 10);
       initZoomTool();      
       reCalcButtonStates();
+   }
+   
+   public void changetotw(ObjectBrowser objectBrowser){
+	   this.objectBrowser = objectBrowser;
+	   pane.removeAll();
+	   pane.revalidate();
+	   initTwButtons();
+	   initTwPane();
+   }
+   
+   public void changetonormal(){
+	   pane.removeAll();
+	   pane.revalidate();
+	   pane.repaint();
+	   initButtons();
+	   initPane();
+	   pane.revalidate();
+	   pane.repaint();
+   }
+   
+   private void initTwButtons() {
+	  Insets margins = new Insets(0,0,0,0);
+      TwLeft = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "left.png")));
+      TwLeft.addActionListener(this);
+      TwLeft.setActionCommand("!r");
+      TwLeft.setMargin(margins);
+      TwLeft.setUI(new MetalButtonUI());
+      TwLeft.setToolTipText(""); //to be added
+      TwRight = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "right.png")));
+      TwRight.addActionListener(this);
+      TwRight.setActionCommand("!l");
+      TwRight.setMargin(margins);
+      TwRight.setUI(new MetalButtonUI());
+      TwRight.setToolTipText(""); //to be added
+      TwFor = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "forward.png")));
+      TwFor.addActionListener(this);
+      TwFor.setActionCommand("!f");
+      TwFor.setMargin(margins);
+      TwFor.setUI(new MetalButtonUI());
+      TwFor.setToolTipText(""); //to be added
+      TwBack = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "back.png")));
+      TwBack.addActionListener(this);
+      TwBack.setActionCommand("!b");
+      TwBack.setMargin(margins);
+      TwBack.setUI(new MetalButtonUI());
+      TwBack.setToolTipText(""); //to be added
+      TwUp = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "up.png")));
+      TwUp.addActionListener(this);
+      TwUp.setActionCommand("!u");
+      TwUp.setMargin(margins);
+      TwUp.setUI(new MetalButtonUI());
+      TwUp.setToolTipText(""); //to be added
+      TwDown = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "down.png")));
+      TwDown.addActionListener(this);
+      TwDown.setActionCommand("!d");
+      TwDown.setMargin(margins);
+      TwDown.setUI(new MetalButtonUI());
+      TwDown.setToolTipText(""); //to be added
+      TwRotl = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "rotl.png")));
+      TwRotl.addActionListener(this);
+      TwRotl.setActionCommand("!<");
+      TwRotl.setMargin(margins);
+      TwRotl.setUI(new MetalButtonUI());
+      TwRotl.setToolTipText(""); //to be added
+      TwRotr = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "rotr.png")));
+      TwRotr.addActionListener(this);
+      TwRotr.setActionCommand("!>");
+      TwRotr.setMargin(margins);
+      TwRotr.setUI(new MetalButtonUI());
+      TwRotr.setToolTipText(""); //to be added
+      TwPlus = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "plus.png")));
+      TwPlus.addActionListener(this);
+      TwPlus.setActionCommand("!+");
+      TwPlus.setMargin(margins);
+      TwPlus.setUI(new MetalButtonUI());
+      TwPlus.setToolTipText(""); //to be added
+      TwMinus = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "minus.png")));
+      TwMinus.addActionListener(this);
+      TwMinus.setActionCommand("!-");
+      TwMinus.setMargin(margins);
+      TwMinus.setUI(new MetalButtonUI());
+      TwMinus.setToolTipText(""); //to be added
+      TwPx = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "px.png")));
+      TwPx.addActionListener(this);
+      TwPx.setActionCommand("!x");
+      TwPx.setMargin(margins);
+      TwPx.setUI(new MetalButtonUI());
+      TwPx.setToolTipText(""); //to be added
+      TwMx = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "mx.png")));
+      TwMx.addActionListener(this);
+      TwMx.setActionCommand("!1");
+      TwMx.setMargin(margins);
+      TwMx.setUI(new MetalButtonUI());
+      TwMx.setToolTipText(""); //to be added
+      TwPy = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "py.png")));
+      TwPy.addActionListener(this);
+      TwPy.setActionCommand("!y");
+      TwPy.setMargin(margins);
+      TwPy.setUI(new MetalButtonUI());
+      TwMy = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "my.png")));
+      TwMy.addActionListener(this);
+      TwMy.setActionCommand("!2");
+      TwMy.setMargin(margins);
+      TwMy.setUI(new MetalButtonUI());
+      TwMy.setToolTipText(""); //to be added
+      TwPz = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "pz.png")));
+      TwPz.addActionListener(this);
+      TwPz.setActionCommand("!z");
+      TwPz.setMargin(margins);
+      TwPz.setUI(new MetalButtonUI());
+      TwMz = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "mz.png")));
+      TwMz.addActionListener(this);
+      TwMz.setActionCommand("!3");
+      TwMz.setMargin(margins);
+      TwMz.setUI(new MetalButtonUI());
+      TwMz.setToolTipText(""); //to be added
+      TwCol = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "colour.png")));
+      TwCol.addActionListener(this);
+      TwCol.setActionCommand("col");
+      TwCol.setMargin(margins);
+      TwCol.setUI(new MetalButtonUI());
+      TwCol.setToolTipText(""); //to be added
+      TwCol.addMouseListener(new MouseAdapter() {
+          @Override
+          public void mouseReleased(MouseEvent Me) {
+              if (Me.isPopupTrigger()) {
+                  twPalette.show(null, Me.getXOnScreen(), Me.getYOnScreen());
+                  pane.repaint();
+              } else {
+                  twPalette.hide();
+                  pane.repaint();
+              }
+          }
+      });
+      TwTex = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "texture.png")));
+      TwTex.addActionListener(this);
+      TwTex.setActionCommand("tex");
+      TwTex.addMouseListener(new MouseAdapter() {
+          @Override
+          public void mouseReleased(MouseEvent Me) {
+              if (Me.isPopupTrigger()) {
+                  twPalette.show(null, Me.getXOnScreen(), Me.getYOnScreen());
+                  pane.repaint();
+              } else {
+                  twPalette.hide();
+                  pane.repaint();
+              }
+          }
+      });
+      TwTex.setMargin(margins);
+      TwTex.setUI(new MetalButtonUI());
+      TwTex.setToolTipText(""); //to be added
    }
 
    /** Initialises the zoomTool slider */
@@ -127,6 +289,7 @@ public class DesignButtons implements ActionListener {
       labelTable.put( 20, new JLabel("200%") );
       zoomTool.setLabelTable( labelTable );
       zoomTool.setPaintLabels(true);
+      //zoomTool.setUI(new BasicMThumbSliderUI(zoomTool));
 
       Font font = new Font("Serif", Font.ITALIC, 15);
       zoomTool.setFont(font);
@@ -150,8 +313,6 @@ public class DesignButtons implements ActionListener {
       //Insets bottom = new Insets(0, 0, 5, 0);
       Insets none = new Insets(0, 0, 0, 0);
 
-      pane = new JPanel(new GridBagLayout());
-      pane.setOpaque(false);
       GridBagConstraints c;
 
       c = FrontEnd.buildGBC(0, 1, 0.5, 0.5, topCenterAnchor, right);
@@ -177,7 +338,67 @@ public class DesignButtons implements ActionListener {
 
       c = FrontEnd.buildGBC(6, 0, 0.5, 0.5, bottomCenterAnchor, right);
       pane.add(new JLabel("<html><font color='white'>Zoom"), c);
-   }
+   }  
+   
+   private void initTwPane() {
+	      //int leftAnchor = GridBagConstraints.LINE_START;
+	      //int rightAnchor = GridBagConstraints.LINE_END;
+	      int centerAnchor = GridBagConstraints.CENTER;
+	      int topCenterAnchor = GridBagConstraints.NORTH;
+	      //int topLeftAnchor = GridBagConstraints.NORTHWEST;
+	      //int topRightAnchor = GridBagConstraints.NORTHEAST;
+	      int bottomCenterAnchor = GridBagConstraints.SOUTH;
+
+	      //Insets top_left_right = new Insets(10, 10, 0, 10);
+	      //Insets top_left_bottom_right = new Insets(10, 10, 10, 10);
+	      //Insets top_right = new Insets(10, 0, 0, 10);
+	      //Insets top_bottom_right = new Insets(10, 0, 10, 10);
+	      Insets right = new Insets(0, 0, 0, 10);
+	      //Insets bottom = new Insets(0, 0, 5, 0);
+	      Insets none = new Insets(0, 0, 0, 0);
+
+	      //pane = new JPanel(new GridBagLayout());
+	      //pane.setOpaque(false);
+	      GridBagConstraints c;
+
+	      c = FrontEnd.buildGBC(0, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwLeft, c);
+	      c = FrontEnd.buildGBC(1, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwRight, c);
+	      c = FrontEnd.buildGBC(2, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwFor, c);
+	      c = FrontEnd.buildGBC(3, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwBack, c);
+	      c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwUp, c);
+	      c = FrontEnd.buildGBC(5, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwDown, c);
+	      c = FrontEnd.buildGBC(6, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwRotl, c);
+	      c = FrontEnd.buildGBC(7, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwRotr, c);
+	      c = FrontEnd.buildGBC(8, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwPlus, c);
+	      c = FrontEnd.buildGBC(9, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwMinus, c);
+	      c = FrontEnd.buildGBC(10, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwPx, c);
+	      c = FrontEnd.buildGBC(11, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwMx, c);
+	      c = FrontEnd.buildGBC(12, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwPy, c);
+	      c = FrontEnd.buildGBC(13, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwMy, c);
+	      c = FrontEnd.buildGBC(14, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwPz, c);
+	      c = FrontEnd.buildGBC(15, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwMz, c);	      
+	      c = FrontEnd.buildGBC(16, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwCol, c);
+	      c = FrontEnd.buildGBC(17, 1, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(TwTex, c);
+
+	   }  
 
    /** Returns the pane containing the buttons / GUI stuff */
    public JPanel getPane() {
@@ -196,7 +417,7 @@ public class DesignButtons implements ActionListener {
    /** Whenever a button in this pane is pressed this method is called */
    public void actionPerformed(ActionEvent e) {
       Object source = e.getSource();
-
+      String comm = e.getActionCommand();
       if (selectTool == source) {
          frontEnd.setWindowCursor(selectCursor);
          currentTool = selectTool;
@@ -221,15 +442,46 @@ public class DesignButtons implements ActionListener {
       } else if (tweaker == source) {
           viewport3D.shutdown3D();
     	  frontEnd.changetw();
-         //frontEnd.getwindow().setVisible(false);
-         //Tweaker hello = new Tweaker(frontEnd.main);
-         //hello.setVisible(true);
-      } else {
-         Main.showFatalExceptionTraceWindow(
-                 new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
-      }
-
+      } else if(comm.equals("col")){
+    	  objectBrowser.getprev().paintitem(objectBrowser.getselected(),0,twPalette.ppath(),twPalette.pname(),0f,twPalette.getr(),twPalette.getg(),twPalette.getb());
+      }else if(comm.equals("tex")){
+    	  if(twPalette.ppath()==null){
+    		  JOptionPane.showMessageDialog(null, "No Picture Selected!","Texture Error", 1);
+    	  }else{
+    		  objectBrowser.getprev().paintitem(objectBrowser.getselected(),1,twPalette.ppath(),twPalette.pname(),0f,twPalette.getr(),twPalette.getg(),twPalette.getb());
+    	  }
+      } else {if(comm.substring(0,1).equals("!")){
+				 if(objectBrowser.getselected()!=-1){
+				 objectBrowser.getprev().moveitem(objectBrowser.getselected(),comm.charAt(1));
+				 } else{
+					 JOptionPane.showMessageDialog(null, "No item selected.","Error", 1);
+				 }
+			 }
+      else{
+        // Main.showFatalExceptionTraceWindow(
+                 //new Exception("BUG: Action ocurred with unexpected source (" + e.getSource().toString() + ")"));
+      }}
       frontEnd.requestFocusToCurrentTwoDScrollPane();
    }
+   
+   public void twButtons(boolean toggle){
+		   TwLeft.setEnabled(toggle);
+		   TwRight.setEnabled(toggle);
+		   TwFor.setEnabled(toggle);
+		   TwBack.setEnabled(toggle);
+		   TwUp.setEnabled(toggle);
+		   TwDown.setEnabled(toggle);
+		   TwRotl.setEnabled(toggle);
+		   TwRotr.setEnabled(toggle);
+		   TwPlus.setEnabled(toggle);
+		   TwMinus.setEnabled(toggle);
+		   TwPx.setEnabled(toggle);
+		   TwMx.setEnabled(toggle);
+		   TwPy.setEnabled(toggle);
+		   TwMy.setEnabled(toggle);
+		   TwPz.setEnabled(toggle);
+		   TwMz.setEnabled(toggle);
+		   TwCol.setEnabled(toggle);
+		   TwTex.setEnabled(toggle);
+   }
 }
-class metbut extends MetalButtonUI {}

@@ -1,18 +1,25 @@
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.sql.*;
+import java.util.Arrays;
 import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.basic.BasicSplitPaneDivider;
 import javax.swing.ListSelectionModel;
 import java.awt.dnd.*;
 import javax.swing.BorderFactory;
 import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 import javax.swing.JScrollBar;
 import java.awt.Dimension;
 
@@ -20,9 +27,13 @@ import java.awt.Dimension;
  *
  * @author Michael, Brent
  */
-public class ObjectBrowser implements KeyListener, MouseListener {
+public class ObjectBrowser implements MouseListener, ActionListener {
    public static final String IMG_DIR = "img/database/";
    private final Color divcol = new Color(74,74,74);
+   private ListCellRenderer original;
+   private boolean tweakmode;
+   private int idcount=0;
+   private TWPane preview;
    private Main main;
    private JPanel pane;
    private JSplitPane split;
@@ -30,6 +41,10 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    private JPanel splitBottom;
    private JLabel listTitle;
    public JList library;
+   private int selectedindex=-1;
+   private int selectedpos=-1;
+   private JComboBox typelist;
+   private JTextField desct,namet;
    public DefaultListModel fields = new DefaultListModel();
    private ListSelectionListener listSelectionListener;
    // This will get the database as long as it is in the current directory
@@ -66,6 +81,9 @@ public class ObjectBrowser implements KeyListener, MouseListener {
    private JPanel picPan;
    private String decName;
    public boolean wall = false;
+   private JLabel piclabel;
+   private JPanel picture;
+   private String picpath,picname;
 
 	ObjectBrowser(Main main) {
 		this.main = main;
@@ -76,7 +94,8 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 		return main;
 	}
 
-	private void initPane() { 	
+	private void initPane() {
+		tweakmode = false;
 		pane = new JPanel(new GridBagLayout());
 		//pane.setBackground(Color.WHITE);
 		//pane.setBorder(BorderFactory.createLineBorder(Color.GRAY));
@@ -183,7 +202,6 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			}
 		};
 		library.addMouseListener(this);
-		library.addKeyListener(this);
 		library.setDragEnabled(true);
 		SQLStatement("select * from CATEGORIES ORDER BY Category", "Category");
 		currentLibrary = 0;
@@ -452,7 +470,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 	
 	private void toCategories() {
 		if(currentCategory > 0 && library.getSelectedIndex() == fields.size()-1 ) {
-      listTitle.setText(catTitle);
+			listTitle.setText(catTitle);
 			library.removeListSelectionListener(listSelectionListener);
 			currentCategory = -1;
 			fields.clear();
@@ -464,7 +482,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 	}
 
 	public void toReset() {
-			library.removeListSelectionListener(listSelectionListener);
+	  library.removeListSelectionListener(listSelectionListener);
       listTitle.setText(catTitle);
       description.setText("");
       picPan.remove(picLabel);
@@ -714,9 +732,16 @@ public class ObjectBrowser implements KeyListener, MouseListener {
     public void keyReleased(KeyEvent e) {}
 
 	public void mousePressed(MouseEvent e) {
+		if(tweakmode){
+			selectedpos = library.locationToIndex(e.getPoint());
+			objectName = fields.get(selectedpos).toString();
+			objectName = objectName.substring(objectName.indexOf(':')+1,objectName.length()-1);
+			selectedindex = Integer.parseInt(objectName);
+			main.frontEnd.getDButtons().twButtons(true);
+		}else{
 		if(currentCategory > 0) {
-			int index = library.locationToIndex(e.getPoint());
-			objectName = fields.get(index).toString();
+			selectedpos = library.locationToIndex(e.getPoint());
+			objectName = fields.get(selectedpos).toString();
 			//System.out.println("Object Name = " + objectName);			
 			getDimensions(getItemType(objectName), getTweaked(objectName));
 			String test = getModel(objectName);
@@ -729,7 +754,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 			} else if(!objectName.equals(dashedSeparator) && !objectName.equals(backButtonText)) {
 				//System.out.println("Object '" + objectName + "' Not Found In Database 'TYPE'");
 			}
-		}
+		}}
 	}
 
 	public void mouseReleased(MouseEvent e) {
@@ -737,7 +762,7 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 	}
 
 	public void mouseClicked(MouseEvent e) {
-		if(e.getClickCount()%2 == 0) {
+		if(e.getClickCount()%2 == 0 && !tweakmode) {
 			if (currentLibrary == 0)
 			{
 				selectCategory();
@@ -764,5 +789,145 @@ public class ObjectBrowser implements KeyListener, MouseListener {
 
 	public JSplitPane getSplit() {
 		return split;
+	}
+	
+	private void bottomSetUp(){
+		splitBottom.removeAll();		
+		ImageIcon plus = new ImageIcon(main.frontEnd.getImage(this,"img/designbuttons/add.png"));
+        JButton pbut = new JButton("<html><h3>Add Object",plus);
+        pbut.setActionCommand("add");
+        pbut.addActionListener(this);
+        pbut.setPreferredSize(new Dimension(200,50));
+		ImageIcon minus = new ImageIcon(main.frontEnd.getImage(this,"img/designbuttons/min.png"));
+        JButton mbut = new JButton("<html><h3>Remove Object",minus);
+        mbut.setActionCommand("remove");
+        mbut.addActionListener(this);
+        mbut.setPreferredSize(new Dimension(200,50));
+        //button.setMinimumSize( new Dimension(150, 50) );
+        //button.setMaximumSize( new Dimension(150, 50) );
+        GridBagConstraints c = FrontEnd.buildGBC(0, 0, 0.5, 0.5, GridBagConstraints.NORTH, new Insets(20,0,0,0));
+		splitBottom.add(pbut,c);
+        c = FrontEnd.buildGBC(0, 1, 0.5, 0.5, GridBagConstraints.NORTH, new Insets(0,0,0,0));
+		splitBottom.add(mbut,c);		
+		JPanel holster = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		holster.setOpaque(false);
+		JLabel lab = new JLabel("<html><font size=4> Object Name:");
+		namet = new JTextField(20);
+		holster.add(lab);
+		holster.add(namet);
+		c = FrontEnd.buildGBC(0, 2, 0.5, 0.5, GridBagConstraints.NORTH, new Insets(0,0,0,0));
+		splitBottom.add(holster,c);
+		holster = new JPanel(new FlowLayout(FlowLayout.CENTER));	
+		holster.setOpaque(false);
+		lab = new JLabel("<html><font size=4> Description:");
+		desct = new JTextField(20);
+		holster.add(lab);
+		holster.add(desct);
+		c = FrontEnd.buildGBC(0, 3, 0.5, 0.5, GridBagConstraints.NORTH, new Insets(0,0,0,0));
+		splitBottom.add(holster,c);
+		holster = new JPanel(new FlowLayout(FlowLayout.CENTER));	
+		holster.setOpaque(false);
+		String[] types = {"Chair", "Armchair", "Sofa (2 person)", "Stool", "Bench", "Dining Table", "Desk", "Coffee Table", "Bedside Table", "Desk Lamp", "Table Lamp", "Floor Lamp", "Wall Light", "Ceiling Light", "Cupboard", "Drawers", "Wardrobe", "Bookcase", "Wall-mounted Cupboard", "Kitchen Units", "Single Bed", "Bath (w/Shower)", "Shower", "Bathroom Sink", "Toilet", "Oven", "Fridge", "Freezer", "Kitchen Sink", "DishWasher", "Rug", "Double Bed", "Sofa (3 person)", "Large Plant", "Pot Plant"};
+	    Arrays.sort(types);
+	    lab = new JLabel("<html><font size=4> Item Type:");
+	    typelist = new JComboBox(types);
+	    typelist.insertItemAt("None",0);
+	    typelist.setSelectedIndex(0);
+	    typelist.addActionListener(this);
+	    holster.add(lab);
+	    holster.add(typelist);
+	    c = FrontEnd.buildGBC(0, 4, 0.5, 0.5, GridBagConstraints.NORTH, new Insets(0,0,0,0));
+		splitBottom.add(holster,c);
+		holster = new JPanel(new FlowLayout(FlowLayout.CENTER));	
+		holster.setOpaque(false);
+		ImageIcon save = new ImageIcon(main.frontEnd.getImage(this, "img/designbuttons/save.png"));
+		JButton button = new JButton("<html><h3>Save",save);
+		button.setActionCommand("save");
+		button.addActionListener(this);
+		holster.add(button);		   
+		ImageIcon can = new ImageIcon(main.frontEnd.getImage(this, "img/designbuttons/can.png"));
+		button = new JButton("<html><h3>Cancel", can);
+		button.setActionCommand("can");
+		button.addActionListener(this);
+		holster.add(button);
+	    c = FrontEnd.buildGBC(0, 5, 0.5, 0.5, GridBagConstraints.NORTH, new Insets(0,0,0,0));
+		splitBottom.add(holster,c);
+		splitBottom.revalidate();
+		splitBottom.repaint();
+	}
+	
+	public void changetonormal(){
+		toReset();
+		splitBottom.removeAll();
+		currentCategory = -1;
+		addDescriptionPane();
+		addImagePane();
+		picInitialise();
+	    splitBottom.revalidate();
+	    splitBottom.repaint();
+		split.revalidate();
+		split.repaint();
+		tweakmode = false;
+	}
+	
+	public void changetotw(TWPane pane){
+		tweakmode = true;
+		preview = pane;
+		listTitle.setText("<html><center><font size=5>Current Objects:<br><font size=3>(add objects to get started)");
+		original = library.getCellRenderer();
+		fields.clear();
+		main.frontEnd.getDButtons().twButtons(false);
+		splitTop.revalidate();
+		bottomSetUp();
+	}	
+	
+	public int getselected(){
+		return selectedindex;
+	}
+	
+	public TWPane getprev(){
+		return preview;
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		 String comm = e.getActionCommand();
+		 if (comm.equals("add")){		
+			 URL folder = getClass().getResource("req");
+	        	String fpath = folder.getPath();
+			    final JFileChooser fc = new JFileChooser(fpath);
+			    FileFilter objf = new ExtensionGroup("OBJ Files", new String[] {".obj"});
+			    fc.setAcceptAllFileFilterUsed(false);
+			    fc.addChoosableFileFilter(objf);
+			    fc.setFileFilter(objf);
+			    int returnVal = fc.showOpenDialog(split);
+			    if (returnVal==0){
+				    File file = fc.getSelectedFile();
+				    String path = file.getPath();
+				    String fname = file.getName();
+				    path = path.substring(0,path.lastIndexOf(File.separator));
+				    preview.additem(path,fname,idcount);
+				    fields.addElement(fname +"  [ID:"+idcount+"]");
+				    idcount++;
+			    }
+			    else{JOptionPane.showMessageDialog(null, "The file you selected didn't open properly. Try another.","File Error", 1);}
+		 }
+		 if (comm.equals("remove")){
+			 if(selectedindex==-1){
+				 JOptionPane.showMessageDialog(null, "No item selected","Error - Can't delete", 1);
+			 }else{
+				 preview.removeitem(selectedindex);
+				 fields.remove(selectedpos);
+				 main.frontEnd.getDButtons().twButtons(false);
+				 selectedindex=-1;
+			 }
+		 }
+		 if (comm.equals("save")){
+			 preview.saveitem(namet.getText(), desct.getText(), (String)typelist.getSelectedItem(),this);
+		 }
+		 if (comm.equals("can")){
+			 main.frontEnd.revert(preview);
+		 }
+	 
 	}
 }
