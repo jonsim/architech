@@ -90,6 +90,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
    public void changetw(){
 	   TwoDandThreeD.setBottomComponent(new JPanel());
 	   main.viewport3D.shutdown3D();
+	   try{Thread.sleep(2000);}catch(InterruptedException e){}
 	   preview.make3d(new Dimension(TwoDandThreeD.getSize().width-10,TwoDandThreeD.getSize().height-10));
        TwoDandThreeD.setTopComponent(preview.getCanvas());
 	   TwoDandThreeD.setDividerLocation(TwoDandThreeD.getMaximumDividerLocation());
@@ -122,6 +123,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
 	      Cursor eye = Toolkit.getDefaultToolkit().createCustomCursor(img, centre, "Add");  
 	      main.viewport3D.getCanvas().setCursor(eye);
 		  preview.shutdown3D();
+		   try{Thread.sleep(2000);}catch(InterruptedException e){}
 		  main.viewport3D.remake3D();
 	      TwoDandThreeD.setBottomComponent(main.viewport3D.getCanvas());
 		  left.remove(topbuttons);
