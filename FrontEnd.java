@@ -1,5 +1,6 @@
 import java.net.URL;
 import javax.swing.*;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.*;
 import javax.swing.plaf.basic.BasicSplitPaneDivider;
 

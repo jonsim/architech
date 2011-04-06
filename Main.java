@@ -6,6 +6,7 @@ import java.awt.*;
 /** Starts the program running and catches "few!" uncaught exceptions gracefully */
 public class Main {
    public static final boolean disable3D = false;
+   public static final boolean splash_enabled = true;
 
    public FrontEnd frontEnd;
    public ObjectBrowser objectBrowser;
@@ -20,29 +21,35 @@ public class Main {
    }
 
    /** Starts everything in the program running */
-   private void run() {
-      //ENABLE/DISABLE SPLASH SCREEN
-      boolean splash_enabled = false;
+   private void run() {     
       if (splash_enabled) {
          JFrame splash = new JFrame();
          splash.setTitle("Splash Screen");
          splash.setResizable(false);
-         splash.setSize(884, 457);
-         splash.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+         splash.setSize(442, 188);
          splash.setLocationRelativeTo(null);
          splash.dispose();
          splash.setUndecorated(true);
          splash.setVisible(true);
          Image ic = FrontEnd.getImage(this, "img/frontend/icon.png");
          splash.setIconImage(ic);
-         Image imag = FrontEnd.getImage(this, "img/frontend/logo.png");
-         Image newimg = imag.getScaledInstance( 884, 457,  java.awt.Image.SCALE_SMOOTH ) ;
+         Image imag = FrontEnd.getImage(this, "img/frontend/logow.png");
+         Image newimg = imag.getScaledInstance( 442, 168,  java.awt.Image.SCALE_SMOOTH ) ;
          ImageIcon icon = new ImageIcon( newimg );
          JLabel piclabel = new JLabel(icon);
-         piclabel.setPreferredSize(new Dimension(884,457));
-         piclabel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
-         JPanel content = new JPanel();
-         content.add(piclabel);
+         piclabel.setPreferredSize(new Dimension(442, 168));
+
+         JPanel content = new JPanel(new GridBagLayout());
+         content.setBackground(Color.WHITE);
+         content.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+         GridBagConstraints gbc;
+ 	     gbc = FrontEnd.buildGBC(0, 0, 0.5, 0.5, GridBagConstraints.NORTH, new Insets(0,0,0,0));
+         content.add(piclabel,gbc);
+         icon = new ImageIcon( FrontEnd.getImage(this, "img/frontend/load.gif") );
+         piclabel = new JLabel(icon);
+         piclabel.setPreferredSize(new Dimension(220,19));
+ 	     gbc = FrontEnd.buildGBC(0, 1, 0.5, 0.5, GridBagConstraints.SOUTH, new Insets(0,0,0,0));
+         content.add(piclabel,gbc);
          splash.add(content);
          splash.pack();
          content.revalidate();
