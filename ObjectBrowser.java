@@ -926,7 +926,8 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 			 preview.saveitem(namet.getText(), desct.getText(), (String)typelist.getSelectedItem(),this);
 		 }
 		 if (comm.equals("can")){
-			 main.frontEnd.revert(preview);
+			 preview = null;
+			 main.frontEnd.revert();
 		 }
 	 
 	}

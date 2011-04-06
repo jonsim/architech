@@ -18,13 +18,14 @@ public class TWPane{
    }
 
    TWPane(Dimension cansize) {   
-      Dimension scrDim = Toolkit.getDefaultToolkit().getScreenSize();
-
-//add clumsy 3D Window
+      
+   }
+   
+   public void make3d(Dimension cansize) {   
       // create new JME appsettings
       AppSettings settings = new AppSettings(true);
-      settings.setWidth(200);
-      settings.setHeight(300);
+      settings.setWidth(640);
+      settings.setHeight(480);
       // create new canvas application
       canvasApplication = new TWApp();
       canvasApplication.setSettings(settings);
@@ -33,7 +34,8 @@ public class TWPane{
       JmeCanvasContext ctx = (JmeCanvasContext) canvasApplication.getContext();
       ctx.getCanvas().setPreferredSize(cansize);
       ctx.setSystemListener(canvasApplication);
-      }
+      startcan();		
+   }
 
    /** Nicely disposes of the 3D stuff so that everything can close without exit(0) */
    public void shutdown3D() {
@@ -42,7 +44,6 @@ public class TWPane{
    
    public void startcan(){
 	   canvasApplication.startCanvas();
-
    }
    
    public void addf(String name){

@@ -20,7 +20,9 @@ public class FrontEnd implements WindowListener, ChangeListener {
    private final JFrame window = new JFrame(WINDOW_TITLE);
    private JSplitPane horizsplit;
    private JPanel topbuttons;
-   private final JSplitPane TwoDandThreeD = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
+   JPanel left;
+   TWPane preview;
+   private JSplitPane TwoDandThreeD = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true);
    private final JTabbedPane tabbedPane = new JTabbedPane() {
       @Override
       public void remove(Component tab) {
@@ -62,6 +64,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
 
       // allow the 3d to be resizable and center the divider
       main.viewport3D.getCanvas().setMinimumSize(new Dimension(0,0));
+      preview = new TWPane(new Dimension(TwoDandThreeD.getSize().width-10,TwoDandThreeD.getSize().height));
 
       try {
          addTab(new File("gammaroom.atech"));
@@ -78,23 +81,17 @@ public class FrontEnd implements WindowListener, ChangeListener {
 	   return designButtons;
    }
    
-   public void revert(TWPane preview){
-	   preview.shutdown3D();
-	   reinitTwoDAndThreeD();
+   public void revert(){
 	   designButtons.changetonormal();
 	   main.objectBrowser.changetonormal();
-   }
-   
+	   reinitTwoDAndThreeD();
+   }  
    
    public void changetw(){
-	   try 
-	   {Thread.sleep(1000);} 
-	   catch(InterruptedException e)
-	   {}
-	   TWPane preview = new TWPane(new Dimension(TwoDandThreeD.getSize().width-10,TwoDandThreeD.getSize().height));
-       JPanel canv = new JPanel();
-	   canv.add(preview.getCanvas());
-       TwoDandThreeD.setTopComponent(canv);
+	   TwoDandThreeD.setBottomComponent(new JPanel());
+	   main.viewport3D.shutdown3D();
+	   preview.make3d(new Dimension(TwoDandThreeD.getSize().width-10,TwoDandThreeD.getSize().height-10));
+       TwoDandThreeD.setTopComponent(preview.getCanvas());
 	   TwoDandThreeD.setDividerLocation(TwoDandThreeD.getMaximumDividerLocation());
        TwoDandThreeD.revalidate();
 	   designButtons.changetotw(main.objectBrowser);
@@ -119,11 +116,18 @@ public class FrontEnd implements WindowListener, ChangeListener {
 
    /** Re-initialises the twoDandThreeD variable when we switch back to the main app from the tweaker */
    public void reinitTwoDAndThreeD() {
-      initTwoDAndThreeD();
-      designButtons.getSlider().setMinimumSize( new Dimension( 200, 50 ) );
-      TwoDandThreeD.revalidate();
-      TwoDandThreeD.repaint();
-      getwindow().repaint();
+	      TwoDandThreeD.setTopComponent(tabbedPane);
+	      Image img = getImage(this,"img/frontend/eye.png");
+	      Point centre = new Point(0,0);
+	      Cursor eye = Toolkit.getDefaultToolkit().createCustomCursor(img, centre, "Add");  
+	      main.viewport3D.getCanvas().setCursor(eye);
+		  preview.shutdown3D();
+		  main.viewport3D.remake3D();
+	      TwoDandThreeD.setBottomComponent(main.viewport3D.getCanvas());
+		  left.remove(topbuttons);
+		  left.revalidate();
+		  left.add(designButtons.getPane());
+		  designButtons.getSlider().setMinimumSize( new Dimension(200, 50) );
    }
 
    /** Called whenever the current tab state is changed in tabbedPane */
@@ -229,7 +233,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
       main.viewport3D.getCanvas().setPreferredSize(new Dimension(400,180));
       main.objectBrowser.getSplit().setPreferredSize(new Dimension(160,180));
       
-      JPanel left = new JPanel(new GridBagLayout()){
+      left = new JPanel(new GridBagLayout()){
     	  public void paintComponent (Graphics g)
     		{
     			super.paintComponent(g);
@@ -242,7 +246,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
       JPanel right = new JPanel(new GridBagLayout());
       
       //build left
-      c = buildGBC(0, 0, 0.5, 0.0, topCenterAnchor, new Insets(0,0,10,0));
+      c = buildGBC(0, 0, 0.5, 0.0, GridBagConstraints.NORTH, new Insets(0,0,10,0));
       topbuttons = new JPanel();
       topbuttons.setOpaque(false);
       topbuttons.add(designButtons.getPane());

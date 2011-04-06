@@ -307,6 +307,8 @@ public class ArchApp extends Application
     
     public void simpleUpdate(float tpf)
     {
+		synchronized(syncLockObject)
+		{
         Vector3f camDir = cam.getDirection().clone().multLocal(2);
         Vector3f camLeft = cam.getLeft().clone().multLocal(2);
         walkDirection.set(0, 0, 0);
@@ -320,6 +322,7 @@ public class ArchApp extends Application
         	walkDirection.addLocal(camDir.negate());
         player.setWalkDirection(walkDirection);
         cam.setLocation(player.getPhysicsLocation());
+		}
     }
 
     
@@ -338,15 +341,15 @@ public class ArchApp extends Application
     {
         grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 		grass.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
-        grass.setFloat("Shininess", 1000);
+        //grass.setFloat("Shininess", 1000);
         
         white = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         white.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
-        white.setFloat("Shininess", 1000);
+        //white.setFloat("Shininess", 1000);
 
         wallmat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 		wallmat.setTexture("DiffuseMap", assetManager.loadTexture("img/wallpapers/default.jpg"));
-        wallmat.setFloat("Shininess", 1000);
+        //wallmat.setFloat("Shininess", 1000);
     }
     
     
@@ -367,8 +370,6 @@ public class ArchApp extends Application
 		    ((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
 		}
     }
-
-    
     
     PointLight pl1, pl2;
     private void setupScene()
@@ -662,10 +663,17 @@ public class ArchApp extends Application
 	{
 		Spatial          spatial;
 		RigidBodyControl physics;
+		Spatial			 glass;
 		
 		Furniture3D (String path)
 		{
 			this.spatial = assetManager.loadModel(path);
+			glass = null;
+		}
+		Furniture3D (String path,int x)
+		{
+			this.spatial = assetManager.loadModel(path);
+			
 		}
 	}
 	
@@ -1059,12 +1067,16 @@ public class ArchApp extends Application
 		Point center = f.getRotationCenter();
         String name = f.getObjPath();
         
+
+    	
         // if object specified does not exist
         if(name == null || name.equals("none"))
         	furn = new Furniture3D("req/armchair_1/armchair_1.obj");
-        else
+        else{
+        	if(name.equals("window_1.obj")){
+        	System.out.println("hey dudes"); }
             furn = new Furniture3D("req/" + name.substring(0, name.length() - 4) + "/" + name);
-        
+        	}
         // model settings
         furn.spatial.scale(5, 5, 5);
         furn.spatial.rotate(0f, -FastMath.HALF_PI, 0f);        
@@ -1073,6 +1085,7 @@ public class ArchApp extends Application
     		furn.spatial.setShadowMode(ShadowMode.CastAndReceive);
     	if (physics)
     		addToPhysics(furn);
+
 
         return furn;
 	}
