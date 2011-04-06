@@ -261,7 +261,7 @@ public class TWApp extends Application implements ActionListener {
 	    try {
 			readall  = new BufferedReader(new FileReader(mat));
 			while ((text = readall.readLine()) != null) {
-				if(text.contains("newmtl")){contents.append("newmtl mat" + currentid).append(System.getProperty("line.separator"));}
+				if(text.contains("newmtl")){contents.append("newmtl mat" + id).append(System.getProperty("line.separator"));}
 				else{contents.append(text).append(System.getProperty("line.separator"));}}
 			readall.close();
 		} catch (Exception e) {
@@ -330,6 +330,9 @@ public class TWApp extends Application implements ActionListener {
     		if(types.equals("None")){
    			 JOptionPane.showMessageDialog(null, "No Type selected - please select one","Blank Name", 1);
    			 }else{
+   				if(name.contains(" ")){
+   	   			 JOptionPane.showMessageDialog(null, "The given name contains spaces, please remove.","Spaces in Name", 1);
+   				}else{
     		type = converttype(types);
         	URL folder = getClass().getResource("req");
         	String fpath = folder.getPath();
@@ -476,7 +479,7 @@ public class TWApp extends Application implements ActionListener {
 	        	JOptionPane.showMessageDialog(null, "Saved Successfully!", "Success", 1);
     			}catch(Exception e){e.printStackTrace(); JOptionPane.showMessageDialog(null, "Something went wrong during the saving" +
 	    				" process","OBJ Saving Error", 1);}	
-   			 }}}}
+   			 }}}}}
     }
     
     void copyf(File sour,File tar){
