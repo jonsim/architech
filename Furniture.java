@@ -13,6 +13,7 @@ public class Furniture {
    private float rotationCenterX, rotationCenterY;
    private double rotation; // theta - in radians
    private boolean isDW;// is this a door/window
+   private boolean isL; //is this a light?
 
    Furniture(FurnitureSQLData data, Point center, ObjectBrowser ob) {
       if (data == null || data.objPath == null || center == null) {
@@ -24,11 +25,15 @@ public class Furniture {
       this.height = data.height;
       this.rotation = 0;
       this.objPath = data.objPath;
-
+      if(ob.isLight(data.type)){
+    	  isL = true;
+      }else{
+    	  isL = false;
+      }
+      
       if( ob.isDoorWindow( data.type ) ) {
          if( this.height == 0 )
             this.height = 10;
-
          isDW = true;
       } else {
          isDW = false;
@@ -127,6 +132,11 @@ public class Furniture {
    /** Checks if the current object is a door/window */
    public boolean isDoorWindow() {
       return isDW;
+   }
+   
+   /** Checks if the current object is a light */
+   public boolean isLight() {
+      return isL;
    }
 
    /** Use moveFurniture() in the coordinates class instead! */

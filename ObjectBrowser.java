@@ -54,6 +54,7 @@ public class ObjectBrowser implements MouseListener, ActionListener {
    private PreparedStatement statement = null;
    private ResultSet rs = null;
    private JLabel picLabel;
+   private JButton mbut;
    private int NextID = 37;
    private String dashedSeparator = "------------------------";
    private String backButtonText = "* Go Back *";
@@ -276,6 +277,21 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 
       return false;
    }
+   
+   public boolean isLight( int typeID ) {
+	      try {
+	         statement = connection.prepareStatement("select Category1, Category2, Category3 from TYPE where ID = '" + typeID + "'");
+	         rs = statement.executeQuery();
+	         if (rs.next()) {
+	            if(rs.getInt("Category1") == 3 || rs.getInt("Category2") == 3  || rs.getInt("Category3") == 3 )
+	               return true;
+	         }
+	      } catch(Exception e) {
+				e.printStackTrace();
+			}
+
+	      return false;
+	   }
 	
 	private void getDimensions(int itemTypeID, int isTweaked) {
 		draggedObject = null;
@@ -738,6 +754,7 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 			objectName = objectName.substring(objectName.indexOf(':')+1,objectName.length()-1);
 			selectedindex = Integer.parseInt(objectName);
 			main.frontEnd.getDButtons().twButtons(true);
+			rembutton(true);
 		}else{
 		if(currentCategory > 0) {
 			selectedpos = library.locationToIndex(e.getPoint());
@@ -799,7 +816,7 @@ public class ObjectBrowser implements MouseListener, ActionListener {
         pbut.addActionListener(this);
         pbut.setPreferredSize(new Dimension(200,50));
 		ImageIcon minus = new ImageIcon(main.frontEnd.getImage(this,"img/designbuttons/min.png"));
-        JButton mbut = new JButton("<html><h3>Remove Object",minus);
+        mbut = new JButton("<html><h3>Remove Object",minus);
         mbut.setActionCommand("remove");
         mbut.addActionListener(this);
         mbut.setPreferredSize(new Dimension(200,50));
@@ -879,7 +896,12 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 		main.frontEnd.getDButtons().twButtons(false);
 		splitTop.revalidate();
 		bottomSetUp();
-	}	
+		rembutton(false);
+	}
+	
+	private void rembutton(boolean toggle){
+		mbut.setEnabled(toggle);
+	}
 	
 	public int getselected(){
 		return selectedindex;
@@ -919,6 +941,7 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 				 preview.removeitem(selectedindex);
 				 fields.remove(selectedpos);
 				 main.frontEnd.getDButtons().twButtons(false);
+				 rembutton(false);
 				 selectedindex=-1;
 			 }
 		 }

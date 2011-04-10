@@ -331,25 +331,21 @@ public class ArchApp extends Application
     {
     }
     
-    
-    
-    
-    
 	/**********************SETUP FUNCTIONS**********************/
 
     private void setupMaterials ()
     {
         grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 		grass.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
-        //grass.setFloat("Shininess", 1000);
+        grass.setFloat("Shininess", 1000);
         
         white = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         white.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
-        //white.setFloat("Shininess", 1000);
+        white.setFloat("Shininess", 1000);
 
         wallmat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 		wallmat.setTexture("DiffuseMap", assetManager.loadTexture("img/wallpapers/default.jpg"));
-        //wallmat.setFloat("Shininess", 1000);
+        wallmat.setFloat("Shininess", 1000);
     }
     
     
@@ -653,35 +649,7 @@ public class ArchApp extends Application
 	private final HashMap<Coords, HashMap<Edge, WallGeometry> > tabEdgeGeometry
 		= new HashMap<Coords, HashMap<Edge, WallGeometry> >();
 	
-	
-	
-	
-	
-	/**********************FURNITURE3D CLASS**********************/
-	
-	private class Furniture3D
-	{
-		Spatial          spatial;
-		RigidBodyControl physics;
-		Spatial			 glass;
-		
-		Furniture3D (String path)
-		{
-			this.spatial = assetManager.loadModel(path);
-			glass = null;
-		}
-		Furniture3D (String path,int x)
-		{
-			this.spatial = assetManager.loadModel(path);
-			
-		}
-	}
-	
-	private final HashMap<Coords, HashMap<Furniture, Furniture3D> > tabFurnitureSpatials
-		= new HashMap<Coords, HashMap<Furniture, Furniture3D> >();
-	
-	
-	
+
 	
 	
 	/**********************TAB FUNCTIONS**********************/
@@ -1028,10 +996,37 @@ public class ArchApp extends Application
     	wallGeometry.geom.add(quad2);
     	return; 
     }
+	/**********************FURNITURE3D CLASS**********************/
 	
-
+	private class Furniture3D
+	{
+		Spatial          spatial;
+		RigidBodyControl physics;
+		Spatial			 glass;
+		PointLight pl;
+		
+		Furniture3D (String path)
+		{
+			this.spatial = assetManager.loadModel(path);
+			glass = null;
+			pl = null;
+		}
+		Furniture3D (String path,int x)
+		{
+			this.spatial = assetManager.loadModel(path);
+	        pl = new PointLight();
+	        pl.setColor(new ColorRGBA(2, 2, 1.5f, 0));
+	        pl.setRadius(250f);
+		}
+		
+		boolean islight(){
+			if (pl!=null){return true;}
+			else{return false;}
+		}
+	}
 	
-	
+	private final HashMap<Coords, HashMap<Furniture, Furniture3D> > tabFurnitureSpatials
+		= new HashMap<Coords, HashMap<Furniture, Furniture3D> >();
 	
 	/**********************FURNITURE FUNCTIONS**********************/
 
@@ -1052,9 +1047,11 @@ public class ArchApp extends Application
 			if (furn == null)
 			{
 				furn = makeFurniture(f);
-				furniture.put(f, furn);
-				
+				furniture.put(f, furn);				
 				rootNode.attachChild(furn.spatial);
+				if(furn.islight()){
+					rootNode.addLight(furn.pl);
+				}
 			}
 		}
 	}
@@ -1073,14 +1070,19 @@ public class ArchApp extends Application
         if(name == null || name.equals("none"))
         	furn = new Furniture3D("req/armchair_1/armchair_1.obj");
         else{
-        	if(name.equals("window_1.obj")){
-        	System.out.println("hey dudes"); }
+        	if(f.isLight()){
+        		furn = new Furniture3D("req/" + name.substring(0, name.length() - 4) + "/" + name,1);
+        	}else{
             furn = new Furniture3D("req/" + name.substring(0, name.length() - 4) + "/" + name);
         	}
+        }
         // model settings
         furn.spatial.scale(5, 5, 5);
         furn.spatial.rotate(0f, -FastMath.HALF_PI, 0f);        
         furn.spatial.setLocalTranslation(center.x,-100f,center.y);
+        if(furn.islight()){
+        	furn.pl.setPosition(new Vector3f(center.x,-40f,center.y));
+        }
     	if (shadowing)
     		furn.spatial.setShadowMode(ShadowMode.CastAndReceive);
     	if (physics)
@@ -1112,6 +1114,9 @@ public class ArchApp extends Application
 				if (physics)
 					removeFromPhysics(furn);
 				rootNode.detachChild(furn.spatial);
+				if(furn.islight()){
+					rootNode.removeLight(furn.pl);
+				}
 			}
 		}
 	}
@@ -1144,10 +1149,11 @@ public class ArchApp extends Application
 			furn = iterator.next();
 			addToPhysics(furn);
 			rootNode.attachChild(furn.spatial);
+			if(furn.islight()){
+				rootNode.addLight(furn.pl);
+			}
 		}
-	}	
-	
-	
+	}
 	
 	/** Moves the given spatial to the new position of furniture f */
 	private void updatefurniture(Furniture3D furn, Furniture f)
@@ -1155,6 +1161,9 @@ public class ArchApp extends Application
 		// recalculate the furniture's position and move it
 		Point center = f.getRotationCenter();
 		furn.spatial.setLocalTranslation(center.x,-100f,center.y);
+        if(furn.islight()){
+        	furn.pl.setPosition(new Vector3f(center.x,-40f,center.y));
+        }
 		
 		// recalculate the furniture's rotation and adjust it
 		float rotation = (float) (f.getRotation() * 0.5);

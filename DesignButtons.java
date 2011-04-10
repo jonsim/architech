@@ -22,7 +22,7 @@ public class DesignButtons implements ActionListener {
    private ObjectBrowser objectBrowser;
    private JPanel pane;
    private JButton selectTool, lineTool, curveTool,currentTool, dayToggle, tweaker, fillTool;
-   private JButton deselectTool,dropD;
+   private JButton deselectTool,dropD,dropT;
    private JButton TwUp,TwDown,TwLeft,TwRight,TwFor,TwBack,TwCol,TwTex,TwPlus,TwMinus,TwRotl,TwRotr;
    private JButton TwPx,TwMx,TwPy,TwMy,TwPz,TwMz;
    private JSlider zoomTool;
@@ -31,6 +31,8 @@ public class DesignButtons implements ActionListener {
    private final Color back = new Color(74,74,74);
    private TWPalette twPalette;
    private boolean palonshow = false;
+   private TWTex twTex;
+   private boolean texonshow = false;
    private boolean tweakmode = false;
 
    /** Initialises the private variables as usual */
@@ -46,7 +48,8 @@ public class DesignButtons implements ActionListener {
       pane.setOpaque(false);
       initPane();
       objectBrowser=null;
-      twPalette = new TWPalette();
+      twPalette = new TWPalette(TwLeft);
+      twTex = new TWTex(TwLeft);
    }
 
    /** Returns the zoom slider object */
@@ -73,7 +76,6 @@ public class DesignButtons implements ActionListener {
    public boolean isCurveTool() {
       return curveTool == currentTool;
    }
-
    /** Initialises the private cursor variables */
    private void initCursors() {
       selectCursor = new Cursor(Cursor.HAND_CURSOR);
@@ -173,113 +175,120 @@ public class DesignButtons implements ActionListener {
       TwLeft.setActionCommand("!r");
       TwLeft.setMargin(margins);
       TwLeft.setUI(new MetalButtonUI());
-      TwLeft.setToolTipText(""); //to be added
+      TwLeft.setToolTipText("Move the current object left"); //to be added
       TwRight = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "right.png")));
       TwRight.addActionListener(this);
       TwRight.setActionCommand("!l");
       TwRight.setMargin(margins);
       TwRight.setUI(new MetalButtonUI());
-      TwRight.setToolTipText(""); //to be added
+      TwRight.setToolTipText("Move the current object right"); //to be added
       TwFor = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "forward.png")));
       TwFor.addActionListener(this);
       TwFor.setActionCommand("!f");
       TwFor.setMargin(margins);
       TwFor.setUI(new MetalButtonUI());
-      TwFor.setToolTipText(""); //to be added
+      TwFor.setToolTipText("Move the current object forward"); //to be added
       TwBack = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "back.png")));
       TwBack.addActionListener(this);
       TwBack.setActionCommand("!b");
       TwBack.setMargin(margins);
       TwBack.setUI(new MetalButtonUI());
-      TwBack.setToolTipText(""); //to be added
+      TwBack.setToolTipText("Move the current object back"); //to be added
       TwUp = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "up.png")));
       TwUp.addActionListener(this);
       TwUp.setActionCommand("!u");
       TwUp.setMargin(margins);
       TwUp.setUI(new MetalButtonUI());
-      TwUp.setToolTipText(""); //to be added
+      TwUp.setToolTipText("Move the current object up"); //to be added
       TwDown = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "down.png")));
       TwDown.addActionListener(this);
       TwDown.setActionCommand("!d");
       TwDown.setMargin(margins);
       TwDown.setUI(new MetalButtonUI());
-      TwDown.setToolTipText(""); //to be added
+      TwDown.setToolTipText("Move the current object down"); //to be added
       TwRotl = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "rotl.png")));
       TwRotl.addActionListener(this);
       TwRotl.setActionCommand("!<");
       TwRotl.setMargin(margins);
       TwRotl.setUI(new MetalButtonUI());
-      TwRotl.setToolTipText(""); //to be added
+      TwRotl.setToolTipText("Rotate the current object left"); //to be added
       TwRotr = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "rotr.png")));
       TwRotr.addActionListener(this);
       TwRotr.setActionCommand("!>");
       TwRotr.setMargin(margins);
       TwRotr.setUI(new MetalButtonUI());
-      TwRotr.setToolTipText(""); //to be added
+      TwRotr.setToolTipText("Rotate the current object right"); //to be added
       TwPlus = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "plus.png")));
       TwPlus.addActionListener(this);
       TwPlus.setActionCommand("!+");
       TwPlus.setMargin(margins);
       TwPlus.setUI(new MetalButtonUI());
-      TwPlus.setToolTipText(""); //to be added
+      TwPlus.setToolTipText("Increase the size of the current object uniformly"); //to be added
       TwMinus = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "minus.png")));
       TwMinus.addActionListener(this);
       TwMinus.setActionCommand("!-");
       TwMinus.setMargin(margins);
       TwMinus.setUI(new MetalButtonUI());
-      TwMinus.setToolTipText(""); //to be added
+      TwMinus.setToolTipText("Decrease the size of the current object uniformly"); //to be added
       TwPx = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "px.png")));
       TwPx.addActionListener(this);
       TwPx.setActionCommand("!x");
       TwPx.setMargin(margins);
       TwPx.setUI(new MetalButtonUI());
-      TwPx.setToolTipText(""); //to be added
+      TwPx.setToolTipText("Increase the size of the current object in the X axis"); //to be added
       TwMx = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "mx.png")));
       TwMx.addActionListener(this);
       TwMx.setActionCommand("!1");
       TwMx.setMargin(margins);
       TwMx.setUI(new MetalButtonUI());
-      TwMx.setToolTipText(""); //to be added
+      TwMx.setToolTipText("Decrease the size of the current object in the X axis"); //to be added
       TwPy = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "py.png")));
       TwPy.addActionListener(this);
       TwPy.setActionCommand("!y");
       TwPy.setMargin(margins);
       TwPy.setUI(new MetalButtonUI());
+      TwPy.setToolTipText("Increase the size of the current object in the Y axis"); //to be added
       TwMy = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "my.png")));
       TwMy.addActionListener(this);
       TwMy.setActionCommand("!2");
       TwMy.setMargin(margins);
       TwMy.setUI(new MetalButtonUI());
-      TwMy.setToolTipText(""); //to be added
+      TwMy.setToolTipText("Decrease the size of the current object in the Y axis"); //to be added
       TwPz = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "pz.png")));
       TwPz.addActionListener(this);
       TwPz.setActionCommand("!z");
       TwPz.setMargin(margins);
       TwPz.setUI(new MetalButtonUI());
+      TwPz.setToolTipText("Increase the size of the current object in the Z axis"); //to be added
       TwMz = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "mz.png")));
       TwMz.addActionListener(this);
       TwMz.setActionCommand("!3");
       TwMz.setMargin(margins);
       TwMz.setUI(new MetalButtonUI());
-      TwMz.setToolTipText(""); //to be added
+      TwMz.setToolTipText("Decrease the size of the current object in the Z axis"); //to be added
       TwCol = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "colour.png")));
       TwCol.addActionListener(this);
       TwCol.setActionCommand("col");
       TwCol.setMargin(margins);
       TwCol.setUI(new MetalButtonUI());
-      TwCol.setToolTipText(""); //to be added
+      TwCol.setToolTipText("Colour the current object with the chosen colour. Drop down below to select a colour."); //to be added
       TwTex = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "texture.png")));
       TwTex.addActionListener(this);
       TwTex.setActionCommand("tex");
       TwTex.setMargin(margins);
       TwTex.setUI(new MetalButtonUI());
-      TwTex.setToolTipText(""); //to be added
+      TwTex.setToolTipText("Texture the current object with the chosen texture. Drop down below to browse for a texture."); //to be added
       dropD = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "dropd.png")));
       dropD.setPreferredSize(new Dimension(30,7));
       dropD.addActionListener(this);
       dropD.setMargin(margins);
       dropD.setUI(new MetalButtonUI());
-      dropD.setToolTipText("Select a colour or texture");
+      dropD.setToolTipText("Select a colour");
+      dropT = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "dropd.png")));
+      dropT.setPreferredSize(new Dimension(30,7));
+      dropT.addActionListener(this);
+      dropT.setUI(new MetalButtonUI());
+      dropT.setToolTipText("Select a fill texture");
    }
 
    /** Initialises the zoomTool slider */
@@ -412,6 +421,8 @@ public class DesignButtons implements ActionListener {
 	      pane.add(TwTex, c);
 	      c = FrontEnd.buildGBC(16, 2, 0.5, 0.5, topCenterAnchor, right);
 	      pane.add(dropD, c);
+	      c = FrontEnd.buildGBC(17, 2, 0.5, 0.5, topCenterAnchor, right);
+	      pane.add(dropT, c);
 
 	   }  
 
@@ -473,6 +484,17 @@ public class DesignButtons implements ActionListener {
                   palonshow = false;
               }    		  
     	  }
+      } else if (dropT==source) {
+    	  Point tooltip = dropT.getLocationOnScreen();
+    		  if(texonshow==false){
+                  twTex.show(null,tooltip.x, tooltip.y+10);
+                  pane.repaint();
+                  texonshow = true;
+    		  }else {
+                  twTex.hide();
+                  pane.repaint();
+                  texonshow = false;
+              }
       } else if (tweaker == source) {
           viewport3D.shutdown3D();
     	  frontEnd.changetw();
@@ -481,13 +503,13 @@ public class DesignButtons implements ActionListener {
     	  frontEnd.getCurrentTab().getpanel().fillfloor();
     	  
       } else if(comm.equals("col")){
-    	  objectBrowser.getprev().paintitem(objectBrowser.getselected(),0,twPalette.ppath(),twPalette.pname(),0f,twPalette.getr(),twPalette.getg(),twPalette.getb());
+    	  objectBrowser.getprev().paintitem(objectBrowser.getselected(),0,twTex.ppath(),twTex.pname(),0f,twPalette.getr(),twPalette.getg(),twPalette.getb());
       
       }else if(comm.equals("tex")){
-    	  if(twPalette.ppath()==null){
+    	  if(twTex.ppath()==null){
     		  JOptionPane.showMessageDialog(null, "No Picture Selected!","Texture Error", 1);
     	  }else{
-    		  objectBrowser.getprev().paintitem(objectBrowser.getselected(),1,twPalette.ppath(),twPalette.pname(),0f,twPalette.getr(),twPalette.getg(),twPalette.getb());
+    		  objectBrowser.getprev().paintitem(objectBrowser.getselected(),1,twTex.ppath(),twTex.pname(),0f,twPalette.getr(),twPalette.getg(),twPalette.getb());
     	  }
       } else {if(comm.substring(0,1).equals("!")){
 				 if(objectBrowser.getselected()!=-1){

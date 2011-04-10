@@ -89,6 +89,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
    }  
    
    public void changetw(){
+	   this.setWindowCursor(new Cursor(Cursor.WAIT_CURSOR));
 	   TwoDandThreeD.setBottomComponent(new JPanel());
 	   main.viewport3D.shutdown3D();
 	   try{Thread.sleep(2000);}catch(InterruptedException e){}
@@ -98,6 +99,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
        TwoDandThreeD.revalidate();
 	   designButtons.changetotw(main.objectBrowser);
 	   main.objectBrowser.changetotw(preview);
+	   this.setWindowCursor(Cursor.getDefaultCursor());
    }
 
    /** Initialises the twoDandThreeD variable */
