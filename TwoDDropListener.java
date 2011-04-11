@@ -114,9 +114,8 @@ class TwoDDropListener implements DropTargetListener {
             twoDPanel.getCoords().addDoorWindow(inProgress);
          } else {
             twoDPanel.getCoords().addFurniture(inProgress);
+            twoDPanel.setFurnitureAsHandlerAndStart(inProgress);
          }
-
-         twoDPanel.setFurnitureAsHandlerAndStart(inProgress);
 
 //         e.acceptDrag(e.getDropAction());
       }
