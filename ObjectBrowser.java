@@ -263,19 +263,22 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 		} else description.setText("");
 	}
 
-   public boolean isDoorWindow( int typeID ) {
+   public int isDoorWindow( int typeID ) {
       try {
          statement = connection.prepareStatement("select Category1, Category2, Category3 from TYPE where ID = '" + typeID + "'");
          rs = statement.executeQuery();
          if (rs.next()) {
-            if(rs.getInt("Category1") == 8 || rs.getInt("Category1") == 9 || rs.getInt("Category2") == 8 || rs.getInt("Category2") == 9 || rs.getInt("Category3") == 8 || rs.getInt("Category3") == 9)
-               return true;
+            if(rs.getInt("Category1") == 8 || rs.getInt("Category2") == 8 || rs.getInt("Category3") == 8 )
+               return 8;
+            if(rs.getInt("Category1") == 9  || rs.getInt("Category2") == 9 || rs.getInt("Category3") == 9)
+               return 9;
+            
          }
       } catch(Exception e) {
 			e.printStackTrace();
 		}
 
-      return false;
+      return -1;
    }
    
    public boolean isLight( int typeID ) {

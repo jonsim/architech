@@ -132,8 +132,10 @@ public class Edge {
 
    public Furniture[] getDoorWindow() {
       // return null if empty
-
-      return doorWindow.toArray( new Furniture[0] );
+	  if(doorWindow.size()==0)
+		  return null;
+	  else
+		  return doorWindow.toArray(new Furniture[0]);
    }
 
    public Furniture getDoorWindowAt(Point p) {

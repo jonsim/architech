@@ -13,6 +13,8 @@ public class Furniture {
    private float rotationCenterX, rotationCenterY;
    private double rotation; // theta - in radians
    private boolean isDW;// is this a door/window
+   private boolean isD;// is this a door
+   private boolean isW;// is this a window
    private boolean isL; //is this a light?
 
    Furniture(FurnitureSQLData data, Point center, ObjectBrowser ob) {
@@ -30,11 +32,17 @@ public class Furniture {
       }else{
     	  isL = false;
       }
-      
-      if( ob.isDoorWindow( data.type ) ) {
+      int ftype = ob.isDoorWindow( data.type );
+      if( ftype > -1) {
          if( this.height == 0 )
-            this.height = 10;
-         isDW = true;
+        	 this.height = 10;
+         	isDW = true;
+         	if(ftype==8){
+         		isD = true;
+         		isW = false;}
+         	if(ftype==9){
+         		isW = true;
+     			isD = false;}
       } else {
          isDW = false;
       }
@@ -132,6 +140,14 @@ public class Furniture {
    /** Checks if the current object is a door/window */
    public boolean isDoorWindow() {
       return isDW;
+   }
+   /** Checks if the current object is a door */
+   public boolean isDoor() {
+      return isD;
+   }
+   /** Checks if the current object is a window */
+   public boolean isWindow() {
+      return isW;
    }
    
    /** Checks if the current object is a light */
