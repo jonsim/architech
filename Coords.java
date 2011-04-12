@@ -265,7 +265,8 @@ public class Coords {
       
       while( ite.hasNext() ) {
          Edge e = ite.next();
-         if( e.isStraight() && e.curveContains(f) ) {
+         if( e.isStraight() && furnitureWallIntersect(f, e) ) {
+            f.setRotation( e.getRotation() );
             e.addDoorWindow(f);
             fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_ADDED, f));
             return;
@@ -286,14 +287,15 @@ public class Coords {
       //newCenter = snapToEdge(newCenter);
       f.set(newCenter);
 
-      if( e != null && !e.curveContains(f) ) {
+      if( e != null && !furnitureWallIntersect(f, e) ) {
          e.deleteDoorWindow(f);
 
          ListIterator<Edge> ite = edges.listIterator();
       
          while( ite.hasNext() ) {
             e = ite.next();
-            if( e.curveContains(f) ) {
+            if( furnitureWallIntersect(f, e) ) {
+               f.setRotation( e.getRotation() );
                e.addDoorWindow(f);
                break;
             }

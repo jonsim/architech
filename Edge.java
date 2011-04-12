@@ -86,10 +86,6 @@ public class Edge {
       return curveCtrl.contains(temp);
    }
 
-   public boolean curveContains(Furniture f) {
-      return topDownViewCurve.intersects( f.rectangle.getMinX(), f.rectangle.getMinY(), f.rectangle.getWidth(), f.rectangle.getHeight() );
-   }
-
    /** Use setEdgeCtrl() in Coords! Updates ctrl, refuses to update if you give it null */
    public final void setCtrl(Point ctrl) {
       if (ctrl == null) return;
@@ -147,6 +143,12 @@ public class Edge {
       }
 
       return null;
+   }
+
+   public double getRotation() {
+      double delta_x = v1.getX() - v2.getX();
+      double delta_y = v1.getY() - v2.getY();
+      return Math.atan2(delta_y, delta_x);
    }
 
    public boolean isStraight() {
