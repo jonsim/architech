@@ -967,7 +967,7 @@ public class ArchApp extends Application
 	        furn.spatial.scale(4.1f, 4.1f, 4.1f);
 	        furn.spatial.rotate(0f,-FastMath.HALF_PI+((FastMath.TWO_PI)-(float)e.getRotation()), 0f);    
 	        furn.spatial.setLocalTranslation(new Float(dwsa.get(mini).getRotationCenter().getX()),-100f,new Float(dwsa.get(mini).getRotationCenter().getY()));
-	        rootNode.attachChild(furn.spatial);
+	        wallGeometry.dw.add((Geometry)furn.spatial);
 	    }
 	    if(dwsa.get(mini).isWindow()){
 	    	//draw the top and bottom panels
@@ -987,7 +987,7 @@ public class ArchApp extends Application
 			pane.setQueueBucket(Bucket.Transparent);
 			pane.setLocalTranslation(new Float(dwsa.get(mini).getRotationCenter().getX()), -49,new Float(dwsa.get(mini).getRotationCenter().getY()));
 			wallGeometry.dw.add(pane);
-			}
+	    }
 	    //remove the window you just added
 	    dwsa.remove(mini);
 	    //recurse for the rest of the wall
@@ -1184,6 +1184,7 @@ public class ArchApp extends Application
 		Furniture3D furn;
 		Point center = f.getRotationCenter();
         String name = f.getObjPath();
+        float rotation = (float) (f.getRotation() * 0.5);
     	
         // if object specified does not exist
         if(name == null || name.equals("none"))
@@ -1197,7 +1198,11 @@ public class ArchApp extends Application
         }
         // model settings
         furn.spatial.scale(5, 5, 5);
-        furn.spatial.rotate(0f, -FastMath.HALF_PI, 0f);        
+		float sinr = FastMath.sin(rotation);
+		float cosr = FastMath.cos(rotation);
+		Quaternion c = new Quaternion(cosr, 0, sinr, 0);
+		furn.spatial.setLocalRotation(c);
+		furn.spatial.rotate(0, -FastMath.HALF_PI, -FastMath.PI);       
         furn.spatial.setLocalTranslation(center.x,-100f,center.y);
         if(furn.islight()){
         	furn.pl.setPosition(new Vector3f(center.x,-40f,center.y));

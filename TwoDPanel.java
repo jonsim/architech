@@ -529,7 +529,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
             selectDragBoxVertices();
 	    selectionRectangle.setSize(0,0);
             selectionRectangle.setLocation(-1,-1);
-
+            repaint();
             Point p = new Point();
             p.setLocation(e.getPoint().getX() / zoomScale, e.getPoint().getY() / zoomScale);
 
