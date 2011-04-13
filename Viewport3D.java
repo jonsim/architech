@@ -104,6 +104,7 @@ public class Viewport3D implements CoordsChangeListener {
                break;
             case CoordsChangeEvent.EDGE_CHANGED:
                // update the edge location
+            	System.out.println(e.toString());
                canvasApplication.updateEdgeChanged(e.getSource(), hasChanged);
                break;
             case CoordsChangeEvent.EDGE_REMOVED:

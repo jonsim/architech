@@ -641,12 +641,13 @@ public class ArchApp extends Application
 	{
 		Geometry           geometry;
 		//MeshCollisionShape collision;
-		RigidBodyControl   physics;
+		RigidBodyControl   physics = null;
 	}
 
 	private class WallGeometry
 	{
 		ArrayList<Edge3D> geom    = new ArrayList<Edge3D>();
+		ArrayList<Geometry> dw    = new ArrayList<Geometry>();
 	}
 	
 	private final HashMap<Coords, HashMap<Edge, WallGeometry> > tabEdgeGeometry
@@ -796,6 +797,10 @@ public class ArchApp extends Application
 					removeFromPhysics(edge);
 					rootNode.detachChild(edge.geometry);
 				}
+				Iterator<Geometry> dwitr = wall.dw.iterator();
+				while(dwitr.hasNext()){
+					rootNode.detachChild(dwitr.next());
+				}
 			}
 		}
 	}
@@ -818,17 +823,18 @@ public class ArchApp extends Application
 				addToPhysics(edge);
 				rootNode.attachChild(edge.geometry);
 			}
+			Iterator<Geometry> dwitr = wall.dw.iterator();
+			while(dwitr.hasNext()){
+				rootNode.attachChild(dwitr.next());
+			}
 		}
 	}
-
-   
-	
-	
 	
 	/** Moves the given edge. Returns if Coords c is not known yet or if e is not
       *  known */
 	void updateEdgeChanged (Coords c, Edge e)
 	{
+		System.out.println("Update edge " + e);
 		if (c == null || e == null)
 			throw new IllegalArgumentException("null");
          
@@ -888,7 +894,7 @@ public class ArchApp extends Application
     		//draw a straight wall without doors/windows
             Furniture[] dws = e.getDoorWindow();  
             if(dws==null){
-            	drawline(wallGeometry, x1, x2, y1, y2, 100, -100, true,e.tex());
+            	drawline(wallGeometry, x1, x2, y1, y2, 100, -100, true,true,e.tex());
             }else{
             //draw a straight wall with doors/windows
             int width=0;
@@ -930,42 +936,35 @@ public class ArchApp extends Application
 	            dx2 = dws[0].getRotationCenter().getX()+xtri;
 	            dy2 = dws[0].getRotationCenter().getY()+ytri;
             }}
-            drawline(wallGeometry,(int)x1,(int)dx1,(int)y1,(int)dy1,100,-100,true,e.tex());
-            drawline(wallGeometry,(int)dx2,(int)x2,(int)dy2,(int)y2,100,-100,true,e.tex());
+            drawline(wallGeometry,(int)x1,(int)dx1,(int)y1,(int)dy1,100,-100,true,true,e.tex());
+            drawline(wallGeometry,(int)dx2,(int)x2,(int)dy2,(int)y2,100,-100,true,true,e.tex());
             if(dws[0].isDoor()){
-            	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,true,e.tex());	
+            	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,false,true,e.tex());	
         		//add door frame
             	Furniture3D furn = new Furniture3D("req/door_1/door_1.obj");
 		        furn.spatial.scale(4.1f, 4.1f, 4.1f);
-		        furn.spatial.rotate(0f, -FastMath.HALF_PI, 0f);    
+		        furn.spatial.rotate(0f,-FastMath.HALF_PI+((FastMath.TWO_PI)-(float)e.getRotation()), 0f);    
 		        furn.spatial.setLocalTranslation(new Float(dws[0].getRotationCenter().getX()),-100f,new Float(dws[0].getRotationCenter().getY()));
 		        rootNode.attachChild(furn.spatial);
             }
             if(dws[0].isWindow()){
-            	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-30,true,e.tex());
-            	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-100,true,e.tex());
+            	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-30,false,true,e.tex());
+            	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-100,true,false,e.tex());	
             	//add window frame
         		Furniture3D furn = new Furniture3D("req/window_1/window_1.obj");
 		        furn.spatial.scale(4.3f, 4.3f, 4.3f);
-		        furn.spatial.rotate(0f, -FastMath.HALF_PI, 0f);
+		        furn.spatial.rotate(0f, -FastMath.HALF_PI+((FastMath.TWO_PI)-(float)e.getRotation()), 0f);
 		        furn.spatial.setLocalTranslation(new Float(dws[0].getRotationCenter().getX()),-70f,new Float(dws[0].getRotationCenter().getY()));
-		        rootNode.attachChild(furn.spatial);
+		        wallGeometry.dw.add((Geometry)furn.spatial);
 		        //add window pane
-		        Geometry pane = new Geometry("Box", new Quad(60, 40));
-				pane.setLocalTranslation(new Vector3f(new Float(dws[0].getRotationCenter().getX())-30, -70,new Float(dws[0].getRotationCenter().getY())));				
+		        Geometry pane = new Geometry("Box", new Box(new Vector3f(0,0,0),26f,18f,1f));								
 				pane.setMaterial(glass);
+				System.out.println((float)e.getRotation());
+				pane.rotate(0,(FastMath.TWO_PI)-(float)e.getRotation(),0f);
 				pane.setQueueBucket(Bucket.Transparent);
-				rootNode.attachChild(pane);
-		        pane = new Geometry("Box", new Quad(60, 40));
-				pane.setLocalTranslation(new Vector3f(new Float(dws[0].getRotationCenter().getX())+30, -70,new Float(dws[0].getRotationCenter().getY())));				
-				pane.rotate(0f,FastMath.PI, 0f);
-				pane.setMaterial(glass);
-				pane.setQueueBucket(Bucket.Transparent);
-				rootNode.attachChild(pane);
-		        
-            }
-            }}
-
+				pane.setLocalTranslation(new Float(dws[0].getRotationCenter().getX()), -49,new Float(dws[0].getRotationCenter().getY()));
+				wallGeometry.dw.add(pane);			
+            }}}
     	return wallGeometry;
 	}
     
@@ -980,33 +979,41 @@ public class ArchApp extends Application
 		while(itr.hasNext())
 		{
 			Edge3D edge = itr.next();
-			removeFromPhysics(edge);
+			if(edge.physics!=null)
+				removeFromPhysics(edge);
 			rootNode.detachChild(edge.geometry);
 		}
-	
+		//remove all windows and doors in the WallGeometry
+		Iterator<Geometry> dwitr = wallGeometry.dw.iterator();
+		while(dwitr.hasNext()){
+			rootNode.detachChild(dwitr.next());
+		}
+		
 		// makes new edges in the new locations
 		WallGeometry completelyNew = makeWall(e);
 		wallGeometry.geom.clear();
-		itr = completelyNew.geom.iterator();
-		
-		// TODO: the following 2 iterators can probably be merged
-		while (itr.hasNext())
-			wallGeometry.geom.add(itr.next());
-		
-		System.out.println(wallGeometry.geom.size());
-	
-		// attaches all the new edges to the scene (addToPhysics is called within makeWall(e) so is not needed again)
-		itr = wallGeometry.geom.iterator();
+		itr = completelyNew.geom.iterator();		
+		System.out.println("dw has "+completelyNew.dw.size());
+		//add the walls to the arraylist and draw them in the scene
 		while (itr.hasNext()){
-			System.out.println("doing");
-			rootNode.attachChild(itr.next().geometry);}
+			wallGeometry.geom.add(itr.next());
+			rootNode.attachChild(wallGeometry.geom.get(wallGeometry.geom.size()-1).geometry);}
+		
+		//add any doors and windows to the arraylist and draw them in the scene
+	    dwitr = completelyNew.dw.iterator();
+		while(dwitr.hasNext()){
+			wallGeometry.dw.add(dwitr.next());
+			rootNode.attachChild(wallGeometry.dw.get(wallGeometry.dw.size()-1));
+		}
+	
+
 	}
 	
     private int recurvsion (WallGeometry top, QuadCurve2D curve, int level, String ppath)
     {
     	if (level == 0)
     	{
-    		drawline(top, (int)curve.getX1(), (int)curve.getX2(), (int)curve.getY1(), (int)curve.getY2(), 100, -100, true,ppath);
+    		drawline(top, (int)curve.getX1(), (int)curve.getX2(), (int)curve.getY1(), (int)curve.getY2(), 100, -100, true,true,ppath);
     		return -1;
     	}
     	else
@@ -1021,8 +1028,14 @@ public class ArchApp extends Application
     	}
     }
     
-    private void drawline (WallGeometry wallGeometry, int x1, int x2, int y1, int y2, int height, int disp, boolean coll,String ppath)
+    private void drawline (WallGeometry wallGeometry, int x1, int x2, int y1, int y2, int height, int disp, boolean top,boolean bot,String ppath)
     {
+    	//if top or bottom panel, use a different material
+    	if(top==false)
+    		ppath = ppath.substring(0,ppath.length()-4)+"b.jpg";
+    	if(bot==false)
+    		ppath = ppath.substring(0,ppath.length()-4)+"a.jpg";
+    	
     	int length, leny, lenx = 0;
     	float rotation = 0;
 		//work out the distances and angles required
@@ -1063,7 +1076,7 @@ public class ArchApp extends Application
 		quad1.geometry.setMaterial(paper);
     	if (shadowing)
     		quad1.geometry.setShadowMode(ShadowMode.CastAndReceive);
-    	if (physics & coll){
+    	if (physics & top & bot){
     		addToPhysics(quad1);}
 		wallGeometry.geom.add(quad1);
 
@@ -1075,7 +1088,7 @@ public class ArchApp extends Application
 		quad2.geometry.setMaterial(paper);
 		if (shadowing)
 			quad2.geometry.setShadowMode(ShadowMode.CastAndReceive);
-		if (physics & coll){
+		if (physics & top & bot){
 			addToPhysics(quad2);}
     	wallGeometry.geom.add(quad2);
     	return; 

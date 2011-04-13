@@ -714,9 +714,13 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 			getDimensions(getItemType(objectName), getTweaked(objectName));
 			int ID = getID(itemName);
 			String objPath = getModel(objectName);
-			float width = draggedObject.X * 50;
-			float length = draggedObject.Y * 50;
-         int type = getItemType(itemName);
+			float width = 10;
+			float length = 10;
+			if(draggedObject!=null){
+			width =  draggedObject.X * 50;
+			length = draggedObject.Y * 50;}
+			
+            int type = getItemType(itemName);
 			FurnitureSQLData footprint = new FurnitureSQLData(ID, (float)width, (float)length, type, objPath);
 			return footprint;
 		}
