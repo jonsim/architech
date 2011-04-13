@@ -35,18 +35,19 @@ public class Furniture {
       }
       int ftype = ob.isDoorWindow( data.type );
       if( ftype > -1) {
-         if( this.height == 0 ) {
+          if( this.height < 10 )
             this.height = 10;
-          }
 
           isDW = true;
           if(ftype==8) {
              isD = true;
              isW = false;
+             this.width = this.width + 10;
           }
           if(ftype==9) {
              isW = true;
              isD = false;
+             this.width = this.width + 30;
           }
       } else {
          isDW = false;
