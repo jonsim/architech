@@ -1,6 +1,8 @@
 import java.awt.Color;
 import java.awt.Point;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -110,7 +112,7 @@ public class ArchApp extends Application
     private Edge3D floor = new Edge3D();
     private Edge3D ceil = new Edge3D();
 	private Edge3D floor_plane = new Edge3D();
-	private Material white,glass;
+	private Material invis,glass;
 
     
     
@@ -339,9 +341,9 @@ public class ArchApp extends Application
 		grass.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
         grass.setFloat("Shininess", 1000);
         
-        white = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        white.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
-        white.setFloat("Shininess", 1000);
+        invis = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        invis.setTexture("ColorMap", assetManager.loadTexture("img/invis.png"));
+        invis.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
 
         wallmat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 		wallmat.setTexture("DiffuseMap", assetManager.loadTexture("img/wallpapers/default.jpg"));
@@ -358,10 +360,10 @@ public class ArchApp extends Application
     {
 		synchronized(syncLockObject)
 		{
-	        white = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-	        white.setTexture("DiffuseMap", assetManager.loadTexture("img/fs"+name));
-	        white.setFloat("Shininess", 1000);
-			floor.geometry.setMaterial(white);
+	        grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+	        grass.setTexture("DiffuseMap", assetManager.loadTexture("img/fs"+name));
+	        grass.setFloat("Shininess", 1000);
+			floor.geometry.setMaterial(grass);
 			Material ceilm = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
 			ceilm.setTexture("ColorMap", assetManager.loadTexture("img/cs"+name));
 			ceilm.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
@@ -371,7 +373,7 @@ public class ArchApp extends Application
 		}
     }
     
-    PointLight pl1, pl2;
+    //PointLight pl1, pl2;
     private void setupScene()
     {    	
     	//add the floor plane (large plane that extends beyond the floor to prevent falling off)
@@ -387,21 +389,22 @@ public class ArchApp extends Application
 	    //add the floor (the box which users stand on, and is textured with the fill-colours)
 	    floor.geometry = new Geometry("Floor", new Box(new Vector3f(500, -100, -1000), 500, 0.1f, 1000));
 	    floor.geometry.rotate(0f,(float) -Math.toRadians(90),0f);
-	    floor.geometry.setMaterial(white);
+	    floor.geometry.setMaterial(grass);
 	    if (shadowing)
 	    	floor.geometry.setShadowMode(ShadowMode.Receive);
 	    rootNode.attachChild(floor.geometry);
 	    
-	    ceil.geometry = new Geometry("Floor", new Box(new Vector3f(-500, 0, 1000), 500, 0.1f, 1000));
+	    ceil.geometry = new Geometry("Ceiling", new Box(new Vector3f(-500, 0, 1000), 500, 0.1f, 1000));
 	    ceil.geometry.rotate(0f,(float) -Math.toRadians(270),0f);
-	    ceil.geometry.setMaterial(grass);
+	    ceil.geometry.setMaterial(invis);
+		ceil.geometry.setQueueBucket(Bucket.Transparent);
 	    if (shadowing)
 	    	ceil.geometry.setShadowMode(ShadowMode.Receive);
 	    //addToPhysics(floor);
 	    rootNode.attachChild(ceil.geometry);
 	    
 	    // add lightbulbs
-	    Spatial light1 = assetManager.loadModel("req/lightbulb/lightbulb.obj");
+	    /*Spatial light1 = assetManager.loadModel("req/lightbulb/lightbulb.obj");
 		light1.scale(4, 4, 4);
 		light1.rotate(-FastMath.PI,0,0);
 		light1.setLocalTranslation(270, -30, 80);
@@ -421,7 +424,7 @@ public class ArchApp extends Application
         pl2 = new PointLight();
         pl2.setColor(new ColorRGBA(2, 2, 1.5f, 0));
         pl2.setRadius(250);
-        pl2.setPosition(new Vector3f(380, -25, 290));
+        pl2.setPosition(new Vector3f(380, -25, 290));*/
 
         setupSky();
     }
@@ -514,7 +517,7 @@ public class ArchApp extends Application
             	psr.setDirection(DAY_ANGLE);
             	psr.setShadowIntensity(DAY_SHADOW_INTENSITY);
             }
-            turnOffLights();
+            //turnOffLights();
             day = true;
     	}
     	else
@@ -529,7 +532,7 @@ public class ArchApp extends Application
 	            psr.setDirection(NIGHT_ANGLE);
 	        	psr.setShadowIntensity(NIGHT_SHADOW_INTENSITY);
             }
-            turnOnLights();
+            //turnOnLights();
             day = false;
     	}
 		// Stops you having to click to update the 3D
@@ -540,16 +543,16 @@ public class ArchApp extends Application
     
     private void turnOnLights()
     {
-    	rootNode.addLight(pl1);
-    	rootNode.addLight(pl2);
+    	//rootNode.addLight(pl1);
+    	//rootNode.addLight(pl2);
     }
     
     
     
     private void turnOffLights()
     {
-    	rootNode.removeLight(pl1);
-    	rootNode.removeLight(pl2);
+    	//rootNode.removeLight(pl1);
+    	//rootNode.removeLight(pl2);
     }
     
     
@@ -794,7 +797,8 @@ public class ArchApp extends Application
 				while(itr.hasNext())
 				{
 					Edge3D edge = itr.next();
-					removeFromPhysics(edge);
+					if(edge.physics!=null)
+						removeFromPhysics(edge);
 					rootNode.detachChild(edge.geometry);
 				}
 				Iterator<Geometry> dwitr = wall.dw.iterator();
@@ -896,79 +900,99 @@ public class ArchApp extends Application
             if(dws==null){
             	drawline(wallGeometry, x1, x2, y1, y2, 100, -100, true,true,e.tex());
             }else{
-            //draw a straight wall with doors/windows
-            int width=0;
-            if(dws[0].isWindow()){width=30;}
-            if(dws[0].isDoor())  {width=20;}
-            int doorpanel = 20;
-            int cx=0,cy=0;
-            //perform lots of trig and calculations to work out
-            //how to partition the wall up to fit the windows/doors in
-            if(x2>x1){cx = x1 + Math.abs((x2 -x1)/2);}
-            if(x2==x1) {cx = x2;}
-            if(x1>x2){cx = x1 - Math.abs((x2 -x1)/2);}
-            if(y2>y1){cy = y1 + Math.abs((y2 -y1)/2);}
-            if(y2==y1){cy=y2;}
-            if(y1>y2){cy = y1 - Math.abs((y2 -y1)/2);}                  
-            double dx1,dy1,dx2 ,dy2;
-            double o = Math.abs(y2 - y1);
-            double a = Math.abs(x2 - x1);
-            if(o==0){
-                dx1 = dws[0].getRotationCenter().getX()-width;                              
-                dy1 = y1;
-                dx2 = dws[0].getRotationCenter().getX()+width;
-                dy2 = y2;
-                if(x1>x2){double temp = dx1; dx1 = dx2; dx2 = temp;}
-            }else{if(a==0){
-                dx1 = x1;
-                dy1 = dws[0].getRotationCenter().getY()-width;
-                dx2 = x2;
-                dy2 = dws[0].getRotationCenter().getY()+width;
-                if(y1>y2){double temp = dy1; dy1 = dy2; dy2 = temp;}
-            }else{                  
-	            double theta = Math.atan(o/a);            
-	            double xtri =  width * (Math.cos(theta));
-	            double ytri =  width * (Math.sin(theta));
-	            if(x2<x1){xtri = -xtri;}
-	            if(y2<y1){ytri = -ytri;}
-	            dx1 = dws[0].getRotationCenter().getX()-xtri;
-	            dy1 = dws[0].getRotationCenter().getY()-ytri;
-	            dx2 = dws[0].getRotationCenter().getX()+xtri;
-	            dy2 = dws[0].getRotationCenter().getY()+ytri;
-            }}
-            drawline(wallGeometry,(int)x1,(int)dx1,(int)y1,(int)dy1,100,-100,true,true,e.tex());
-            drawline(wallGeometry,(int)dx2,(int)x2,(int)dy2,(int)y2,100,-100,true,true,e.tex());
-            if(dws[0].isDoor()){
-            	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,false,true,e.tex());	
-        		//add door frame
-            	Furniture3D furn = new Furniture3D("req/door_1/door_1.obj");
-		        furn.spatial.scale(4.1f, 4.1f, 4.1f);
-		        furn.spatial.rotate(0f,-FastMath.HALF_PI+((FastMath.TWO_PI)-(float)e.getRotation()), 0f);    
-		        furn.spatial.setLocalTranslation(new Float(dws[0].getRotationCenter().getX()),-100f,new Float(dws[0].getRotationCenter().getY()));
-		        rootNode.attachChild(furn.spatial);
+	            //draw a straight wall with doors/windows
+	            ArrayList<Furniture> dwsa = new ArrayList<Furniture>(Arrays.asList(dws));	            
+	            wdoorcursion(e,wallGeometry,dwsa,x1,x2,y1,y2);
             }
-            if(dws[0].isWindow()){
-            	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-30,false,true,e.tex());
-            	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-100,true,false,e.tex());	
-            	//add window frame
-        		Furniture3D furn = new Furniture3D("req/window_1/window_1.obj");
-		        furn.spatial.scale(4.3f, 4.3f, 4.3f);
-		        furn.spatial.rotate(0f, -FastMath.HALF_PI+((FastMath.TWO_PI)-(float)e.getRotation()), 0f);
-		        furn.spatial.setLocalTranslation(new Float(dws[0].getRotationCenter().getX()),-70f,new Float(dws[0].getRotationCenter().getY()));
-		        wallGeometry.dw.add((Geometry)furn.spatial);
-		        //add window pane
-		        Geometry pane = new Geometry("Box", new Box(new Vector3f(0,0,0),26f,18f,1f));								
-				pane.setMaterial(glass);
-				System.out.println((float)e.getRotation());
-				pane.rotate(0,(FastMath.TWO_PI)-(float)e.getRotation(),0f);
-				pane.setQueueBucket(Bucket.Transparent);
-				pane.setLocalTranslation(new Float(dws[0].getRotationCenter().getX()), -49,new Float(dws[0].getRotationCenter().getY()));
-				wallGeometry.dw.add(pane);			
-            }}}
+    	}
     	return wallGeometry;
 	}
     
-    
+    private void wdoorcursion(Edge e,WallGeometry wallGeometry,ArrayList<Furniture> dwsa,int x1,int x2,int y1,int y2){                
+    	//if all the windows and doors have been drawn
+    	if(dwsa.size()==0){drawline(wallGeometry, x1, x2, y1, y2, 100, -100, true,true,e.tex()); return;}
+	    //select the closest window or door thingumy
+    	int mindist=0,mini=0,currdist=0;
+    	for(int i=0;i<dwsa.size();i++){
+    		currdist = (int)dwsa.get(i).getRotationCenter().distance(new Point(x1,y1));
+    		if(mindist==0) {mindist=currdist; mini = i;}
+    		if(currdist<mindist){mindist=currdist; mini=i;} 
+	    }
+    	//proceed with drawing up to that window, then recurse for the rest of the wall
+    	int width=0;
+	    if(dwsa.get(mini).isWindow()){width=30;}
+	    if(dwsa.get(mini).isDoor())  {width=20;}
+	    int doorpanel = 20;
+	    int cx=0,cy=0;
+	    //perform lots of trig and calculations to work out
+	    //how to partition the wall up to fit the windows/doors in
+	    if(x2>x1){cx = x1 + Math.abs((x2 -x1)/2);}
+	    if(x2==x1) {cx = x2;}
+	    if(x1>x2){cx = x1 - Math.abs((x2 -x1)/2);}
+	    if(y2>y1){cy = y1 + Math.abs((y2 -y1)/2);}
+	    if(y2==y1){cy=y2;}
+	    if(y1>y2){cy = y1 - Math.abs((y2 -y1)/2);}                  
+	    double dx1,dy1,dx2 ,dy2;
+	    double o = Math.abs(y2 - y1);
+	    double a = Math.abs(x2 - x1);
+	    if(o==0){
+	        dx1 = dwsa.get(mini).getRotationCenter().getX()-width;                              
+	        dy1 = y1;
+	        dx2 = dwsa.get(mini).getRotationCenter().getX()+width;
+	        dy2 = y2;
+	        if(x1>x2){double temp = dx1; dx1 = dx2; dx2 = temp;}
+	    }else{if(a==0){
+	        dx1 = x1;
+	        dy1 = dwsa.get(mini).getRotationCenter().getY()-width;
+	        dx2 = x2;
+	        dy2 = dwsa.get(mini).getRotationCenter().getY()+width;
+	        if(y1>y2){double temp = dy1; dy1 = dy2; dy2 = temp;}
+	    }else{                  
+	        double theta = Math.atan(o/a);            
+	        double xtri =  width * (Math.cos(theta));
+	        double ytri =  width * (Math.sin(theta));
+	        if(x2<x1){xtri = -xtri;}
+	        if(y2<y1){ytri = -ytri;}
+	        dx1 = dwsa.get(mini).getRotationCenter().getX()-xtri;
+	        dy1 = dwsa.get(mini).getRotationCenter().getY()-ytri;
+	        dx2 = dwsa.get(mini).getRotationCenter().getX()+xtri;
+	        dy2 = dwsa.get(mini).getRotationCenter().getY()+ytri;
+	    }}
+	    drawline(wallGeometry,(int)x1,(int)dx1,(int)y1,(int)dy1,100,-100,true,true,e.tex());
+	    if(dwsa.get(mini).isDoor()){
+	    	//draw top panel
+	    	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,false,true,e.tex());	
+			//add door frame
+	    	Furniture3D furn = new Furniture3D("req/door_1/door_1.obj");
+	        furn.spatial.scale(4.1f, 4.1f, 4.1f);
+	        furn.spatial.rotate(0f,-FastMath.HALF_PI+((FastMath.TWO_PI)-(float)e.getRotation()), 0f);    
+	        furn.spatial.setLocalTranslation(new Float(dwsa.get(mini).getRotationCenter().getX()),-100f,new Float(dwsa.get(mini).getRotationCenter().getY()));
+	        rootNode.attachChild(furn.spatial);
+	    }
+	    if(dwsa.get(mini).isWindow()){
+	    	//draw the top and bottom panels
+	    	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-30,false,true,e.tex());
+	    	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-100,true,false,e.tex());	
+	    	//add window frame
+			Furniture3D furn = new Furniture3D("req/window_1/window_1.obj");
+	        furn.spatial.scale(4.3f, 4.3f, 4.3f);
+	        furn.spatial.rotate(0f, -FastMath.HALF_PI+((FastMath.TWO_PI)-(float)e.getRotation()), 0f);
+	        furn.spatial.setLocalTranslation(new Float(dwsa.get(mini).getRotationCenter().getX()),-70f,new Float(dwsa.get(mini).getRotationCenter().getY()));
+	        wallGeometry.dw.add((Geometry)furn.spatial);
+	        //add window pane
+	        Geometry pane = new Geometry("Box", new Box(new Vector3f(0,0,0),26f,18f,1f));								
+			pane.setMaterial(glass);
+			System.out.println((float)e.getRotation());
+			pane.rotate(0,(FastMath.TWO_PI)-(float)e.getRotation(),0f);
+			pane.setQueueBucket(Bucket.Transparent);
+			pane.setLocalTranslation(new Float(dwsa.get(mini).getRotationCenter().getX()), -49,new Float(dwsa.get(mini).getRotationCenter().getY()));
+			wallGeometry.dw.add(pane);
+			}
+	    //remove the window you just added
+	    dwsa.remove(mini);
+	    //recurse for the rest of the wall
+	    wdoorcursion(e,wallGeometry,dwsa,(int)dx2,x2,(int)dy2,y2);
+    }
     
 	/** Moves the two wall planes to the new position given by edge e */
 	private void updatewall(WallGeometry wallGeometry, Edge e)
@@ -1076,7 +1100,7 @@ public class ArchApp extends Application
 		quad1.geometry.setMaterial(paper);
     	if (shadowing)
     		quad1.geometry.setShadowMode(ShadowMode.CastAndReceive);
-    	if (physics & top & bot){
+    	if (physics & top){
     		addToPhysics(quad1);}
 		wallGeometry.geom.add(quad1);
 
@@ -1088,7 +1112,7 @@ public class ArchApp extends Application
 		quad2.geometry.setMaterial(paper);
 		if (shadowing)
 			quad2.geometry.setShadowMode(ShadowMode.CastAndReceive);
-		if (physics & top & bot){
+		if (physics & top){
 			addToPhysics(quad2);}
     	wallGeometry.geom.add(quad2);
     	return; 
