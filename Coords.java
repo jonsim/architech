@@ -1017,14 +1017,27 @@ public class Coords {
          saveEdges[i][3] = eArray[i].getCtrlY();
       }
 
-      Furniture[] fArray = new Furniture[furniture.size()];
+      // make the list of furniture items which will be saved
+      LinkedList<Furniture> saveFurniture = new LinkedList<Furniture>();
+
+      /* Add furniture from the normal list */
       ListIterator<Furniture> li = furniture.listIterator();
-      while (li.hasNext()) {
-         fArray[li.nextIndex()] = li.next();
+      while (li.hasNext()) saveFurniture.add(li.next());
+
+      /* Add furniture from the edge lists */
+      ListIterator<Edge> edgeIterator = edges.listIterator();
+      while (edgeIterator.hasNext()) {
+          Furniture[] doorWindows = edgeIterator.next().getDoorWindow();
+          if (doorWindows == null) continue;
+
+          for (int i=0; i < doorWindows.length; i++) {
+              saveFurniture.add(doorWindows[i]);
+          }
       }
+      Furniture[] fArray = saveFurniture.toArray(new Furniture[0]);
 
       FileManager.save(saveAs, saveVerts, saveEdges, fArray);
-      // if save() throws an IllegalArgumentException, saveRequired is not reset
+      // if save() throws an IllegalArgumentException, saveRequired is (rightly) not reset
       if (updateSaveRequired) saveRequired = false;
       if (updateAssociatedSave) {
          associatedSaveName = saveAs.getName();

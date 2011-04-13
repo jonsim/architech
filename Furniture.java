@@ -3,18 +3,18 @@ import java.awt.geom.*;
 import java.awt.geom.Line2D.*;
 import java.awt.*;
 
-/** Furniture item that is used by Coords. NOTE: objPath doesn't save to file! */
+/** Furniture item that is used by Coords. */
 public class Furniture {
 
    public final RoundRectangle2D.Float rectangle = new RoundRectangle2D.Float();
    private int furnitureID;
-   private String objPath;
    private float width, height;
    private float rotationCenterX, rotationCenterY;
    private double rotation; // theta - in radians
-   private boolean isDW;// is this a door/window
-   private boolean isD;// is this a door
-   private boolean isW;// is this a window
+   private String objPath;
+   private boolean isDW; // is this a door/window
+   private boolean isD; // is this a door
+   private boolean isW; // is this a window
    private boolean isL; //is this a light?
 
    Furniture(FurnitureSQLData data, Point center, ObjectBrowser ob) {
@@ -27,6 +27,7 @@ public class Furniture {
       this.height = data.height;
       this.rotation = 0;
       this.objPath = data.objPath;
+      System.out.println("objpath="+objPath);
       if(ob.isLight(data.type)){
     	  isL = true;
       }else{
@@ -34,15 +35,19 @@ public class Furniture {
       }
       int ftype = ob.isDoorWindow( data.type );
       if( ftype > -1) {
-         if( this.height == 0 )
-        	 this.height = 10;
-         	isDW = true;
-         	if(ftype==8){
-         		isD = true;
-         		isW = false;}
-         	if(ftype==9){
-         		isW = true;
-     			isD = false;}
+         if( this.height == 0 ) {
+            this.height = 10;
+          }
+
+          isDW = true;
+          if(ftype==8) {
+             isD = true;
+             isW = false;
+          }
+          if(ftype==9) {
+             isW = true;
+             isD = false;
+          }
       } else {
          isDW = false;
       }
@@ -57,45 +62,35 @@ public class Furniture {
       }
 
       String[] split = toLoadFrom.split(",");
-      if (split.length < 6) {
-         throw new IllegalArgumentException("Not enough fields");
-      }
-
-      // Just in case the file is in an older format
-      int lenOffset;
-      if(split.length == 6) {
-         isDW = false;
-         lenOffset = 0;
-      } else {
-         if( split[split.length - 1].equals( "true" ) )
-            isDW = true;
-         else
-            isDW = false;
-
-         lenOffset = 1;
-      }
-
-      // furnitureID might contain "," so just split from the end as we know the expected number
-      try {
-         rotation = java.lang.Double.parseDouble(split[split.length - 1 - lenOffset]);
-      } catch (NumberFormatException e) {
-         throw new IllegalArgumentException("Malformed rotation value");
+      if (split.length < 11) {
+         throw new IllegalArgumentException("Too few fields (expected 11)");
       }
 
       try {
-         rotationCenterY = java.lang.Float.parseFloat(split[split.length - 2 - lenOffset]);
-         rotationCenterX = java.lang.Float.parseFloat(split[split.length - 3 - lenOffset]);
-         height = java.lang.Float.parseFloat(split[split.length - 4 - lenOffset]);
-         width = java.lang.Float.parseFloat(split[split.length - 5 - lenOffset]);
+         furnitureID = Integer.parseInt(split[0]);
+         width = java.lang.Float.parseFloat(split[1]);
+         height = java.lang.Float.parseFloat(split[2]);
+         rotationCenterX = java.lang.Float.parseFloat(split[3]);
+         rotationCenterY = java.lang.Float.parseFloat(split[4]);
+         rotation = java.lang.Double.parseDouble(split[5]);
+
       } catch (NumberFormatException e) {
-         throw new IllegalArgumentException("Malformed float value");
+         throw new IllegalArgumentException("Malformed value in saved furniture object");
       }
 
-      try {
-         furnitureID = Integer.parseInt(split[split.length - 6 - lenOffset]);
-      } catch (NumberFormatException e) {
-         throw new IllegalArgumentException("Malformed furnitureID");
+      // objPath might contain commas, so load split from the end backwards.
+      objPath = "";
+      for (int i=6; i < split.length - 4; i++) {
+        objPath += split[i];
       }
+      isDW = java.lang.Boolean.parseBoolean(split[split.length - 4]);
+      isD = java.lang.Boolean.parseBoolean(split[split.length - 3]);
+      isW = java.lang.Boolean.parseBoolean(split[split.length - 2]);
+      isL = java.lang.Boolean.parseBoolean(split[split.length - 1]);
+      
+      if (isDW && !(isD || isW)) throw new IllegalArgumentException("Malformed furniture type doorwindow");
+      if (isD && isW) throw new IllegalArgumentException("Malformed furniture its both a door and a window");
+      if (isDW && isL) throw new IllegalArgumentException("Malformed furniture its both a doorwindow and a light");
 
       recalcRectangle();
    }
@@ -109,14 +104,9 @@ public class Furniture {
    }
 
    public String getSaveString() {
-      String doorWindow;
-
-      if( isDW )
-         doorWindow = "true";
-      else
-         doorWindow = "false";
-
-      return furnitureID + "," + width + "," + height + "," + rotationCenterX + "," + rotationCenterY + "," + rotation + "," + doorWindow;
+      return furnitureID + "," + width + "," + height + "," + rotationCenterX
+         + "," + rotationCenterY + "," + rotation + "," + objPath + "," + isDW
+         + "," + isD + "," + isW + "," + isL;
    }
 
    /** Use the method in the Coords class instead! Sets the Furniture's location */
@@ -141,10 +131,12 @@ public class Furniture {
    public boolean isDoorWindow() {
       return isDW;
    }
+
    /** Checks if the current object is a door */
    public boolean isDoor() {
       return isD;
    }
+
    /** Checks if the current object is a window */
    public boolean isWindow() {
       return isW;

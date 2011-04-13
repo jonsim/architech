@@ -22,5 +22,9 @@
 9,10,420,300
 8,10,330,360
 
-1 Furniture
-8,85.0,35.0,1259.0,108.0,0.0,false
+5 Furniture
+2,85.0,35.0,454.0,117.0,0.615339541805392,bath_1.obj,false,false,false,false
+3,80.0,100.0,547.0,179.0,0.10727885564840275,bed_double_1.obj,false,false,false,false
+1,45.0,45.0,387.0,274.0,-0.8298133786443591,armchair_1.obj,false,false,false,false
+12,37.5,5.0,464.0,240.0,3.141592653589793,door_1.obj,true,true,false,false
+17,30.000002,5.0,600.0,106.0,1.5707963267948966,window_1.obj,true,false,true,false
