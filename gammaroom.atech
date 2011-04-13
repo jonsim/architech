@@ -1,4 +1,65 @@
-0 Vertices
-0 Edges
-0 Furniture
+14 Vertices
+0,360.0,60.0,0.0
+1,300.0,120.0,0.0
+2,300.0,180.0,0.0
+3,360.0,360.0,0.0
+4,360.0,420.0,0.0
+5,240.0,420.0,0.0
+6,240.0,240.0,0.0
+7,360.0,240.0,0.0
+8,360.0,300.0,0.0
+9,600.0,60.0,0.0
+10,420.0,240.0,0.0
+11,480.0,240.0,0.0
+12,600.0,240.0,0.0
+13,600.0,360.0,0.0
 
+14 Edges
+0,1,311,65
+1,2,300,150
+3,4,360,390
+4,5,300,420
+5,6,240,330
+3,13,480,360
+6,7,300,240
+3,8,360,330
+2,7,303,226
+0,9,480,60
+9,12,600,150
+7,10,390,240
+11,12,540,240
+12,13,600,300
+
+32 Furniture
+15,80.0,45.0,404.0,91.0,-0.051237167403418805,sofa_1.obj,false,false,false,false
+1,45.0,45.0,394.0,206.0,-3.066732805879026,armchair_1.obj,false,false,false,false
+10,45.0,25.0,384.0,150.0,0.0,coffee_table_1.obj,false,false,false,false
+13,25.0,25.0,331.0,187.0,0.0,plant_1.obj,false,false,false,false
+13,25.0,25.0,328.0,129.0,0.0,plant_1.obj,false,false,false,false
+14,100.0,75.0,470.0,152.0,0.0,rug_1.obj,false,false,false,false
+16,45.0,70.0,574.0,319.0,0.0,table_1.obj,false,false,false,false
+18,25.0,40.0,532.0,338.0,3.0860941483440762,kitchen_unit_1.obj,false,false,false,false
+18,25.0,40.0,411.0,337.0,3.141592653589793,kitchen_unit_1.obj,false,false,false,false
+18,25.0,40.0,451.0,337.0,3.141592653589793,kitchen_unit_1.obj,false,false,false,false
+18,25.0,40.0,491.0,339.0,3.141592653589793,kitchen_unit_1.obj,false,false,false,false
+11,25.0,30.000002,376.0,342.0,-3.079173843593836,cooker_1.obj,false,false,false,false
+13,25.0,25.0,571.0,264.0,0.0,plant_1.obj,false,false,false,false
+2,85.0,35.0,301.0,376.0,1.4801364395941514,bath_1.obj,false,false,false,false
+2,85.0,35.0,284.0,288.0,0.0,bath_1.obj,false,false,false,false
+9,30.000002,10.0,492.0,226.0,3.141592653589793,bookcase_1.obj,false,false,false,false
+9,30.000002,10.0,525.0,225.0,3.141592653589793,bookcase_1.obj,false,false,false,false
+5,30.000002,25.0,558.0,223.0,3.058451421701352,bedside_table_1.obj,false,false,false,false
+6,30.000002,25.0,585.0,193.0,1.653937558683338,bedside_table_2.obj,false,false,false,false
+6,30.000002,25.0,586.0,161.0,1.5707963267948966,bedside_table_2.obj,false,false,false,false
+6,30.000002,25.0,469.0,75.0,0.0,bedside_table_2.obj,false,false,false,false
+17,30.000002,5.0,300.0,148.0,-1.5707963267948966,window_1.obj,true,false,true,false
+17,30.000002,5.0,300.0,419.0,0.0,window_1.obj,true,false,true,false
+17,30.000002,5.0,240.0,292.0,1.5707963267948966,window_1.obj,true,false,true,false
+17,30.000002,5.0,241.0,360.0,1.5707963267948966,window_1.obj,true,false,true,false
+17,30.000002,5.0,562.0,360.0,3.141592653589793,window_1.obj,true,false,true,false
+17,30.000002,5.0,485.0,361.0,3.141592653589793,window_1.obj,true,false,true,false
+17,30.000002,5.0,416.0,361.0,3.141592653589793,window_1.obj,true,false,true,false
+17,30.000002,5.0,415.0,60.0,3.141592653589793,window_1.obj,true,false,true,false
+17,30.000002,5.0,487.0,60.0,3.141592653589793,window_1.obj,true,false,true,false
+17,30.000002,5.0,601.0,101.0,-1.5707963267948966,window_1.obj,true,false,true,false
+17,30.000002,5.0,601.0,175.0,-1.5707963267948966,window_1.obj,true,false,true,false
