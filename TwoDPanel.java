@@ -746,6 +746,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
             if ((c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE) && designButtons.isSelectTool()) {
                 // This call might change a little as it depends on brent's module
                 handlerVertexSelect.deleteSelected();
+                handlerDoorWindowMove.delete();
 
                 if (inProgressHandler == null || inProgressHandler == handlerFurnitureMove) {
                     handlerFurnitureMove.delete();

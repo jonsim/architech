@@ -280,16 +280,17 @@ public class Coords {
       if( f == null ) return;
       Edge e = getDoorWindowEdge(f);
 
-      if( e == null ) {
-         addDoorWindow(f);
-         e = getDoorWindowEdge(f);
-      }
-
       //newCenter = snapToEdge(newCenter);
       f.set(newCenter);
 
-      if( e != null && !furnitureWallIntersect(f, e) ) {
+      if( e == null ) {
+         addDoorWindow(f);
+         return;
+      }
+
+      if(!furnitureWallIntersect(f, e) ) {
          e.deleteDoorWindow(f);
+         fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
 
          ListIterator<Edge> ite = edges.listIterator();
       
@@ -345,6 +346,9 @@ public class Coords {
    /** Checks for collisions with other doors/windows and whether it goes off the end of an edge */
    public boolean doorWindowValidPosition(Furniture f) {
       Edge e = getDoorWindowEdge(f);
+
+      if( e == null )
+         return true;
 
       Furniture[] dws = e.getDoorWindow();
       
