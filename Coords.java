@@ -269,6 +269,7 @@ public class Coords {
             f.setRotation( e.getRotation() );
             e.addDoorWindow(f);
             fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_ADDED, f));
+            fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
             return;
          }
       }
@@ -303,6 +304,7 @@ public class Coords {
       }
 
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_CHANGED, f));
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
    }
    
     public boolean detectVertexCollisions(Vertex v) {
@@ -338,6 +340,20 @@ public class Coords {
            }
        }
        return false;
+   }
+
+   /** Checks for collisions with other doors/windows and whether it goes off the end of an edge */
+   public boolean doorWindowValidPosition(Furniture f) {
+      Edge e = getDoorWindowEdge(f);
+
+      Furniture[] dws = e.getDoorWindow();
+      
+      for( Furniture dw : dws ) {
+         if( dw != f && rectangleIntersect( dw, f ) )
+            return true;
+      }
+
+      return false;
    }
 
    private boolean furnitureWallIntersect(Furniture f, Edge e) {
@@ -567,7 +583,8 @@ public class Coords {
       
       e.deleteDoorWindow(f);
 
-      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.FURNITURE_REMOVED, f));
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_REMOVED, f));
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
    }
 
    /** Returns a new edge object, already added to the coordStore */
@@ -679,7 +696,7 @@ public class Coords {
       return null;
    }
    
-   /** Draws things like lines and curves etc. on the given Graphics canvas */
+   /** Draws things like lines and curves as well as doors and windows on the given Graphics canvas */
    public void paintEdges(Graphics2D g2, boolean isCurveTool) {
       g2.setColor(Color.BLACK);
 

@@ -39,6 +39,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
     private final HandlerEdgeDraw handlerEdgeDraw;
     private final HandlerVertexMove handlerVertexMove;
     private final HandlerFurnitureMove handlerFurnitureMove;
+    private final HandlerDoorWindowMove handlerDoorWindowMove;
     private final HandlerVertexSelect handlerVertexSelect;
     private Furniture hoverFurniture = null;
 
@@ -92,6 +93,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
         handlerVertexMove = new HandlerVertexMove(coords);
         handlerFurnitureMove = new HandlerFurnitureMove(coords);
         handlerVertexSelect = new HandlerVertexSelect(coords, objectBrowser);
+        handlerDoorWindowMove = new HandlerDoorWindowMove(coords);
 
         addKeyListener(new TwoDPanelKeyListener());
         addMouseListener(new TwoDPanelMouseListener());
@@ -267,8 +269,18 @@ class TwoDPanel extends JPanel implements ChangeListener {
             g2.setColor(Color.CYAN);
             hoverFurniture.paint(g2);
         }
-		
-		Color fill = new Color(Color.BLUE.getRed(), Color.BLUE.getGreen(), Color.BLUE.getBlue(), 50);
+
+        furnitureMove = handlerDoorWindowMove.getFurniture();
+        if ((inProgressHandler == null || inProgressHandler == handlerDoorWindowMove) && furnitureMove != null) {
+            if (handlerDoorWindowMove.isCollided()) {
+                g2.setColor(Color.RED);
+            } else {
+                g2.setColor(Color.GREEN);
+            }
+            furnitureMove.paint(g2);
+        }
+
+        Color fill = new Color(Color.BLUE.getRed(), Color.BLUE.getGreen(), Color.BLUE.getBlue(), 50);
         g2.setColor(fill);
         g2.fill(selectionRectangle);
         g2.setColor(Color.BLUE);
@@ -483,26 +495,33 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 inProgressHandler = handlerEdgeDraw;
                 handlerEdgeDraw.start(p, designButtons.isGridOn());
                 handlerFurnitureMove.forgetRememberedFurniture();
+                handlerDoorWindowMove.forgetRememberedDoorWindow();
                 handlerVertexSelect.forgetSelectedVertices();
 
             } else if (designButtons.isSelectTool()) {
                 if (coords.vertexAt(p) != null) {
                     // forget about selected furniture, we're remember vertices now
                     handlerFurnitureMove.forgetRememberedFurniture();
-
+                    handlerDoorWindowMove.forgetRememberedDoorWindow();
                     inProgressHandler = handlerVertexMove;
                     handlerVertexMove.start(p);
                     repaint();
 
                 } else if (coords.furnitureAt(p.getX(), p.getY()) != null) {
-
+                    handlerDoorWindowMove.forgetRememberedDoorWindow();
                     inProgressHandler = handlerFurnitureMove;
                     handlerFurnitureMove.start(p);
+                    repaint();
+                } else if (coords.doorWindowAt(p) != null) {
+                    handlerFurnitureMove.forgetRememberedFurniture();
+                    inProgressHandler = handlerDoorWindowMove;
+                    handlerDoorWindowMove.start(p);
                     repaint();
                 } else {
                     rectStart.setLocation(p);
                     selectionRectangle.setLocation(p);
                     handlerFurnitureMove.forgetRememberedFurniture();
+                    handlerDoorWindowMove.forgetRememberedDoorWindow();
                 }
 
                 requestFocus(); // makes the keys work if the user clicked on a vertex and presses delete
@@ -515,6 +534,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 inProgressHandler = handlerEdgeCurve;
                 handlerEdgeCurve.start(p);
                 handlerFurnitureMove.forgetRememberedFurniture();
+                handlerDoorWindowMove.forgetRememberedDoorWindow();
                 handlerVertexSelect.forgetSelectedVertices();
             }
             // other tools go here
@@ -527,7 +547,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
             }
 
             selectDragBoxVertices();
-	    selectionRectangle.setSize(0,0);
+            selectionRectangle.setSize(0,0);
             selectionRectangle.setLocation(-1,-1);
             repaint();
             Point p = new Point();
@@ -600,6 +620,9 @@ class TwoDPanel extends JPanel implements ChangeListener {
             } else if (inProgressHandler == handlerFurnitureMove) {
                 inProgressHandler = null;
                 handlerFurnitureMove.stop();
+            } else if (inProgressHandler == handlerDoorWindowMove) {
+                inProgressHandler = null;
+                handlerDoorWindowMove.stop();
             }
 
             // Bren't stuff, mouse release is a lot easier than mouse press as moving
@@ -649,6 +672,9 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
                 } else if (inProgressHandler == handlerFurnitureMove) {
                     handlerFurnitureMove.middle(p, e.isControlDown());
+
+                } else if (inProgressHandler == handlerDoorWindowMove) {
+                    handlerDoorWindowMove.middle(p, e.isControlDown());
 
                 } else if(javax.swing.SwingUtilities.isLeftMouseButton(e)) {
 		    int width = Math.abs(rectStart.x-p.x);
