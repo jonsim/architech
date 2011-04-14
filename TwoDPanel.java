@@ -32,8 +32,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
     private double zoomScale = 1.0;
     private final DesignButtons designButtons;
     private final Coords coords;
-    private final ObjectBrowser objectBrowser;
-    //private Coords.Vertex hoverVertex;
+    //private final ObjectBrowser objectBrowser;
     private Object inProgressHandler = null;
     private final HandlerEdgeCurve handlerEdgeCurve;
     private final HandlerEdgeDraw handlerEdgeDraw;
@@ -52,7 +51,6 @@ class TwoDPanel extends JPanel implements ChangeListener {
     private ArrayList<ArrayList<Boolean>> polygonReverse = new ArrayList<ArrayList<Boolean>>();
 
     private String saveLocation = getClass().getResource("img").getPath() + "/";
-    private String saveName = "3DFloor.jpg";
     private double fillFlatness = 0.001;
     private boolean gettingScreenshot = false;
     private String currname = null;
@@ -75,7 +73,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
         }
 
         this.designButtons = designButtons;
-        this.objectBrowser = objectBrowser;
+        //this.objectBrowser = objectBrowser;
 
         setBackground(Color.WHITE);
         setPreferredSize(new Dimension(2000, 1000));
@@ -252,6 +250,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 edgeCurve.paint(g2, false);
             }
         }
+
+        coords.paintLineSplits(g2, (int) Math.round(vertexDiameter / zoomScale));
 
         //FURNITURE
         g2.setColor(Color.BLUE);

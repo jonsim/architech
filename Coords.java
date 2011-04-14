@@ -162,6 +162,7 @@ public class Coords {
    private final LinkedList<Vertex> vertices = new LinkedList<Vertex>();
    private final LinkedList<Edge> edges = new LinkedList<Edge>();
    private final LinkedList<Furniture> furniture = new LinkedList<Furniture>();
+   private LinkedList<Point> lineSplits = new LinkedList<Point>();
    private Furniture invalidDW = null;
    private int gridWidth = 60; // makes grid lines at 0,60,120,...
 
@@ -311,7 +312,7 @@ public class Coords {
       //still on the same edge
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_CHANGED, f));
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
-   }
+    }
    
     public boolean detectVertexCollisions(Vertex v) {
         Edge e;
@@ -330,7 +331,6 @@ public class Coords {
    }
 
    public boolean detectCollisions(Furniture f) {
-       int i = 0;
        ListIterator<Edge> edgeIterator = edges.listIterator();
        while (edgeIterator.hasNext()) {
            Edge e = edgeIterator.next();
@@ -363,6 +363,42 @@ public class Coords {
       }
 
       return false;
+   }
+
+   public void splitEdges(Vertex v) {
+       ListIterator<Edge> vEdgeIterator = v.edgeUses.listIterator();
+       ListIterator<Edge> allEdgeIterator = edges.listIterator();
+       Edge e1;
+       Edge e2;
+       while(vEdgeIterator.hasNext()) {
+           e1 = vEdgeIterator.next();
+           while(allEdgeIterator.hasNext()) {
+               e2 = allEdgeIterator.next();
+               if(e1 != e2) {
+                   edgeOverlap(e1, e2);
+               }
+           }
+           allEdgeIterator = edges.listIterator();
+       }
+   }
+
+   private void edgeOverlap(Edge e1, Edge e2) {
+       // add locations to lineSplits
+       // This is gonna be ridiculous
+   }
+
+   public void paintLineSplits(Graphics2D g2, int diameter) {
+      g2.setColor(Color.BLACK);
+
+      ListIterator<Point> ite = lineSplits.listIterator();
+      Point p;
+      Ellipse2D.Float circle = new Ellipse2D.Float();
+      while (ite.hasNext()) {
+         p = ite.next();
+         circle.setFrame(p.getX() - diameter / 2, p.getY() - diameter / 2, diameter, diameter);
+         g2.fill(circle);
+      }
+      lineSplits.clear();
    }
 
    private boolean furnitureWallIntersect(Furniture f, Edge e) {
@@ -424,6 +460,8 @@ public class Coords {
    private boolean straightLineIntersect(Point a1, Point a2, Point b1, Point b2) {
        double[] a = getEquation(a1, a2);
        double[] b = getEquation(b1, b2);
+       // null is for vertical lines
+       if(a == null && b == null) return false;
        double x;
        double c;
        double y;
@@ -435,8 +473,6 @@ public class Coords {
        int maxbY = Math.max(b1.y, b2.y);
        int minaY = Math.min(a1.y, a2.y);
        int minbY = Math.min(b1.y, b2.y);
-       // null is for vertical lines
-       if(a == null && b == null) return false;
        if(a == null) {
            y = b[0]*a1.x + b[1];
            if(y <= maxaY && y >= minaY) {
