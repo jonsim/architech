@@ -159,7 +159,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
         g2.scale(zoomScale, zoomScale);
 
         int i = 0;
-	while (i < polygons.size()) {
+        while (i < polygons.size()) {
             g2.setColor(polygonFills.get(i));
             g2.fill(polygons.get(i));
             i++;
@@ -176,7 +176,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
         // EDGES
         coords.paintEdges(g2, designButtons.isCurveTool());
-
+        coords.paintInvalidDW(g2);
 
         // VERTICES (first paint any edges that are colliding related to the vertex moving)
         Coords.Vertex vertexMove = handlerVertexMove.getVertex();
@@ -272,7 +272,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
         furnitureMove = handlerDoorWindowMove.getFurniture();
         if ((inProgressHandler == null || inProgressHandler == handlerDoorWindowMove) && furnitureMove != null) {
-            if (handlerDoorWindowMove.isCollided()) {
+            if ( coords.doorWindowInvalidPosition(furnitureMove) ) {
                 g2.setColor(Color.RED);
             } else {
                 g2.setColor(Color.GREEN);
@@ -677,7 +677,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
                     handlerDoorWindowMove.middle(p, e.isControlDown());
 
                 } else if(javax.swing.SwingUtilities.isLeftMouseButton(e)) {
-		    int width = Math.abs(rectStart.x-p.x);
+                    int width = Math.abs(rectStart.x-p.x);
                     int length = Math.abs(rectStart.y-p.y);
                     selectionRectangle.setLocation(rectStart);
                     if(rectStart.getX() > p.getX()) {
@@ -855,27 +855,42 @@ class TwoDPanel extends JPanel implements ChangeListener {
         }
 
         // handlerVertexSelect.forgetRememberedVertices();
+        if( f.isDoorWindow() ) {
+           inProgressHandler = handlerDoorWindowMove;
+           handlerDoorWindowMove.start(f);
+        } else {
+           inProgressHandler = handlerFurnitureMove;
+           handlerFurnitureMove.start(f);
+        }
 
-        inProgressHandler = handlerFurnitureMove;
-        handlerFurnitureMove.start(f);
         repaint();
     }
 
     public void dropFurnitureMiddleHandlerCall(Point p) {
-        if (inProgressHandler != handlerFurnitureMove) {
+        if (inProgressHandler != handlerFurnitureMove && inProgressHandler != handlerDoorWindowMove) {
             System.err.println("Attempt to set handler when something else was going on");
             return;
         }
 
-        handlerFurnitureMove.middle(p, false);
+        if( inProgressHandler == handlerDoorWindowMove ) {
+           handlerDoorWindowMove.middle(p, false);
+        } else {
+           handlerFurnitureMove.middle(p, false);
+        }
     }
 
     public void dropFurnitureStopHandlerCall() {
+        if( inProgressHandler == handlerDoorWindowMove ) {
+           handlerDoorWindowMove.stop();
+        } else {
+           handlerFurnitureMove.stop();
+        }
+
         inProgressHandler = null;
-        handlerFurnitureMove.stop();
     }
 
     public void dropFurnitureHandlerForgetFurniture() {
         handlerFurnitureMove.forgetRememberedFurniture();
+        handlerDoorWindowMove.forgetRememberedDoorWindow();
     }
 }

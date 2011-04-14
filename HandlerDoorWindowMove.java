@@ -37,7 +37,7 @@ public class HandlerDoorWindowMove {
 
       if (furniture != null) {
          revert.setLocation(furniture.getRotationCenter());
-         isCollided = false;
+         isCollided = coords.doorWindowInvalidPosition(f);
       }
    }
 
@@ -46,7 +46,7 @@ public class HandlerDoorWindowMove {
 
       coords.moveDoorWindow(furniture, p);
 
-      isCollided = coords.doorWindowValidPosition(furniture);
+      isCollided = coords.doorWindowInvalidPosition(furniture);
    }
 
    /** Stop the furniture dragging, resets the class so it is ready to recieve
@@ -68,7 +68,7 @@ public class HandlerDoorWindowMove {
          coords.moveFurniture(furniture, p);
       }*/
 
-      isCollided = coords.doorWindowValidPosition(furniture);
+      isCollided = coords.doorWindowInvalidPosition(furniture);
 
       if (isCollided) {
          isCollided = false;

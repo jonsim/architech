@@ -162,6 +162,7 @@ public class Coords {
    private final LinkedList<Vertex> vertices = new LinkedList<Vertex>();
    private final LinkedList<Edge> edges = new LinkedList<Edge>();
    private final LinkedList<Furniture> furniture = new LinkedList<Furniture>();
+   private Furniture invalidDW = null;
    private int gridWidth = 60; // makes grid lines at 0,60,120,...
 
    /** Creates a blank coordinate system */
@@ -273,6 +274,10 @@ public class Coords {
             return;
          }
       }
+
+      //if we've reached this point then the door/window isn't over an edge
+      invalidDW = f;
+      fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_ADDED, f));
    }
 
    /** Moves the door/window to the new location */
@@ -280,30 +285,30 @@ public class Coords {
       if( f == null ) return;
       Edge e = getDoorWindowEdge(f);
 
-      //newCenter = snapToEdge(newCenter);
-      f.set(newCenter);
-
       if( e == null ) {
+         if( invalidDW == f )
+            invalidDW = null;
+
+         //newCenter = snapToEdge(newCenter);
+         f.set(newCenter);
          addDoorWindow(f);
          return;
       }
 
-      if(!furnitureWallIntersect(f, e) ) {
+      //move to new position
+      //newCenter = snapToEdge(newCenter);
+      f.set(newCenter);
+
+      if( !furnitureWallIntersect(f, e) ) {
+         //moved off the current edge so we remove from the current edge...
          e.deleteDoorWindow(f);
          fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
 
-         ListIterator<Edge> ite = edges.listIterator();
-      
-         while( ite.hasNext() ) {
-            e = ite.next();
-            if( furnitureWallIntersect(f, e) ) {
-               f.setRotation( e.getRotation() );
-               e.addDoorWindow(f);
-               break;
-            }
-         }
+         //...and add it to the new one
+         addDoorWindow(f);
       }
 
+      //still on the same edge
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_CHANGED, f));
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
    }
@@ -344,7 +349,7 @@ public class Coords {
    }
 
    /** Checks for collisions with other doors/windows and whether it goes off the end of an edge */
-   public boolean doorWindowValidPosition(Furniture f) {
+   public boolean doorWindowInvalidPosition(Furniture f) {
       Edge e = getDoorWindowEdge(f);
 
       if( e == null )
@@ -583,7 +588,12 @@ public class Coords {
       if ( f == null ) return;
 
       Edge e = getDoorWindowEdge(f);
-      if( e == null ) return;
+      if( e == null ) {
+         if( invalidDW == f )
+            invalidDW = null;
+
+         return;
+      }
       
       e.deleteDoorWindow(f);
 
@@ -728,6 +738,13 @@ public class Coords {
       while (ite.hasNext()) {
          ite.next().paint(g2);
       }
+   }
+
+   public void paintInvalidDW(Graphics2D g2) {
+      g2.setColor(Color.RED);
+
+      if( invalidDW != null )
+         invalidDW.paint(g2);
    }
 
    /** Updates the given vertices coordinates to the given ones and returns the

@@ -84,6 +84,7 @@ class TwoDDropListener implements DropTargetListener {
 
       if (chooseDropFlavor(e) == null) return false;
       if ( !inProgress.isDoorWindow() && twoDPanel.getCoords().detectCollisions(inProgress) == true ) return false;
+      if ( inProgress.isDoorWindow() && twoDPanel.getCoords().doorWindowInvalidPosition(inProgress) ) return false;
 
       return true;
    }
@@ -114,8 +115,9 @@ class TwoDDropListener implements DropTargetListener {
             twoDPanel.getCoords().addDoorWindow(inProgress);
          } else {
             twoDPanel.getCoords().addFurniture(inProgress);
-            twoDPanel.setFurnitureAsHandlerAndStart(inProgress);
          }
+
+         twoDPanel.setFurnitureAsHandlerAndStart(inProgress);
 
 //         e.acceptDrag(e.getDropAction());
       }
@@ -126,13 +128,14 @@ class TwoDDropListener implements DropTargetListener {
    public void dragExit(DropTargetEvent e) {
 System.out.println("EXIT");
 
-      if( inProgress.isDoorWindow() )
+      if( inProgress.isDoorWindow() ) {
          twoDPanel.getCoords().deleteDoorWindow(inProgress);
-      else {
-         twoDPanel.dropFurnitureStopHandlerCall();
-         twoDPanel.dropFurnitureHandlerForgetFurniture();
+      } else {
          twoDPanel.getCoords().delete(inProgress);
       }
+
+      twoDPanel.dropFurnitureStopHandlerCall();
+      twoDPanel.dropFurnitureHandlerForgetFurniture();
 
       // MAYBE NOT - remember inProgress as the same drag might continue again
       inProgress = null;
@@ -179,11 +182,13 @@ System.out.println("EXIT");
       if (!isDropOk(e)) {
          e.rejectDrop();
 
-         if( inProgress.isDoorWindow() )
+         twoDPanel.dropFurnitureStopHandlerCall();
+         twoDPanel.dropFurnitureHandlerForgetFurniture();
+
+         if( inProgress.isDoorWindow() ) {
             twoDPanel.getCoords().deleteDoorWindow(inProgress);
-         else {
-            twoDPanel.dropFurnitureStopHandlerCall();
-            twoDPanel.dropFurnitureHandlerForgetFurniture();
+            twoDPanel.repaint();
+         } else {
             twoDPanel.getCoords().delete(inProgress);
          }
 
@@ -193,13 +198,14 @@ System.out.println("EXIT");
          e.acceptDrop(acceptableActions); // if you give ACTION_COPY_OR_MOVE, then source will receive MOVE!
          Point p = scalePoint(e.getLocation(), twoDPanel.getZoomScale());
 
-         if( inProgress.isDoorWindow() )
+         if( inProgress.isDoorWindow() ) {
             twoDPanel.getCoords().moveDoorWindow(inProgress, p);
-         else {
-            twoDPanel.getCoords().moveFurniture(inProgress, p);
-            twoDPanel.dropFurnitureStopHandlerCall();
-            twoDPanel.dropFurnitureHandlerForgetFurniture();
+         } else {
+            twoDPanel.getCoords().moveFurniture(inProgress, p);            
          }
+
+         twoDPanel.dropFurnitureStopHandlerCall();
+         twoDPanel.dropFurnitureHandlerForgetFurniture();
 
          e.dropComplete(true);
       }
