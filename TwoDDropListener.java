@@ -128,14 +128,15 @@ class TwoDDropListener implements DropTargetListener {
    public void dragExit(DropTargetEvent e) {
 System.out.println("EXIT");
 
+      twoDPanel.dropFurnitureStopHandlerCall();
+      twoDPanel.dropFurnitureHandlerForgetFurniture();
+
       if( inProgress.isDoorWindow() ) {
          twoDPanel.getCoords().deleteDoorWindow(inProgress);
+         twoDPanel.repaint();
       } else {
          twoDPanel.getCoords().delete(inProgress);
       }
-
-      twoDPanel.dropFurnitureStopHandlerCall();
-      twoDPanel.dropFurnitureHandlerForgetFurniture();
 
       // MAYBE NOT - remember inProgress as the same drag might continue again
       inProgress = null;

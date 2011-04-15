@@ -589,8 +589,10 @@ public class Coords {
 
       Edge e = getDoorWindowEdge(f);
       if( e == null ) {
-         if( invalidDW == f )
+         if( invalidDW == f ) {
             invalidDW = null;
+            fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_REMOVED, f));
+         }
 
          return;
       }
