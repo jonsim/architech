@@ -46,6 +46,8 @@ public class HandlerVertexSelect {
                         System.out.println(selectedArray.get(k));
                     }
                 }
+            } else {
+                deselect(v);
             }
             //FOR DEBUGGING - CAN BE REMOVED
             printEdges();
@@ -60,6 +62,17 @@ public class HandlerVertexSelect {
 
         if (selectedArray.size() > 1) {
             objectBrowser.toDecoration();
+        }
+    }
+
+    private void deselect(Coords.Vertex v) {
+        int i = 0;
+        LinkedList<Edge> e;
+        e = v.getEdges();
+        selectedArray.remove(v);
+        while(i < e.size()) {
+            wallEdges.remove(e.get(i));
+            i++;
         }
     }
     

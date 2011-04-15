@@ -11,6 +11,7 @@ public class HandlerVertexMove {
    private Coords.Vertex v = null;
    private final Point revert = new Point();
    private boolean isCollided = false;
+   private boolean hasMoved = true;
 
    HandlerVertexMove(Coords coords) {
       if (coords == null) throw new IllegalArgumentException("null coords");
@@ -30,18 +31,22 @@ public class HandlerVertexMove {
       }
 
       isCollided = false;
+      hasMoved = false;
    }
 
    public void middle(Point p, boolean snapToGrid) {
       if (v == null) return;
 
+      hasMoved = true;
+
       coords.set(v, p.x, p.y, 0, snapToGrid);
+      coords.splitEdges(v);
 
       isCollided = coords.detectVertexCollisions(v);
    }
 
    public void stop(Point p, boolean snapToGrid) {
-      if (v == null) return;
+      if (v == null || !hasMoved) return;
 
       isCollided = coords.detectVertexCollisions(v);
 
