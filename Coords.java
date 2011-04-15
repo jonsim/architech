@@ -136,9 +136,9 @@ public class Coords {
          return equalsLocation(v.p.x(), v.p.y(), v.p.z());
       }
 	  
-	  public LinkedList<Edge> getEdges() {
+	  /*public LinkedList<Edge> getEdges() {
 		 return edgeUses;
-	  }
+	  }*/
 
       /** @see Coords.Vertex.equalsLocation */
       @Override
@@ -758,6 +758,13 @@ public class Coords {
       }
    }
 
+   public void paintEdgesAround(Graphics2D g2, Vertex v, boolean isCurveTool) {
+      ListIterator<Edge> edgeIterator = v.edgeUses.listIterator();
+      while (edgeIterator.hasNext()) {
+         edgeIterator.next().paint(g2, false);
+      }
+   }
+
    /** Draws the small vertex circles on the given Graphics canvas */
    public void paintVertices(Graphics2D g2, int diameter) {
       g2.setColor(Color.BLACK);
@@ -989,6 +996,21 @@ public class Coords {
       edges.remove(e);
 
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_REMOVED, e));
+   }
+
+   public void deleteLength0EdgesAround(Vertex v) {
+      Edge[] edgesAroundVertex = v.edgeUses.toArray(new Edge[0]);
+
+      for (int i=0; i < edgesAroundVertex.length; i++) {
+         Edge edge = edgesAroundVertex[i];
+         if (edge.getV1() == edge.getV2()) {
+            delete(edge);
+         }
+      }
+   }
+
+   public Edge[] getVertexEdges(Vertex v) {
+       return v.edgeUses.toArray(new Edge[0]);
    }
 
    /** calls setCtrl on the edge with the new point and fires an edge changed event */

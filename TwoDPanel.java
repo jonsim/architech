@@ -180,12 +180,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
         Coords.Vertex vertexMove = handlerVertexMove.getVertex();
         if (inProgressHandler == handlerVertexMove && vertexMove != null) {
             if (handlerVertexMove.isCollided()) {
-                ListIterator<Edge> edgeIterator = vertexMove.getEdges().listIterator();
                 g2.setColor(Color.red);
-                while (edgeIterator.hasNext()) {
-                    Edge e = edgeIterator.next();
-                    e.paint(g2, false);
-                }
+                coords.paintEdgesAround(g2, vertexMove, false);
             }
         }
 
