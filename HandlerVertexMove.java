@@ -64,7 +64,13 @@ public class HandlerVertexMove {
       }
 
       // Delete length 0 edges
-      coords.deleteLength0EdgesAround(v);
+      ListIterator<Edge> edgeIterator = v.getEdges().listIterator();
+      while (edgeIterator.hasNext()) {
+         Edge edge = edgeIterator.next();
+         if (edge.getV1() == edge.getV2()) {
+            coords.delete(edge);
+         }
+      }
 
       v = null;
    }

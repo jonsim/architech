@@ -136,9 +136,9 @@ public class Coords {
          return equalsLocation(v.p.x(), v.p.y(), v.p.z());
       }
 	  
-	  /*public LinkedList<Edge> getEdges() {
+	  public LinkedList<Edge> getEdges() {
 		 return edgeUses;
-	  }*/
+	  }
 
       /** @see Coords.Vertex.equalsLocation */
       @Override
@@ -317,7 +317,7 @@ public class Coords {
     public boolean detectVertexCollisions(Vertex v) {
         Edge e;
         Furniture f;
-        ListIterator<Edge> edgeIterator = v.edgeUses.listIterator();
+        ListIterator<Edge> edgeIterator = v.getEdges().listIterator();
         ListIterator<Furniture> furnitureIterator = furniture.listIterator();
         while (edgeIterator.hasNext()) {
             e = edgeIterator.next();
@@ -370,26 +370,61 @@ public class Coords {
        ListIterator<Edge> allEdgeIterator = edges.listIterator();
        Edge e1;
        Edge e2;
+       lineSplits.clear();
        while(vEdgeIterator.hasNext()) {
            e1 = vEdgeIterator.next();
            while(allEdgeIterator.hasNext()) {
                e2 = allEdgeIterator.next();
                if(e1 != e2) {
-                   edgeOverlap(e1, e2);
+                   edgeOverlap(e1.topDownViewCurve, e2.topDownViewCurve);
                }
            }
            allEdgeIterator = edges.listIterator();
        }
    }
 
-   private void edgeOverlap(Edge e1, Edge e2) {
-       // add locations to lineSplits
-       // This is gonna be ridiculous
+   private void edgeOverlap(QuadCurve2D.Float qc1, QuadCurve2D.Float qc2) {
+       PathIterator ite1;
+       PathIterator ite2;
+       double[] oldCoords1 = new double[2];
+       double[] newCoords1 = new double[2];
+       double[] oldCoords2 = new double[2];
+       double[] newCoords2 = new double[2];
+       Point p1 = new Point();
+       Point p2 = new Point();
+       Point q1 = new Point();
+       Point q2 = new Point();
+       ite1 = qc1.getPathIterator(null, 0.1);
+       if (!ite1.isDone()) {
+           ite1.currentSegment(newCoords1);
+           ite1.next();
+       }
+       while (!ite1.isDone()) {
+           oldCoords1[0] = newCoords1[0];
+           oldCoords1[1] = newCoords1[1];
+           ite1.currentSegment(newCoords1);
+           ite2 = qc2.getPathIterator(null, 0.1);
+           if (!ite2.isDone()) {
+               ite2.currentSegment(newCoords2);
+               ite2.next();
+           }
+           while (!ite2.isDone()) {
+               oldCoords2[0] = newCoords2[0];
+               oldCoords2[1] = newCoords2[1];
+               ite2.currentSegment(newCoords2);
+               p1.setLocation(oldCoords1[0], oldCoords1[1]);
+               p2.setLocation(newCoords1[0], newCoords1[1]);
+               q1.setLocation(oldCoords2[0], oldCoords2[1]);
+               q2.setLocation(newCoords2[0], newCoords2[1]);
+               straightLineIntersect(p1, p2, q1, q2, true);
+               ite2.next();
+           }
+           ite1.next();
+       }
    }
 
    public void paintLineSplits(Graphics2D g2, int diameter) {
       g2.setColor(Color.BLACK);
-
       ListIterator<Point> ite = lineSplits.listIterator();
       Point p;
       Ellipse2D.Float circle = new Ellipse2D.Float();
@@ -448,16 +483,16 @@ public class Coords {
                p1 = f1.getTopRight();
                p2 = f1.getBottomRight();
            }
-           if(straightLineIntersect(p1, p2, topLeft, topRight)) return true;
-           if(straightLineIntersect(p1, p2, bottomLeft, bottomRight)) return true;
-           if(straightLineIntersect(p1, p2, topLeft, bottomLeft)) return true;
-           if(straightLineIntersect(p1, p2, topRight, bottomRight)) return true;
+           if(straightLineIntersect(p1, p2, topLeft, topRight, false)) return true;
+           if(straightLineIntersect(p1, p2, bottomLeft, bottomRight, false)) return true;
+           if(straightLineIntersect(p1, p2, topLeft, bottomLeft, false)) return true;
+           if(straightLineIntersect(p1, p2, topRight, bottomRight, false)) return true;
            i++;
        }
        return false;
    }
 
-   private boolean straightLineIntersect(Point a1, Point a2, Point b1, Point b2) {
+   private boolean straightLineIntersect(Point a1, Point a2, Point b1, Point b2, boolean isEdges) {
        double[] a = getEquation(a1, a2);
        double[] b = getEquation(b1, b2);
        // null is for vertical lines
@@ -476,18 +511,46 @@ public class Coords {
        if(a == null) {
            y = b[0]*a1.x + b[1];
            if(y <= maxaY && y >= minaY) {
-               if(maxbX >= a1.x && minbX <= a1.x) return true;
+               if(maxbX >= a1.x && minbX <= a1.x) {
+                   if(isEdges) {
+                       Point p = new Point();
+                       p.setLocation(a1.x, y);
+                       lineSplits.add(p);
+                   }
+                   return true;
+               }
            }
            return false;
        }
        if(b == null) {
            y = a[0]*b1.x + a[1];
            if(y <= maxbY && y >= minbY) {
-               if(maxaX >= b1.x && minaX <= b1.x) return true;
+               if(maxaX >= b1.x && minaX <= b1.x) {
+                   if(isEdges) {
+                       Point p = new Point();
+                       p.setLocation(b1.x, y);
+                       lineSplits.add(p);
+                   }
+                   return true;
+               }
            }
            return false;
        }
-       if(a[0] == b[0]) return false;
+       if(a[0] == b[0]) {
+           return false;
+       }
+       if(a[0] == 0) {
+           if(isEdges) {
+               if(b1.y < b2.y) return horizontalOverlap(maxbY, minbY, maxbX, minbX, maxaX, minaX, a[1], b1);
+               else return horizontalOverlap(maxbY, minbY, maxbX, minbX, maxaX, minaX, a[1], b2);
+           }
+       }
+       if(b[0] == 0) {
+           if(isEdges) {
+               if(a1.y < a2.y) return horizontalOverlap(maxaY, minaY, maxaX, minaX, maxbX, minbX, b[1], a1);
+               else return horizontalOverlap(maxaY, minaY, maxaX, minaX, maxbX, minbX, b[1], a2);
+           }
+       }
        if(a[0] > b[0]) {
            x = a[0]-b[0];
            c = b[1]-a[1];
@@ -500,9 +563,31 @@ public class Coords {
        y = c*a[0] + a[1];
        if(y <= maxaY && y >= minaY && y <= maxbY && y >= minbY
           && c <= maxaX && c >= minaX && c <= maxbX && c >= minbX) {
+           if(isEdges) {
+               Point p = new Point();
+               p.setLocation(c, y);
+               lineSplits.add(p);
+           }
            return true;
        }
        return false;
+   }
+
+    private boolean horizontalOverlap(int maxaY, int minaY, int maxaX, int minaX,
+                                      int maxbX, int minbX, double y, Point p) {
+        if (maxaY >= y && minaY <= y) {
+            double dist = (y - minaY) * (maxaX - minaX) / (maxaY - minaY);
+            double XPoint;
+            if (p.x == minaX) XPoint = p.x + dist;
+            else XPoint = p.x - dist;
+            if (XPoint <= maxbX && XPoint >= minbX) {
+                Point point = new Point();
+                point.setLocation(XPoint, y);
+                lineSplits.add(point);
+            }
+            return true;
+        }
+        return false;
    }
 
    // eqn[0] is the x coefficient, eqn[1] is the constant
@@ -625,10 +710,8 @@ public class Coords {
 
       Edge e = getDoorWindowEdge(f);
       if( e == null ) {
-         if( invalidDW == f ) {
+         if( invalidDW == f )
             invalidDW = null;
-            fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.DOORWINDOW_REMOVED, f));
-         }
 
          return;
       }
@@ -755,13 +838,6 @@ public class Coords {
       ListIterator<Edge> ite = edges.listIterator();
       while (ite.hasNext()) {
          ite.next().paint(g2, isCurveTool);
-      }
-   }
-
-   public void paintEdgesAround(Graphics2D g2, Vertex v, boolean isCurveTool) {
-      ListIterator<Edge> edgeIterator = v.edgeUses.listIterator();
-      while (edgeIterator.hasNext()) {
-         edgeIterator.next().paint(g2, false);
       }
    }
 
@@ -996,21 +1072,6 @@ public class Coords {
       edges.remove(e);
 
       fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_REMOVED, e));
-   }
-
-   public void deleteLength0EdgesAround(Vertex v) {
-      Edge[] edgesAroundVertex = v.edgeUses.toArray(new Edge[0]);
-
-      for (int i=0; i < edgesAroundVertex.length; i++) {
-         Edge edge = edgesAroundVertex[i];
-         if (edge.getV1() == edge.getV2()) {
-            delete(edge);
-         }
-      }
-   }
-
-   public Edge[] getVertexEdges(Vertex v) {
-       return v.edgeUses.toArray(new Edge[0]);
    }
 
    /** calls setCtrl on the edge with the new point and fires an edge changed event */

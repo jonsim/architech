@@ -180,8 +180,12 @@ class TwoDPanel extends JPanel implements ChangeListener {
         Coords.Vertex vertexMove = handlerVertexMove.getVertex();
         if (inProgressHandler == handlerVertexMove && vertexMove != null) {
             if (handlerVertexMove.isCollided()) {
+                ListIterator<Edge> edgeIterator = vertexMove.getEdges().listIterator();
                 g2.setColor(Color.red);
-                coords.paintEdgesAround(g2, vertexMove, false);
+                while (edgeIterator.hasNext()) {
+                    Edge e = edgeIterator.next();
+                    e.paint(g2, false);
+                }
             }
         }
 
@@ -555,26 +559,28 @@ class TwoDPanel extends JPanel implements ChangeListener {
             }
 
             if (inProgressHandler == handlerEdgeCurve) {
-                int i = 0;
-                int j = 0;
-                int k = 0;
-                Edge edge = handlerEdgeCurve.getEdge();
-                if (edge != null) {
-                    while (i < polygonEdges.size() - k) {
-                        while (j < polygonEdges.get(i).size()) {
-                            if (polygonEdges.get(i).get(j).getV1().equals(edge.getV1())
-                                    || polygonEdges.get(i).get(j).getV2().equals(edge.getV1())
-                                    || polygonEdges.get(i).get(j).getV1().equals(edge.getV2())
-                                    || polygonEdges.get(i).get(j).getV2().equals(edge.getV2())) {
-                                updateFilledRoom(i);
-                                i--;
-                                k++;
-                                break;
+                if(!handlerEdgeCurve.isCollided()) {
+                    int i = 0;
+                    int j = 0;
+                    int k = 0;
+                    Edge edge = handlerEdgeCurve.getEdge();
+                    if (edge != null) {
+                        while (i < polygonEdges.size() - k) {
+                            while (j < polygonEdges.get(i).size()) {
+                                if (polygonEdges.get(i).get(j).getV1().equals(edge.getV1())
+                                        || polygonEdges.get(i).get(j).getV2().equals(edge.getV1())
+                                        || polygonEdges.get(i).get(j).getV1().equals(edge.getV2())
+                                        || polygonEdges.get(i).get(j).getV2().equals(edge.getV2())) {
+                                    updateFilledRoom(i);
+                                    i--;
+                                    k++;
+                                    break;
+                                }
+                                j++;
                             }
-                            j++;
+                            j = 0;
+                            i++;
                         }
-                        j = 0;
-                        i++;
                     }
                 }
 
@@ -588,22 +594,24 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 handlerEdgeDraw.stop(p, e.isShiftDown(), designButtons.isGridOn());
 
             } else if (inProgressHandler == handlerVertexMove) {
-                int i = 0;
-                int j = 0;
-                int k = 0;
-                while (i < polygonEdges.size() - k) {
-                    while (j < polygonEdges.get(i).size()) {
-                        if (polygonEdges.get(i).get(j).getV1().equals(handlerVertexMove.getVertex())
-                                || polygonEdges.get(i).get(j).getV2().equals(handlerVertexMove.getVertex())) {
-                            updateFilledRoom(i);
-                            i--;
-                            k++;
-                            break;
+                if(!handlerVertexMove.isCollided()) {
+                    int i = 0;
+                    int j = 0;
+                    int k = 0;
+                    while (i < polygonEdges.size() - k) {
+                        while (j < polygonEdges.get(i).size()) {
+                            if (polygonEdges.get(i).get(j).getV1().equals(handlerVertexMove.getVertex())
+                                    || polygonEdges.get(i).get(j).getV2().equals(handlerVertexMove.getVertex())) {
+                                updateFilledRoom(i);
+                                i--;
+                                k++;
+                                break;
+                            }
+                            j++;
                         }
-                        j++;
+                        j = 0;
+                        i++;
                     }
-                    j = 0;
-                    i++;
                 }
 
                 inProgressHandler = null;
@@ -621,7 +629,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 handlerDoorWindowMove.stop();
             }
 
-            // Bren't stuff, mouse release is a lot easier than mouse press as moving
+            // Brent's stuff, mouse release is a lot easier than mouse press as moving
             // vertices also uses mouse press to recognise and that and this shouldnt
             // be doing things at the same time
             if (callVertexSelect) {

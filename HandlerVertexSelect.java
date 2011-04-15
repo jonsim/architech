@@ -66,12 +66,13 @@ public class HandlerVertexSelect {
     }
 
     private void deselect(Coords.Vertex v) {
-        Edge[] e = coords.getVertexEdges(v);
-
+        int i = 0;
+        LinkedList<Edge> e;
+        e = v.getEdges();
         selectedArray.remove(v);
-
-        for (int i=0; i < e.length; i++) {
-            wallEdges.remove(e[i]);
+        while(i < e.size()) {
+            wallEdges.remove(e.get(i));
+            i++;
         }
     }
     
