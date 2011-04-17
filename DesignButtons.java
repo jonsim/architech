@@ -20,7 +20,7 @@ public class DesignButtons implements ActionListener {
    public final Viewport3D viewport3D;
    private final FrontEnd frontEnd;
    private ObjectBrowser objectBrowser;
-   private JPanel pane;
+   private JPanel pane,fillcom;
    private JButton selectTool, lineTool, curveTool,currentTool, dayToggle, tweaker, fillTool;
    private JButton deselectTool,dropD,dropT;
    private JButton TwUp,TwDown,TwLeft,TwRight,TwFor,TwBack,TwCol,TwTex,TwPlus,TwMinus,TwRotl,TwRotr;
@@ -123,6 +123,7 @@ public class DesignButtons implements ActionListener {
       dayToggle.setUI(new MetalButtonUI());
       dayToggle.setToolTipText("Switch between night and day");
       
+      
       fillTool = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "fill.png")));
       fillTool.addActionListener(this);
       fillTool.setMargin(margins);
@@ -135,6 +136,11 @@ public class DesignButtons implements ActionListener {
       dropD.setMargin(margins);
       dropD.setUI(new MetalButtonUI());
       dropD.setToolTipText("Select a fill colour");
+      fillcom = new JPanel(new GridBagLayout());
+      GridBagConstraints c = FrontEnd.buildGBC(0, 0, 0.5, 0.5, GridBagConstraints.NORTH, new Insets(0,0,0,0));
+      fillcom.add(fillTool,c);
+      c = FrontEnd.buildGBC(0, 1, 0.5, 0.5, GridBagConstraints.NORTH, new Insets(0,0,0,0));
+      fillcom.add(dropD,c);
       
       tweaker = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "tweak.png")));
       tweaker.addActionListener(this);
@@ -342,13 +348,12 @@ public class DesignButtons implements ActionListener {
       c = FrontEnd.buildGBC(3, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(curveTool, c);
 
-      c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, centerAnchor, right);
+      c = FrontEnd.buildGBC(4, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(gridTool, c);
       
-      c = FrontEnd.buildGBC(5, 1, 0.5, 0.5, centerAnchor, right);
-      pane.add(fillTool, c);
-      c = FrontEnd.buildGBC(5, 2, 0.5, 0.5, centerAnchor, right);
-      pane.add(dropD, c);
+      fillcom.setOpaque(false);
+      c = FrontEnd.buildGBC(5, 1, 0.5, 0.5, topCenterAnchor, right);
+      pane.add(fillcom, c);
       
       c = FrontEnd.buildGBC(6, 0, 0.5, 0.5, bottomCenterAnchor, right);
       pane.add(new JLabel("<html><font color='white'>Zoom"), c);
@@ -496,8 +501,12 @@ public class DesignButtons implements ActionListener {
                   texonshow = false;
               }
       } else if (tweaker == source) {
-          viewport3D.shutdown3D();
-    	  frontEnd.changetw();
+    	  if(System.getProperty("os.name").equals("Linux")){
+    		  JOptionPane.showMessageDialog(null, "The tweaker is not currently avaliable for your OS","OS Incompatible", 1);
+    	  }else{
+	          viewport3D.shutdown3D();
+	    	  frontEnd.changetw();
+    	  }
     	  
       } else if(fillTool == source){
     	  frontEnd.getCurrentTab().getpanel().fillfloor();
