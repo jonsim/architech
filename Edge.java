@@ -222,9 +222,11 @@ public class Edge {
          
       } else g2.draw(topDownViewCurve);
 
-      ListIterator<Furniture> ite = doorWindow.listIterator();
-      while ( ite.hasNext() ) {
-         ite.next().paint(g2);
+      if( isStraight() ) {
+         ListIterator<Furniture> ite = doorWindow.listIterator();
+         while ( ite.hasNext() ) {
+            ite.next().paint(g2);
+         }
       }
    }
 
