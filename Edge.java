@@ -20,7 +20,9 @@ public class Edge {
    private final Line2D.Float tangent2 = new Line2D.Float();
    private final LinkedList<Furniture> doorWindow = new LinkedList<Furniture>();
    private String texpath = "";
-   public boolean doRecalcCtrl = false;
+   public boolean wasStraight = false;
+   private double oldRotation;
+   private int changedV = 0;
 
    /** Creates a new edge from the given vertices. Doesn't add it to the coordStore.
     *  If null is given for a vertex then that vertex will be made at 0,0,0
@@ -77,6 +79,18 @@ public class Edge {
 
       this.v2 = v2;
       resetCtrlPositionToHalfway();
+   }
+
+   /** comment */
+   public void storeRotation(int vNum) {
+      oldRotation = getRotation();
+      changedV = vNum;
+   }
+
+   /** comment */
+   public void discardRotation() {
+      oldRotation = 0.0;
+      changedV = 0;
    }
 
    /** Returns true if the point lies within the coordinates of the control point */
@@ -145,13 +159,17 @@ public class Edge {
       return null;
    }
 
-   public double getRotation() {
+   public double getRotation(Coords.Vertex v1, Coords.Vertex v2) {
       double delta_x = v1.getX() - v2.getX();
       double delta_y = v1.getY() - v2.getY();
       return Math.atan2(delta_y, delta_x);
    }
 
-   public boolean isStraight() {
+   public double getRotation() {
+      return getRotation(v1, v2);
+   }
+
+   public boolean isStraight(Coords.Vertex v1, Coords.Vertex v2, Point.Float ctrl) {
       int xDiff = 0, yDiff = 0;
 
       if ( ctrl.getX() == ( ( v1.getX() + v2.getX() ) / 2 ) )
@@ -174,6 +192,10 @@ public class Edge {
       return false;
    }
 
+   public boolean isStraight() {
+      return isStraight(v1, v2, ctrl);
+   }
+
    public boolean doorWindowAt(Point p) {
       ListIterator<Furniture> ite = doorWindow.listIterator();
       
@@ -188,6 +210,34 @@ public class Edge {
    public final void resetCtrlPositionToHalfway() {
       ctrl.setLocation( ( v1.getX() + v2.getX() ) / 2, ( v1.getY() + v2.getY() ) / 2 );
       recalcTopDownView();
+   }
+
+   /** Adjusts the ctrl point for a curve */
+   public final void resetCurveCtrlPosition() {
+      Coords.Vertex pivot;
+
+      if( wasStraight ) {
+         resetCtrlPositionToHalfway();
+         wasStraight = false;
+         discardRotation();
+         return;
+      }
+
+      if( changedV == 0 )
+         return;
+      
+      if( changedV == 1 )
+         pivot = v2;
+      else
+         pivot = v1;
+
+      double change = getRotation() - oldRotation;
+      
+      if( change != 0 ) {
+         double x = pivot.getX() + ( ( ctrl.getX() - pivot.getX() ) * Math.cos(change) - ( ctrl.getY() - pivot.getY() ) * Math.sin(change) );
+         double y = pivot.getY() + ( ( ctrl.getX() - pivot.getX() ) * Math.sin(change) + ( ctrl.getY() - pivot.getY() ) * Math.cos(change) );
+         ctrl.setLocation(x, y);
+      }
    }
 
    /** Keeps the top down (2D) view of this line up to date */

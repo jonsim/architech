@@ -886,17 +886,26 @@ public class Coords {
       if (!(v.p.x()==x && v.p.y()==y && v.p.z()==z)) {
          Edge[] affectedEdges = v.edgeUses.toArray(new Edge[0]);
          for (Edge e : affectedEdges) {
-            if( e.isStraight() )
-               e.doRecalcCtrl = true;
+            if( e.isStraight() ) {
+               e.wasStraight = true;
+            } else {
+               if( e.getV1() == v )
+                  e.storeRotation(1);
+               else if( e.getV2() == v )
+                  e.storeRotation(2);
+            }
          }
 
          v.set(x, y, z);
 
          // fire a shit load of events
          for (Edge e : affectedEdges) {
-            if( e.doRecalcCtrl ) {
-               e.doRecalcCtrl = false;
+            if( e.wasStraight ) {
                e.resetCtrlPositionToHalfway();
+               e.wasStraight = false;
+            } else {
+               e.resetCurveCtrlPosition();
+               e.discardRotation();
             }
 
             fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
