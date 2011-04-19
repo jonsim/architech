@@ -40,7 +40,7 @@ public class HandlerVertexMove {
       hasMoved = true;
 
       coords.set(v, p.x, p.y, 0, snapToGrid);
-      coords.splitEdges(v);
+      coords.findEdgeSplits(v, false);
 
       isCollided = coords.detectVertexCollisions(v);
    }
@@ -57,6 +57,7 @@ public class HandlerVertexMove {
          mergedPoint = coords.mergeVertices(v, p.x, p.y, 0, snapToGrid);
          if(mergedPoint.x != -1 && mergedPoint.y != 1) coords.set(v, mergedPoint.x, mergedPoint.y, 0, snapToGrid);
          else coords.set(v, p.x, p.y, 0, snapToGrid);
+		 coords.splitEdges(null, v);
       } else {
          //reset to start
          coords.set(v, (float) revert.getX(), (float) revert.getY(), 0, false);

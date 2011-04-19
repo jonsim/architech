@@ -56,6 +56,7 @@ public class HandlerEdgeDraw {
       }
 
       coords.vertexMoveOrSplit(edge, false, newX, newY, 0, snapToGrid);
+	  coords.findEdgeSplits(edge, false);
 
       // check if the line is over a furniture item
       isCollided = coords.detectVertexCollisions(edge.getV2());
@@ -93,6 +94,7 @@ public class HandlerEdgeDraw {
          mergedPoint = coords.mergeVertices(edge.getV2(), newX, newY, 0, snapToGrid);
          if(mergedPoint.x != -1 && mergedPoint.y != 1) coords.set(edge.getV2(), mergedPoint.x, mergedPoint.y, 0, snapToGrid);
          else coords.set(edge.getV2(), p.x, p.y, 0, snapToGrid);
+		 coords.splitEdges(edge, null);
       } else {
          // revert
          coords.delete(edge);

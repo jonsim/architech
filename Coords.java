@@ -163,6 +163,8 @@ public class Coords {
    private final LinkedList<Edge> edges = new LinkedList<Edge>();
    private final LinkedList<Furniture> furniture = new LinkedList<Furniture>();
    private LinkedList<Point> lineSplits = new LinkedList<Point>();
+   private LinkedList<Edge> splitEdges = new LinkedList<Edge>();
+   private LinkedList<Edge> rememberedEdges = new LinkedList<Edge>();
    private Furniture invalidDW = null;
    private int gridWidth = 60; // makes grid lines at 0,60,120,...
 
@@ -364,7 +366,123 @@ public class Coords {
       return false;
    }
 
-   public void splitEdges(Vertex v) {
+   public void splitEdges(Edge edge, Vertex vertex) {
+       if(edge == null && vertex == null) return;
+       rememberedEdges.clear();
+       if(edge != null) rememberedEdges.add(edge);
+       else rememberedEdges.addAll(vertex.edgeUses);
+       LinkedList<Edge> used = new LinkedList<Edge>();
+       Edge e;
+       Edge e1;
+       Edge e2;
+       Vertex locationCheck;
+       int skipTest;
+       int i;
+       while(!rememberedEdges.isEmpty()) {
+           e = rememberedEdges.get(0);
+           rememberedEdges.remove(0);
+           splitEdges.clear();
+           lineSplits.clear();
+           findEdgeSplits(e, true);
+           while(!splitEdges.isEmpty()) {
+               skipTest = 0;
+               i = 0;
+               locationCheck = vertexAt(lineSplits.get(0));
+               e1 = splitEdges.get(0);
+               splitEdges.remove(0);
+               e2 = splitEdges.get(0);
+               splitEdges.remove(0);
+               if(locationCheck != null) {
+                   if(locationCheck.equals(e1.getV1()) || locationCheck.equals(e1.getV2())) skipTest++;
+                   if(locationCheck.equals(e2.getV1()) || locationCheck.equals(e2.getV2())) skipTest += 2;
+               }
+               while(i < used.size()) {
+                   if(e1.equals(used.get(i))) {
+                       skipTest += 5;
+                       break;
+                   }
+                   if(e2.equals(used.get(i))) {
+                       skipTest += 5;
+                       break;
+                   }
+                   i++;
+               }
+               if(skipTest == 0) {
+                   splitCurve(e1.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
+                   used.add(e1);
+                   delete(e1);
+                   splitCurve(e2.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
+                   used.add(e2);
+                   delete(e2);
+               } else if(skipTest == 1) {
+                   splitCurve(e2.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
+                   used.add(e2);
+                   delete(e2);
+               } else if(skipTest == 2) {
+                   splitCurve(e1.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
+                   used.add(e1);
+                   delete(e1);
+               }
+               lineSplits.remove(0);
+           }
+       }
+   }
+   
+   private void splitCurve(QuadCurve2D quad, double x, double y) {
+       if (quad == null) return;
+       double sx0 = quad.getX1();
+       double sx1 = quad.getX2();
+       double scx = quad.getCtrlX();
+       double scy = quad.getCtrlY();
+       double sy0 = quad.getY1();
+       double sy1 = quad.getY2();
+       double p0x = 0;
+       double p0y = 0;
+       double p1x = 0;
+       double p1y = 0;
+       double dpx = -1;
+       double dpy = -1;
+       double tSplit = 0;
+       double change = 0.00001;
+       Edge edge1;
+       Edge edge2;
+       while (dpx >= x + 1 || dpx <= x - 1 || dpy >= y + 1 || dpy <= y - 1) {
+           p0x = sx0 + (tSplit * (scx - sx0));
+           p0y = sy0 + (tSplit * (scy - sy0));
+           p1x = scx + (tSplit * (sx1 - scx));
+           p1y = scy + (tSplit * (sy1 - scy));
+           dpx = p0x + (tSplit * (p1x - p0x));
+           dpy = p0y + (tSplit * (p1y - p0y));
+           if(dpx <= x + 1 && dpx >= x - 1 && dpy <= y + 1 && dpy >= y - 1) break;
+           tSplit += change;
+           if(tSplit > 1) {
+               return;
+           }
+       }
+       Vertex v = vertexAt(new Point((int)x, (int)y));
+       if(v == null) v = new Vertex(x, y, 0);
+       edge1 = newEdge(new Vertex(sx0, sy0, 0), v, false);
+       edge1.setCtrl(new Point((int)p0x, (int)p0y));
+       edge2 = newEdge(v, new Vertex(sx1, sy1, 0), false);
+       edge2.setCtrl(new Point((int)p1x, (int)p1y));
+       rememberedEdges.add(edge1);
+       rememberedEdges.add(edge2);
+       return;
+  }
+
+   public void findEdgeSplits(Edge e, boolean storeEdges) {
+       ListIterator<Edge> allEdgeIterator = edges.listIterator();
+       Edge e1;
+       lineSplits.clear();
+       while(allEdgeIterator.hasNext()) {
+           e1 = allEdgeIterator.next();
+           if(e != e1) {
+               edgeOverlap(e, e1, storeEdges);
+           }
+       }
+   }
+
+   public void findEdgeSplits(Vertex v, boolean storeEdges) {
        ListIterator<Edge> vEdgeIterator = v.edgeUses.listIterator();
        ListIterator<Edge> allEdgeIterator = edges.listIterator();
        Edge e1;
@@ -375,14 +493,26 @@ public class Coords {
            while(allEdgeIterator.hasNext()) {
                e2 = allEdgeIterator.next();
                if(e1 != e2) {
-                   edgeOverlap(e1.topDownViewCurve, e2.topDownViewCurve);
+                   edgeOverlap(e1, e2, storeEdges);
                }
            }
            allEdgeIterator = edges.listIterator();
        }
    }
 
-   private void edgeOverlap(QuadCurve2D.Float qc1, QuadCurve2D.Float qc2) {
+   private void edgeOverlap(Edge e1, Edge e2, boolean storeEdges) {
+       QuadCurve2D.Float qc1 = e1.topDownViewCurve;
+       QuadCurve2D.Float qc2 = e2.topDownViewCurve;
+       // This is just a speed improvement, ignores iterating through distant curves
+       boolean collision = false;
+       if(qc1.getBounds2D().intersects(qc2.getBounds2D())) collision = true;
+       // getBounds2D intersection doesn't work for horizontal and vertical lines
+       // but they are very fast to check because they return only one path element
+       if(qc1.x1 == qc1.ctrlx && qc1.x1 == qc1.x2) collision = true;
+       if(qc2.x1 == qc2.ctrlx && qc2.x1 == qc2.x2) collision = true;
+       if(qc1.y1 == qc1.ctrly && qc1.y1 == qc1.y2) collision = true;
+       if(qc2.y1 == qc2.ctrly && qc2.y1 == qc2.y2) collision = true;
+       if(!collision) return;
        PathIterator ite1;
        PathIterator ite2;
        double[] oldCoords1 = new double[2];
@@ -415,7 +545,10 @@ public class Coords {
                p2.setLocation(newCoords1[0], newCoords1[1]);
                q1.setLocation(oldCoords2[0], oldCoords2[1]);
                q2.setLocation(newCoords2[0], newCoords2[1]);
-               straightLineIntersect(p1, p2, q1, q2, true);
+               if(straightLineIntersect(p1, p2, q1, q2, true) && storeEdges) {
+                   splitEdges.add(e1);
+                   splitEdges.add(e2);
+               }
                ite2.next();
            }
            ite1.next();
@@ -433,6 +566,7 @@ public class Coords {
          g2.fill(circle);
       }
       lineSplits.clear();
+      splitEdges.clear();
    }
 
    private boolean furnitureWallIntersect(Furniture f, Edge e) {
@@ -583,8 +717,8 @@ public class Coords {
                 Point point = new Point();
                 point.setLocation(XPoint, y);
                 lineSplits.add(point);
+                return true;
             }
-            return true;
         }
         return false;
    }

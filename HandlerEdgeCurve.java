@@ -33,6 +33,7 @@ public class HandlerEdgeCurve {
       if (edge == null) return;
 
       coords.setEdgeCtrl(edge, p);
+	  coords.findEdgeSplits(edge, false);
 
       // I think isCollisionVertex also is true if the line collides with anything
       // if it doesn't this should check the line, theres no point checking vertex
@@ -50,7 +51,10 @@ public class HandlerEdgeCurve {
                    || coords.detectVertexCollisions(edge.getV2());
 
       if (isCollided) coords.setEdgeCtrl(edge, revert);
-      else coords.setEdgeCtrl(edge, p);
+      else {
+		coords.setEdgeCtrl(edge, p);
+		coords.splitEdges(edge, null);
+	  }
 
       edge = null;
    }
