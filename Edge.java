@@ -159,7 +159,7 @@ public class Edge {
       return null;
    }
 
-   public double getRotation(Coords.Vertex v1, Coords.Vertex v2) {
+   public static double getRotation(Coords.Vertex v1, Coords.Vertex v2) {
       double delta_x = v1.getX() - v2.getX();
       double delta_y = v1.getY() - v2.getY();
       return Math.atan2(delta_y, delta_x);
@@ -169,7 +169,7 @@ public class Edge {
       return getRotation(v1, v2);
    }
 
-   public boolean isStraight(Coords.Vertex v1, Coords.Vertex v2, Point.Float ctrl) {
+   public static boolean isStraight(Coords.Vertex v1, Coords.Vertex v2, Point.Float ctrl) {
       int xDiff = 0, yDiff = 0;
 
       if ( ctrl.getX() == ( ( v1.getX() + v2.getX() ) / 2 ) )

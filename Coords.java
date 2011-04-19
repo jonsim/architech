@@ -262,7 +262,6 @@ public class Coords {
    public void addDoorWindow(Furniture f) {
       if( f == null || getDoorWindowEdge(f) != null ) return;
 
-      //f.set( snapToEdge( f.getRotationCenter() );
       ListIterator<Edge> ite = edges.listIterator();
       
       while( ite.hasNext() ) {
@@ -290,14 +289,14 @@ public class Coords {
          if( invalidDW == f )
             invalidDW = null;
 
-         //newCenter = snapToEdge(newCenter);
+         newCenter = snapToEdge(newCenter);
          f.set(newCenter);
          addDoorWindow(f);
          return;
       }
 
       //move to new position
-      //newCenter = snapToEdge(newCenter);
+      newCenter = snapToEdge(newCenter);
       f.set(newCenter);
 
       if( !furnitureWallIntersect(f, e) ) {
@@ -983,14 +982,31 @@ public class Coords {
       return coord;
    }
 
-   /** TODO: Snaps a point to the nearest edge */
+   /** Snaps a point to the nearest edge. Works on straight edges only */
    private Point snapToEdge(Point p) {
       ListIterator<Edge> ite = edges.listIterator();
-      Rectangle proximity = new Rectangle((int)p.getX(), (int)p.getY(), 10, 10);
+      Rectangle2D proximity = new Rectangle2D.Double( p.getX()-10, p.getY()-10, 20, 20 );
 
       while(ite.hasNext()) {
          Edge e = ite.next();
 
+         if( e.isStraight() && e.getqcurve().intersects(proximity) ) {
+            Vertex v1 = e.getV1();
+            Vertex v2 = new Vertex( p.getX(), p.getY(), v1.getZ() );
+
+            double theta1 = (Math.PI/2) - e.getRotation();
+            double theta2 = e.getRotation() - Edge.getRotation( v1, v2 );
+
+            double a = Math.abs(v1.getX() - v2.getX());
+            double b = Math.abs(v1.getY() - v2.getY());
+            double len = Math.sqrt(a*a + b*b) * Math.cos(theta2);
+
+            double dy = len * Math.cos(theta1);
+            double dx = len * Math.sin(theta1);
+            p.setLocation( v1.getX() - dx, v1.getY() - dy );
+
+            break;
+         }
       }
 
       return p;
