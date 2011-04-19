@@ -887,12 +887,12 @@ public class Coords {
          for (Edge e : affectedEdges) {
             if( e.isStraight() ) {
                e.wasStraight = true;
-            } else {
-               if( e.getV1() == v )
-                  e.storeRotation(1);
-               else if( e.getV2() == v )
-                  e.storeRotation(2);
             }
+
+            if( e.getV1() == v )
+               e.storeRotation(1);
+            else if( e.getV2() == v )
+               e.storeRotation(2);
          }
 
          v.set(x, y, z);
@@ -904,9 +904,11 @@ public class Coords {
                e.wasStraight = false;
             } else {
                e.resetCurveCtrlPosition();
-               e.discardRotation();
             }
 
+            e.resetDoorsWindows(this);
+            e.recalcTopDownView();
+            e.discardRotation();
             fireCoordsChangeEvent(new CoordsChangeEvent(this, CoordsChangeEvent.EDGE_CHANGED, e));
          }
       }
@@ -983,7 +985,7 @@ public class Coords {
    }
 
    /** Snaps a point to the nearest edge. Works on straight edges only */
-   private Point snapToEdge(Point p) {
+   public Point snapToEdge(Point p) {
       ListIterator<Edge> ite = edges.listIterator();
       Rectangle2D proximity = new Rectangle2D.Double( p.getX()-10, p.getY()-10, 20, 20 );
 

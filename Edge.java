@@ -240,6 +240,32 @@ public class Edge {
       }
    }
 
+   public void resetDoorsWindows(Coords coords) {
+      Coords.Vertex pivot;
+
+      if( changedV == 0 )
+         return;
+
+      if( changedV == 1 )
+         pivot = v2;
+      else
+         pivot = v1;
+
+      double change = getRotation() - oldRotation;
+
+      ListIterator<Furniture> ite = doorWindow.listIterator();
+      while( ite.hasNext() ) {
+         Furniture f = ite.next();
+
+         if( change != 0 ) {
+            double x = pivot.getX() + ( ( f.getRotationCenter().getX() - pivot.getX() ) * Math.cos(change) - ( f.getRotationCenter().getY() - pivot.getY() ) * Math.sin(change) );
+            double y = pivot.getY() + ( ( f.getRotationCenter().getX() - pivot.getX() ) * Math.sin(change) + ( f.getRotationCenter().getY() - pivot.getY() ) * Math.cos(change) );
+            f.set( coords.snapToEdge( new Point( (int) x, (int) y ) ) );
+            f.setRotation( getRotation() );
+         }
+      }
+   }
+
    /** Keeps the top down (2D) view of this line up to date */
    public final void recalcTopDownView() {
       topDownViewCurve.setCurve(v1.getX(), v1.getY(), ctrl.getX(), ctrl.getY(), v2.getX(), v2.getY());
