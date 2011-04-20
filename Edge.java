@@ -64,21 +64,21 @@ public class Edge {
    /** Updates v1, refuses to update if you give it null. Also updates the ctrl
     *  point to halfway between the two points. When a new line is drawn this is
     *  called, and the new line has ctrl point 0,0 so it should be updated. */
-   public void setV1(Coords.Vertex v1) {
+   public void setV1(Coords.Vertex v1, boolean isMerging) {
       if (v1 == null) return;
 
       this.v1 = v1;
-      resetCtrlPositionToHalfway();
+      if(!isMerging) resetCtrlPositionToHalfway();
    }
 
    /** Updates v2, refuses to update if you give it null. Also updates the ctrl
     *  point to halfway between the two points. When a new line is drawn this is
     *  called, and the new line has ctrl point 0,0 so it should be updated. */
-   public void setV2(Coords.Vertex v2) {
+   public void setV2(Coords.Vertex v2, boolean isMerging) {
       if (v2 == null) return;
 
       this.v2 = v2;
-      resetCtrlPositionToHalfway();
+      if(!isMerging) resetCtrlPositionToHalfway();
    }
 
    /** comment */

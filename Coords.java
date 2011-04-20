@@ -107,9 +107,9 @@ public class Coords {
             Edge e = vIte.next();
 
             if (e.getV1() == v) {
-               e.setV1(this);
+               e.setV1(this, true);
             } else if (e.getV2() == v) {
-               e.setV2(this);
+               e.setV2(this, true);
             } else Main.showFatalExceptionTraceWindow(new Exception("Never Happen Case"));
 
             this.setUse(e);
@@ -1190,9 +1190,9 @@ public class Coords {
       boolean fireChangeEventNecessary = !toMove.equals(newV);
 
       if (isV1) {
-         e.setV1(newV);
+         e.setV1(newV, false);
       } else {
-         e.setV2(newV);
+         e.setV2(newV, false);
       }
 
       if (fireChangeEventNecessary) {
