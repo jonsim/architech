@@ -231,8 +231,12 @@ public class Furniture {
 
    /** Draws the  */
    public void paint(Graphics2D g2) {
+      Color oldColor = g2.getColor();
       AffineTransform original = g2.getTransform();
       g2.rotate(rotation, rotationCenterX, rotationCenterY);
+      g2.setColor(Color.WHITE);
+      g2.fill(rectangle);
+      g2.setColor(oldColor);
       g2.draw(rectangle);
       g2.setTransform(original);
    }

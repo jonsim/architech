@@ -597,6 +597,7 @@ public class Coords {
    private boolean rectangleIntersect(Furniture f1, Furniture f2) {
        Point p1 = new Point();
        Point p2 = new Point();
+	   Point insideTest;
        Point topLeft = f2.getTopLeft();
        Point topRight = f2.getTopRight();
        Point bottomLeft = f2.getBottomLeft();
@@ -622,6 +623,12 @@ public class Coords {
            if(straightLineIntersect(p1, p2, topRight, bottomRight, false)) return true;
            i++;
        }
+	   insideTest = rotatePoint(f1.getRotation(), f2.getRotationCenterX(), f2.getRotationCenterY(), f1.getRotationCenterX(), f1.getRotationCenterY());
+       if(insideTest.x < f1.getRotationCenterX()+f1.getWidth()/2 && insideTest.x > f1.getRotationCenterX()-f1.getWidth()/2
+          && insideTest.y < f1.getRotationCenterY()+f1.getHeight()/2 && insideTest.y > f1.getRotationCenterY()-f1.getHeight()/2) return true;
+       insideTest = rotatePoint(f2.getRotation(), f1.getRotationCenterX(), f1.getRotationCenterY(), f2.getRotationCenterX(), f2.getRotationCenterY());
+       if(insideTest.x < f2.getRotationCenterX()+f2.getWidth()/2 && insideTest.x > f2.getRotationCenterX()-f2.getWidth()/2
+          && insideTest.y < f2.getRotationCenterY()+f2.getHeight()/2 && insideTest.y > f2.getRotationCenterY()-f2.getHeight()/2) return true;
        return false;
    }
 
