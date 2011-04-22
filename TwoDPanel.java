@@ -506,6 +506,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
             }
             a++;
         }
+        getFloorScreenshot();
+        designButtons.viewport3D.getapp().reloadfloor(currname);
     }
 
     private class TwoDPanelMouseListener implements MouseListener {
