@@ -243,6 +243,7 @@ public class FileManager {
             furnitureLoadCount++;
          } catch (IllegalArgumentException e) {
             // skip this line, it is corrupt
+        	 System.out.println("Corrupt item found in file with error: " + e);
          }
       }
 

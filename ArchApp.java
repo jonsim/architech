@@ -1,16 +1,17 @@
-import java.awt.Color;
 import java.awt.Point;
+import java.awt.geom.QuadCurve2D;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import java.awt.geom.QuadCurve2D;
-import java.util.ArrayList;
-
 import com.jme3.app.Application;
 import com.jme3.app.StatsView;
+import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
+import com.jme3.bullet.control.CharacterControl;
+import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
@@ -35,6 +36,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Quad;
+import com.jme3.scene.shape.Sphere;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeCanvasContext;
@@ -42,13 +44,6 @@ import com.jme3.system.JmeContext.Type;
 import com.jme3.system.JmeSystem;
 import com.jme3.util.BufferUtils;
 import com.jme3.util.SkyFactory;
-
-import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
-import com.jme3.bullet.collision.shapes.MeshCollisionShape;
-import com.jme3.bullet.control.CharacterControl;
-import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.bullet.util.CollisionShapeFactory;
 
 
 /*This code is mostly from the default application included with JME, SimpleApp.
@@ -59,9 +54,10 @@ public class ArchApp extends Application
 {
 	/**********************GLOBAL VARIABLES**********************/
 	// toggle globals
-	private static final boolean shadowing = false;  // determines whether or not to render shadows
+	private static final boolean shadowing = false; // determines whether or not to render shadows
 	private static final boolean physics   = true;  // determines whether or not to calculate physics (not 100% implemented)
-	private static final boolean overlay   = false;  // displays overlay
+	private static final boolean overlay   = false; // displays overlay
+	private static final boolean tracing   = false;  // prints tracing information as various functions are called - for debugging.
 	
 	// lighting globals
 	private static final short[]  DAY_BRIGHTNESS = {245, 240, 200};	// RGB colour (0-255) of the sun light
@@ -109,9 +105,9 @@ public class ArchApp extends Application
     private AppActionListener actionListener = new AppActionListener();
     private boolean isInitComplete = false;
     private Main main;
-    private Edge3D floor = new Edge3D();
-    private Edge3D ceil = new Edge3D();
-	private Edge3D floor_plane = new Edge3D();
+    private Edge3D.Segment floor = new Edge3D.Segment();
+    private Edge3D.Segment ceil = new Edge3D.Segment();
+	private Edge3D.Segment floor_plane = new Edge3D.Segment();
 	private Material invis,glass;
 
     
@@ -134,6 +130,11 @@ public class ArchApp extends Application
     {
         public void onAction(String name, boolean value, float tpf)
         {
+    		if (tracing)
+    		{
+    			System.out.printf("onAction(%s, %b, %f) called.\n", name, value, tpf);
+    			System.out.flush();
+    		}
             if (name.equals("PLAYER_Left"))
             	if (value)
             		left = true;
@@ -183,6 +184,8 @@ public class ArchApp extends Application
     @Override
     public void start()
     {
+		if (tracing)
+			System.out.println("start() called.");
         if (settings == null)
             setSettings(new AppSettings(true));
         if (showSettings)
@@ -196,6 +199,8 @@ public class ArchApp extends Application
     @Override
     public void update()
     {
+		if (tracing)
+			System.out.println("update() called.");
 		synchronized(syncLockObject)
 		{
 	        if (speed == 0 || paused)
@@ -227,6 +232,8 @@ public class ArchApp extends Application
     @Override
     public void initialize()
     {
+		if (tracing)
+			System.out.println("initialize() called.");
         super.initialize();
         if (!physics)
         	initCamera();
@@ -262,7 +269,6 @@ public class ArchApp extends Application
             inputManager.addListener(actionListener, "PLAYER_Left", "PLAYER_Right", "PLAYER_Up", "PLAYER_Down", "PLAYER_Jump");
         }
         
-        // call user code
         setupMaterials();
         simpleInitApp();
         
@@ -275,6 +281,8 @@ public class ArchApp extends Application
     
     public void initCamera()
     {
+		if (tracing)
+			System.out.println("initCamera() called.");
         cam = new Camera(settings.getWidth(), settings.getHeight());
         cam.setFrustumPerspective(45f, (float)cam.getWidth() / cam.getHeight(), 1f, 10000f);
         cam.setLocation(new Vector3f(357.61813f, -46.365437f, 546.6056f));
@@ -293,13 +301,15 @@ public class ArchApp extends Application
     
     public void simpleInitApp()
     {
+		if (tracing)
+			System.out.println("simpleInitApp() called.");
     	// initialise the physics components
         bulletAppState = new BulletAppState();
         stateManager.attach(bulletAppState);
         
         // setup the other components
 		flyCam.setDragToRotate(true);
-		setupScene();
+		//setupScene();
 		setupLighting();
         setupPlayer();
         cam.lookAt(lookvec, Vector3f.UNIT_Y);
@@ -309,21 +319,23 @@ public class ArchApp extends Application
     
     public void simpleUpdate(float tpf)
     {
+		//if (tracing)
+		//	System.out.printf("simpleUpdate(%f) called.\n", tpf);
 		synchronized(syncLockObject)
 		{
-        Vector3f camDir = cam.getDirection().clone().multLocal(2);
-        Vector3f camLeft = cam.getLeft().clone().multLocal(2);
-        walkDirection.set(0, 0, 0);
-        if (left)
-        	walkDirection.addLocal(camLeft);
-        if (right)
-        	walkDirection.addLocal(camLeft.negate());
-        if (up)
-        	walkDirection.addLocal(camDir);
-        if (down)
-        	walkDirection.addLocal(camDir.negate());
-        player.setWalkDirection(walkDirection);
-        cam.setLocation(player.getPhysicsLocation());
+	        Vector3f camDir = cam.getDirection().clone().multLocal(2);
+	        Vector3f camLeft = cam.getLeft().clone().multLocal(2);
+	        walkDirection.set(0, 0, 0);
+	        if (left)
+	        	walkDirection.addLocal(camLeft);
+	        if (right)
+	        	walkDirection.addLocal(camLeft.negate());
+	        if (up)
+	        	walkDirection.addLocal(camDir);
+	        if (down)
+	        	walkDirection.addLocal(camDir.negate());
+	        player.setWalkDirection(walkDirection);
+	        cam.setLocation(player.getPhysicsLocation());
 		}
     }
 
@@ -337,6 +349,8 @@ public class ArchApp extends Application
 
     private void setupMaterials ()
     {
+		if (tracing)
+			System.out.println("setupMaterials() called.");
         grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 		grass.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
         grass.setFloat("Shininess", 1000);
@@ -358,50 +372,54 @@ public class ArchApp extends Application
     
     public void reloadfloor(String name)
     {
+		if (tracing)
+			System.out.printf("reloadfloor(%s) called.\n", name);
 		synchronized(syncLockObject)
 		{
 	        grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 	        grass.setTexture("DiffuseMap", assetManager.loadTexture("img/fs"+name));
 	        grass.setFloat("Shininess", 1000);
-			floor.geometry.setMaterial(grass);
+			floor.side[0].setMaterial(grass);
 			Material ceilm = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
 			ceilm.setTexture("ColorMap", assetManager.loadTexture("img/cs"+name));
 			ceilm.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-			ceil.geometry.setMaterial(ceilm);
-			ceil.geometry.setQueueBucket(Bucket.Transparent);
+			ceil.side[0].setMaterial(ceilm);
+			ceil.side[0].setQueueBucket(Bucket.Transparent);
 		    ((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
 		}
     }
     
     //PointLight pl1, pl2;
     private void setupScene()
-    {    	
+    {
+		if (tracing)
+			System.out.println("setupScene() called.");
     	//add the floor plane (large plane that extends beyond the floor to prevent falling off)
-    	floor_plane.geometry = new Geometry("FloorPlane", new Quad(4000,4000));
-    	floor_plane.geometry.setLocalTranslation(new Vector3f(2102,-101,-902));
-    	floor_plane.geometry.rotate((float) -Math.toRadians(90),(float) Math.toRadians(180),0f );
-    	floor_plane.geometry.setMaterial(grass);
+    	floor_plane.side[0] = new Geometry("FloorPlane", new Quad(4000,4000));
+    	floor_plane.side[0].setLocalTranslation(new Vector3f(2102,-101,-902));
+    	floor_plane.side[0].rotate((float) -Math.toRadians(90),(float) Math.toRadians(180),0f );
+    	floor_plane.side[0].setMaterial(grass);
     	if (shadowing)
-    		floor_plane.geometry.setShadowMode(ShadowMode.Receive);
+    		floor_plane.side[0].setShadowMode(ShadowMode.Receive);
     	addToPhysics(floor_plane);
-    	rootNode.attachChild(floor_plane.geometry);
+    	rootNode.attachChild(floor_plane.side[0]);
     	
 	    //add the floor (the box which users stand on, and is textured with the fill-colours)
-	    floor.geometry = new Geometry("Floor", new Box(new Vector3f(500, -100, -1000), 500, 0.1f, 1000));
-	    floor.geometry.rotate(0f,(float) -Math.toRadians(90),0f);
-	    floor.geometry.setMaterial(grass);
+	    floor.side[0] = new Geometry("Floor", new Box(new Vector3f(500, -100, -1000), 500, 0.1f, 1000));
+	    floor.side[0].rotate(0f,(float) -Math.toRadians(90),0f);
+	    floor.side[0].setMaterial(grass);
 	    if (shadowing)
-	    	floor.geometry.setShadowMode(ShadowMode.Receive);
-	    rootNode.attachChild(floor.geometry);
+	    	floor.side[0].setShadowMode(ShadowMode.Receive);
+	    rootNode.attachChild(floor.side[0]);
 	    
-	    ceil.geometry = new Geometry("Ceiling", new Box(new Vector3f(-500, 0, 1000), 500, 0.1f, 1000));
-	    ceil.geometry.rotate(0f,(float) -Math.toRadians(270),0f);
-	    ceil.geometry.setMaterial(invis);
-		ceil.geometry.setQueueBucket(Bucket.Transparent);
+	    ceil.side[0] = new Geometry("Ceiling", new Box(new Vector3f(-500, 0, 1000), 500, 0.1f, 1000));
+	    ceil.side[0].rotate(0f,(float) -Math.toRadians(270),0f);
+	    ceil.side[0].setMaterial(invis);
+		ceil.side[0].setQueueBucket(Bucket.Transparent);
 	    if (shadowing)
-	    	ceil.geometry.setShadowMode(ShadowMode.Receive);
+	    	ceil.side[0].setShadowMode(ShadowMode.Receive);
 	    //addToPhysics(floor);
-	    rootNode.attachChild(ceil.geometry);
+	    rootNode.attachChild(ceil.side[0]);
 	    
 	    // add lightbulbs
 	    /*Spatial light1 = assetManager.loadModel("req/lightbulb/lightbulb.obj");
@@ -433,6 +451,8 @@ public class ArchApp extends Application
     
     public void setupLighting ()
     {
+		if (tracing)
+			System.out.println("setupLighting() called.");
         sun = new DirectionalLight();
         ambient = new AmbientLight();
     	
@@ -475,6 +495,8 @@ public class ArchApp extends Application
     
     public void setupSky()
     {
+		if (tracing)
+			System.out.println("setupSky() called.");
         DAY_MAP = SkyFactory.createSky(assetManager, "req/SkyDay.dds", false);
         NIGHT_MAP = SkyFactory.createSky(assetManager, "req/SkyNight.dds", false);
         if (day)
@@ -487,6 +509,8 @@ public class ArchApp extends Application
     
     private void setupPlayer ()
     {
+		if (tracing)
+			System.out.println("setupPlayer() called.");
         // player collision
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(20, 70, 1);
         player = new CharacterControl(capsuleShape, 0.01f);
@@ -506,6 +530,8 @@ public class ArchApp extends Application
 
     public void toggleDay()
     {
+		if (tracing)
+			System.out.println("toggleDay() called.");
     	if (!day)
     	{
             rootNode.attachChild(DAY_MAP);
@@ -541,28 +567,14 @@ public class ArchApp extends Application
     
     
     
-    private void turnOnLights()
-    {
-    	//rootNode.addLight(pl1);
-    	//rootNode.addLight(pl2);
-    }
-    
-    
-    
-    private void turnOffLights()
-    {
-    	//rootNode.removeLight(pl1);
-    	//rootNode.removeLight(pl2);
-    }
-    
-    
-    
     
     
     /**********************PHYSICS FUNCTIONS**********************/
 	
     private void addToPhysics (Furniture3D furn)
     {
+		if (tracing)
+			System.out.println("addToPhysics(Furniture3D) called.");
     	furn.physics = new RigidBodyControl(0);
     	furn.spatial.addControl(furn.physics);        
         bulletAppState.getPhysicsSpace().add(furn.physics);
@@ -572,35 +584,50 @@ public class ArchApp extends Application
     
     private void removeFromPhysics (Furniture3D furn)
     {
-    	bulletAppState.getPhysicsSpace().remove(furn.physics);
+		if (tracing)
+			System.out.println("removeFromPhysics(Furniture3D) called.");
+		if (furn.physics != null)
+		{
+			furn.spatial.removeControl(furn.physics);
+    		bulletAppState.getPhysicsSpace().remove(furn.physics);
+		}
     }
     
     
     
     private void updatePhysics (Furniture3D furn)
     {
+		if (tracing)
+			System.out.println("updatePhysics(Furniture3D) called.");
     	removeFromPhysics(furn);
     	addToPhysics(furn);
     }
     
     
     
-    private void addToPhysics (Edge3D edge)
+    private void addToPhysics (Edge3D.Segment segment)
     {
+		if (tracing)
+			System.out.println("addToPhysics(Edge3D.Segment) called.");
     	//edge.collision = CollisionShapeFactory.createSingleMeshShape(edge.geometry);
     	//edge.physics = new RigidBodyControl(edge.collision, 0);
-    	edge.physics = new RigidBodyControl(0);
-    	edge.geometry.addControl(edge.physics);
+    	segment.physics = new RigidBodyControl(0);
+    	segment.side[0].addControl(segment.physics);
         
-        bulletAppState.getPhysicsSpace().add(edge.physics);
+        bulletAppState.getPhysicsSpace().add(segment.physics);
     }
     
     
     
-    private void removeFromPhysics (Edge3D edge)
+    private void removeFromPhysics (Edge3D.Segment segment)
     {
-    	edge.geometry.removeControl(edge.physics);
-    	bulletAppState.getPhysicsSpace().remove(edge.physics);
+		if (tracing)
+			System.out.println("removeFromPhysics(Edge3D.Segment) called.");
+    	if (segment.physics != null)
+    	{
+        	segment.side[0].removeControl(segment.physics);
+        	bulletAppState.getPhysicsSpace().remove(segment.physics);
+    	}
     }
     
     
@@ -615,10 +642,35 @@ public class ArchApp extends Application
     }*/
     
     
-    
-    private void removeAllFromPhysics ()
+    // TODO: I think this doesn't actually remove all from physics. To do this I think you need to manually go through every item 
+    // and call removeFromPhysics (to remove all controllers from spatials as well as just the instances attached to the rootnode).
+    private void removeAllFromPhysics (Coords c)
     {
-    	bulletAppState.getPhysicsSpace().removeAll(rootNode);
+		if (tracing)
+			System.out.println("removeAllFromPhysics() called.");
+		if (c == null)
+			throw new IllegalArgumentException("null");
+
+		// remove every segment in every edge from physics
+		HashMap<Edge, Edge3D> edges = tabEdges.get(c);
+		Collection<Edge3D> col_edges = edges.values();
+		Iterator<Edge3D> itr_edges = col_edges.iterator();
+		while (itr_edges.hasNext())
+		{
+			Edge3D edge = itr_edges.next();
+			Iterator<Edge3D.Segment> itr_segments = edge.segments.iterator();
+			while (itr_segments.hasNext())
+				removeFromPhysics(itr_segments.next());
+		}
+		
+		// remove every furniture item from physics
+		HashMap<Furniture, Furniture3D> furnitures = tabFurniture.get(c);
+		Collection<Furniture3D> col_furnitures = furnitures.values();
+		Iterator<Furniture3D> itr_furnitures = col_furnitures.iterator();
+		while (itr_furnitures.hasNext())
+			removeFromPhysics(itr_furnitures.next());
+		
+    	//bulletAppState.getPhysicsSpace().removeAll(rootNode);
     }
     
     
@@ -627,9 +679,11 @@ public class ArchApp extends Application
     
 	/**********************OTHER FUNCTIONS**********************/
     
-	private void clearall()
+	private void clearAll(Coords c)
     {
-		removeAllFromPhysics();
+		if (tracing)
+			System.out.println("clearall() called.");
+		removeAllFromPhysics(c);
 		rootNode.detachAllChildren();
 		setupScene();
     }
@@ -640,21 +694,10 @@ public class ArchApp extends Application
 	
 	/**********************EDGE3D CLASS**********************/
 	
-	private class Edge3D
-	{
-		Geometry           geometry;
-		//MeshCollisionShape collision;
-		RigidBodyControl   physics = null;
-	}
 
-	private class WallGeometry
-	{
-		ArrayList<Edge3D> geom    = new ArrayList<Edge3D>();
-		ArrayList<Geometry> dw    = new ArrayList<Geometry>();
-	}
 	
-	private final HashMap<Coords, HashMap<Edge, WallGeometry> > tabEdgeGeometry
-		= new HashMap<Coords, HashMap<Edge, WallGeometry> >();
+	private final HashMap<Coords, HashMap<Edge, Edge3D> > tabEdges
+		= new HashMap<Coords, HashMap<Edge, Edge3D> >();
 	
 
 	
@@ -662,15 +705,17 @@ public class ArchApp extends Application
 	/**********************TAB FUNCTIONS**********************/
 	
 	/** This should be called after the given Coords is no longer used i.e.
-      *  immediately after, not immediately before deletion. It forgets about
-      *  the edges. If called before, then the entry might be recreated */
+      *  immediately after, not immediately before, deletion. It forgets about
+      *  the edges. If called before, then the entry might be recreated. */
 	void tabRemoved(Coords tab)
 	{
-		HashMap<Edge, WallGeometry> edges = tabEdgeGeometry.remove(tab);
+		if (tracing)
+			System.out.println("tabRemoved(Coords) called.");
+		HashMap<Edge, Edge3D> edges = tabEdges.remove(tab);
 		if (edges != null)
 			edges.clear();
 
-		HashMap<Furniture, Furniture3D> furniture = tabFurnitureSpatials.remove(tab);
+		HashMap<Furniture, Furniture3D> furniture = tabFurniture.remove(tab);
 		if (furniture != null)
 			furniture.clear();
 	}
@@ -681,6 +726,8 @@ public class ArchApp extends Application
 	 *  been seen before then new objects will be created for it.						*/
 	void tabChanged(Coords newTab)
 	{
+		if (tracing)
+			System.out.println("tabChanged(Coords) called.");
 		if (!isInitComplete)
 			return;
 		tabChangedIgnoreInitComplete(newTab);
@@ -698,32 +745,34 @@ public class ArchApp extends Application
 	 *  objects will be created for it													*/
 	private void tabChangedIgnoreInitComplete(Coords newTab)
 	{
+		if (tracing)
+			System.out.println("tabChangedIgnoreInitComplete(Coords) called.");
 		synchronized(syncLockObject)
 		{
 			// no tab selected
 			if (newTab == null)
 			{
-				clearall();
+				clearAll(newTab);
 				return;
             }
 
             // Do edges, if this tab already exists, this will not be null and it
             // will get redrawn from below, not recreated!
-            HashMap<Edge, WallGeometry> edges = tabEdgeGeometry.get(newTab);
+            HashMap<Edge, Edge3D> edges = tabEdges.get(newTab);
             if (edges == null)
             {
             	// make a brand new edge container for the new tab and add all
             	// the edges from the given coords
-            	edges = new HashMap<Edge, WallGeometry>();
+            	edges = new HashMap<Edge, Edge3D>();
             	for (Edge e : newTab.getEdges())
             		edges.put(e, makeWall(e));
 
-            	tabEdgeGeometry.put(newTab, edges);
+            	tabEdges.put(newTab, edges);
             }
 
             // Do furniture, if this tab already exists, this will not be null and it
             // will get redrawn from below, not recreated!
-            HashMap<Furniture, Furniture3D> furniture = tabFurnitureSpatials.get(newTab);
+            HashMap<Furniture, Furniture3D> furniture = tabFurniture.get(newTab);
             if (furniture == null)
             {
             	// make a brand new furniture container for the new tab and add all
@@ -732,11 +781,11 @@ public class ArchApp extends Application
             	for (Furniture f : newTab.getFurniture())
             		furniture.put(f, makeFurniture(f));
 
-            	tabFurnitureSpatials.put(newTab, furniture);
+            	tabFurniture.put(newTab, furniture);
             }
 
             //redraw everything for this tab as the tab has changed
-            clearall();
+            clearAll(newTab);
             redrawAllEdges(edges);
             redrawAllFurniture(furniture);
 		}
@@ -752,24 +801,30 @@ public class ArchApp extends Application
       * added */
 	void addEdge(Coords c, Edge e)
 	{
+		if (tracing)
+			System.out.println("addEdge(Coords, Edge) called.");
 		if (c == null || e == null)
 			throw new IllegalArgumentException("null");
 
 		synchronized(syncLockObject)
 		{
-			HashMap<Edge, WallGeometry> edges = tabEdgeGeometry.get(c);
+			HashMap<Edge, Edge3D> edges = tabEdges.get(c);
 			if (edges == null)
 				return;
 
-			WallGeometry wall = edges.get(e);
+			Edge3D wall = edges.get(e);
 			if (wall == null)
 			{
 				wall = makeWall(e); // make the new wall
 				edges.put(e, wall);               
 			
-				Iterator<Edge3D> itr = wall.geom.iterator();
+				Iterator<Edge3D.Segment> itr = wall.segments.iterator();
 				while(itr.hasNext())
-					rootNode.attachChild(itr.next().geometry);
+				{
+					Edge3D.Segment segment = itr.next();
+					rootNode.attachChild(segment.side[0]);
+					rootNode.attachChild(segment.side[1]);
+				}
 			}
 		}
 	}
@@ -780,30 +835,91 @@ public class ArchApp extends Application
       *  known */
 	void removeEdge(Coords c, Edge e)
 	{
+		if (tracing)
+			System.out.println("removeEdge(Coords, Edge) called.");
 		if (c == null || e == null)
 			throw new IllegalArgumentException("null");
          
 		synchronized(syncLockObject)
 		{
-			HashMap<Edge, WallGeometry> edges = tabEdgeGeometry.get(c);
+			HashMap<Edge, Edge3D> edges = tabEdges.get(c);
 			if (edges == null)
 				return;
 
-			WallGeometry wall = edges.get(e);
+			Edge3D wall = edges.get(e);
 			if (wall != null)
 			{
 				edges.remove(e);
-				Iterator<Edge3D> itr = wall.geom.iterator();
-				while(itr.hasNext())
+				Iterator<Edge3D.Segment> segment_itr = wall.segments.iterator();
+				while (segment_itr.hasNext())
 				{
-					Edge3D edge = itr.next();
-					if(edge.physics!=null)
-						removeFromPhysics(edge);
-					rootNode.detachChild(edge.geometry);
+					Edge3D.Segment segment = segment_itr.next();
+					removeFromPhysics(segment);
+					rootNode.detachChild(segment.side[0]);
+					rootNode.attachChild(segment.side[1]);
 				}
-				Iterator<Geometry> dwitr = wall.dw.iterator();
-				while(dwitr.hasNext()){
-					rootNode.detachChild(dwitr.next());
+				Iterator<Geometry> furniture_itr = wall.attachedFurniture.iterator();
+				while (furniture_itr.hasNext())
+					rootNode.detachChild(furniture_itr.next());
+			}
+		}
+	}
+	
+	
+	
+	/** Moves the given edge. Returns if Coords c is not known yet or if e is not
+      *  known */
+	void updateEdge (Coords c, Edge e)
+	{
+		if (tracing)
+			System.out.println("updateEdge(Coords, Edge) called.");
+		System.out.println("Update edge " + e);
+		if (c == null || e == null)
+			throw new IllegalArgumentException("null");
+         
+		synchronized(syncLockObject)
+		{
+			HashMap<Edge, Edge3D> edges = tabEdges.get(c);
+			if (edges == null)
+				return;
+
+			Edge3D wall = edges.get(e);
+			if (wall != null)
+			{
+				// remove all segments, their physics and all attached furniture from the scene
+				Iterator<Edge3D.Segment> segment_itr = wall.segments.iterator();
+				while(segment_itr.hasNext())
+				{
+					Edge3D.Segment segment = segment_itr.next();
+					removeFromPhysics(segment);
+					rootNode.detachChild(segment.side[0]);
+					rootNode.detachChild(segment.side[1]);
+				}
+				Iterator<Geometry> furniture_itr = wall.attachedFurniture.iterator();
+				while(furniture_itr.hasNext())
+					rootNode.detachChild(furniture_itr.next());
+				
+				// makes new edges in the new locations
+				Edge3D newWall = makeWall(e);
+				wall.segments.clear();
+				segment_itr = newWall.segments.iterator();		
+				//System.out.println("dw has " + newWall.arrayList.size());
+				//add the walls to the arraylist and draw them in the scene
+				while (segment_itr.hasNext())
+				{
+					Edge3D.Segment segment = segment_itr.next();
+					wall.segments.add(segment);
+					rootNode.attachChild(segment.side[0]);
+					rootNode.attachChild(segment.side[1]);
+				}
+				
+				//add any doors and windows to the arraylist and draw them in the scene
+				furniture_itr = newWall.attachedFurniture.iterator();
+				while(furniture_itr.hasNext())
+				{
+					Geometry geometry = furniture_itr.next();
+					wall.attachedFurniture.add(geometry);
+					rootNode.attachChild(geometry);
 				}
 			}
 		}
@@ -812,56 +928,38 @@ public class ArchApp extends Application
 	
 	
 	/** Goes through all the walls in the given hashmap and adds them to the rootNode */
-	private void redrawAllEdges(HashMap<Edge, WallGeometry> edges)
+	private void redrawAllEdges(HashMap<Edge, Edge3D> edges)
 	{
-		Collection<WallGeometry> walls = edges.values();
-		Iterator<WallGeometry> iterator = walls.iterator();
-		WallGeometry wall;
+		if (tracing)
+			System.out.println("redrawAllEdges(HashMap<Edge, Edge3D>) called.");
+		Collection<Edge3D> walls = edges.values();
+		Iterator<Edge3D> iterator = walls.iterator();
+		Edge3D wall;
 		while (iterator.hasNext())
 		{
 			wall = iterator.next();
-			Iterator<Edge3D> itr = wall.geom.iterator();
-			while(itr.hasNext())
+			Iterator<Edge3D.Segment> segment_itr = wall.segments.iterator();
+			while(segment_itr.hasNext())
 			{
-				Edge3D edge = itr.next();
-				addToPhysics(edge);
-				rootNode.attachChild(edge.geometry);
+				Edge3D.Segment segment = segment_itr.next();
+				addToPhysics(segment);
+				rootNode.attachChild(segment.side[0]);
+				rootNode.attachChild(segment.side[1]);
 			}
-			Iterator<Geometry> dwitr = wall.dw.iterator();
-			while(dwitr.hasNext()){
-				rootNode.attachChild(dwitr.next());
-			}
+			Iterator<Geometry> furniture_itr = wall.attachedFurniture.iterator();
+			while(furniture_itr.hasNext())
+				rootNode.attachChild(furniture_itr.next());
 		}
 	}
-	
-	/** Moves the given edge. Returns if Coords c is not known yet or if e is not
-      *  known */
-	void updateEdgeChanged (Coords c, Edge e)
-	{
-		System.out.println("Update edge " + e);
-		if (c == null || e == null)
-			throw new IllegalArgumentException("null");
-         
-		synchronized(syncLockObject)
-		{
-			HashMap<Edge, WallGeometry> edges = tabEdgeGeometry.get(c);
-			if (edges == null)
-				return;
-
-			WallGeometry wall = edges.get(e);
-			if (wall != null)
-				updatewall(wall, e);
-		}
-	} // constructs a wall between (x1,y1) and (x2,y2), doesn't add it to rootnode
-	
-	
 	
 
 	
 	/**********************WALL FUNCTIONS**********************/
 
-    private WallGeometry makeWall(Edge e)
+    private Edge3D makeWall(Edge e)
     {
+		if (tracing)
+			System.out.println("makeWall(Edge) called.");
     	int x1 = (int) e.getV1().getX();
     	int y1 = (int) e.getV1().getY();
     	int x2 = (int) e.getV2().getX();
@@ -883,34 +981,37 @@ public class ArchApp extends Application
     		yy++;
     	if (ctrly-1.0 == ((y1 + y2) / 2))
     		yy++;
-    	if (xx > 0 & yy > 0)
+    	if (xx > 0 && yy > 0)
     		straight = true;
     	
-    	WallGeometry wallGeometry = new WallGeometry();
+    	Edge3D wall = new Edge3D();
     	if (!straight)    		
     	{
     		//draw a curved wall using the recursive procedure
     		QuadCurve2D qcurve = e.getqcurve();			
-    		recurvsion(wallGeometry,qcurve,4,e.tex());
+    		recurvsion(wall,qcurve,4,e.tex());
     	}
     	else
     	{    		
     		//draw a straight wall without doors/windows
             Furniture[] dws = e.getDoorWindow();  
             if(dws==null){
-            	drawline(wallGeometry, x1, x2, y1, y2, 100, -100, true,true,e.tex());
+            	drawline(wall, x1, x2, y1, y2, 100, -100, true,true,e.tex());
             }else{
 	            //draw a straight wall with doors/windows
 	            ArrayList<Furniture> dwsa = new ArrayList<Furniture>(Arrays.asList(dws));	            
-	            wdoorcursion(e,wallGeometry,dwsa,x1,x2,y1,y2);
+	            wdoorcursion(e,wall,dwsa,x1,x2,y1,y2);
             }
     	}
-    	return wallGeometry;
+    	return wall;
 	}
     
-    private void wdoorcursion(Edge e,WallGeometry wallGeometry,ArrayList<Furniture> dwsa,int x1,int x2,int y1,int y2){                
+    private void wdoorcursion(Edge e,Edge3D wall,ArrayList<Furniture> dwsa,int x1,int x2,int y1,int y2)
+    {
+		if (tracing)
+			System.out.println("wdoorcursion(...) called.");                
     	//if all the windows and doors have been drawn
-    	if(dwsa.size()==0){drawline(wallGeometry, x1, x2, y1, y2, 100, -100, true,true,e.tex()); return;}
+    	if(dwsa.size()==0){drawline(wall, x1, x2, y1, y2, 100, -100, true,true,e.tex()); return;}
 	    //select the closest window or door thingumy
     	int mindist=0,mini=0,currdist=0;
     	for(int i=0;i<dwsa.size();i++){
@@ -922,16 +1023,7 @@ public class ArchApp extends Application
     	int width=0;
 	    if(dwsa.get(mini).isWindow()){width=30;}
 	    if(dwsa.get(mini).isDoor())  {width=20;}
-	    int doorpanel = 20;
-	    int cx=0,cy=0;
-	    //perform lots of trig and calculations to work out
-	    //how to partition the wall up to fit the windows/doors in
-	    if(x2>x1){cx = x1 + Math.abs((x2 -x1)/2);}
-	    if(x2==x1) {cx = x2;}
-	    if(x1>x2){cx = x1 - Math.abs((x2 -x1)/2);}
-	    if(y2>y1){cy = y1 + Math.abs((y2 -y1)/2);}
-	    if(y2==y1){cy=y2;}
-	    if(y1>y2){cy = y1 - Math.abs((y2 -y1)/2);}                  
+	    int doorpanel = 20;              
 	    double dx1,dy1,dx2 ,dy2;
 	    double o = Math.abs(y2 - y1);
 	    double a = Math.abs(x2 - x1);
@@ -958,83 +1050,48 @@ public class ArchApp extends Application
 	        dx2 = dwsa.get(mini).getRotationCenter().getX()+xtri;
 	        dy2 = dwsa.get(mini).getRotationCenter().getY()+ytri;
 	    }}
-	    drawline(wallGeometry,(int)x1,(int)dx1,(int)y1,(int)dy1,100,-100,true,true,e.tex());
+	    drawline(wall,(int)x1,(int)dx1,(int)y1,(int)dy1,100,-100,true,true,e.tex());
 	    if(dwsa.get(mini).isDoor()){
 	    	//draw top panel
-	    	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,false,true,e.tex());	
+	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,false,true,e.tex());	
 			//add door frame
-	    	Furniture3D furn = new Furniture3D("req/door_1/door_1.obj");
+	    	Furniture3D furn = new Furniture3D("req/door_1/door_1.obj", false);
 	        furn.spatial.scale(4.1f, 4.1f, 4.1f);
 	        furn.spatial.rotate(0f,-FastMath.HALF_PI+((FastMath.TWO_PI)-(float)e.getRotation()), 0f);    
 	        furn.spatial.setLocalTranslation(new Float(dwsa.get(mini).getRotationCenter().getX()),-100f,new Float(dwsa.get(mini).getRotationCenter().getY()));
-	        wallGeometry.dw.add((Geometry)furn.spatial);
+	        wall.attachedFurniture.add((Geometry)furn.spatial);
 	    }
 	    if(dwsa.get(mini).isWindow()){
 	    	//draw the top and bottom panels
-	    	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-30,false,true,e.tex());
-	    	drawline(wallGeometry,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-100,true,false,e.tex());	
+	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-30,false,true,e.tex());
+	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-100,true,false,e.tex());	
 	    	//add window frame
-			Furniture3D furn = new Furniture3D("req/window_1/window_1.obj");
+			Furniture3D furn = new Furniture3D("req/window_1/window_1.obj", false);
 	        furn.spatial.scale(4.3f, 4.3f, 4.3f);
 	        furn.spatial.rotate(0f, -FastMath.HALF_PI+((FastMath.TWO_PI)-(float)e.getRotation()), 0f);
 	        furn.spatial.setLocalTranslation(new Float(dwsa.get(mini).getRotationCenter().getX()),-70f,new Float(dwsa.get(mini).getRotationCenter().getY()));
-	        wallGeometry.dw.add((Geometry)furn.spatial);
+	        wall.attachedFurniture.add((Geometry)furn.spatial);
 	        //add window pane
-	        Geometry pane = new Geometry("Box", new Box(new Vector3f(0,0,0),26f,18f,1f));								
+	        Geometry pane = new Geometry("pane", new Box(new Vector3f(0,0,0),26f,18f,1f));								
 			pane.setMaterial(glass);
 			System.out.println((float)e.getRotation());
 			pane.rotate(0,(FastMath.TWO_PI)-(float)e.getRotation(),0f);
 			pane.setQueueBucket(Bucket.Transparent);
 			pane.setLocalTranslation(new Float(dwsa.get(mini).getRotationCenter().getX()), -49,new Float(dwsa.get(mini).getRotationCenter().getY()));
-			wallGeometry.dw.add(pane);
+			wall.attachedFurniture.add(pane);
 	    }
+	    
 	    //remove the window you just added
 	    dwsa.remove(mini);
+	    
 	    //recurse for the rest of the wall
-	    wdoorcursion(e,wallGeometry,dwsa,(int)dx2,x2,(int)dy2,y2);
+	    wdoorcursion(e,wall,dwsa,(int)dx2,x2,(int)dy2,y2);
     }
-    
-	/** Moves the two wall planes to the new position given by edge e */
-	private void updatewall(WallGeometry wallGeometry, Edge e)
-	{
-		System.out.println("updatewall called");
-		// remove all edges in the WallGeometry from the scene
-		Iterator<Edge3D> itr = wallGeometry.geom.iterator();
-		while(itr.hasNext())
-		{
-			Edge3D edge = itr.next();
-			if(edge.physics!=null)
-				removeFromPhysics(edge);
-			rootNode.detachChild(edge.geometry);
-		}
-		//remove all windows and doors in the WallGeometry
-		Iterator<Geometry> dwitr = wallGeometry.dw.iterator();
-		while(dwitr.hasNext()){
-			rootNode.detachChild(dwitr.next());
-		}
-		
-		// makes new edges in the new locations
-		WallGeometry completelyNew = makeWall(e);
-		wallGeometry.geom.clear();
-		itr = completelyNew.geom.iterator();		
-		System.out.println("dw has "+completelyNew.dw.size());
-		//add the walls to the arraylist and draw them in the scene
-		while (itr.hasNext()){
-			wallGeometry.geom.add(itr.next());
-			rootNode.attachChild(wallGeometry.geom.get(wallGeometry.geom.size()-1).geometry);}
-		
-		//add any doors and windows to the arraylist and draw them in the scene
-	    dwitr = completelyNew.dw.iterator();
-		while(dwitr.hasNext()){
-			wallGeometry.dw.add(dwitr.next());
-			rootNode.attachChild(wallGeometry.dw.get(wallGeometry.dw.size()-1));
-		}
 	
-
-	}
-	
-    private int recurvsion (WallGeometry top, QuadCurve2D curve, int level, String ppath)
+    private int recurvsion (Edge3D top, QuadCurve2D curve, int level, String ppath)
     {
+		if (tracing)
+			System.out.println("recurvsion(...) called.");
     	if (level == 0)
     	{
     		drawline(top, (int)curve.getX1(), (int)curve.getX2(), (int)curve.getY1(), (int)curve.getY2(), 100, -100, true,true,ppath);
@@ -1052,8 +1109,10 @@ public class ArchApp extends Application
     	}
     }
     
-    private void drawline (WallGeometry wallGeometry, int x1, int x2, int y1, int y2, int height, int disp, boolean top,boolean bot,String ppath)
+    private void drawline (Edge3D wall, int x1, int x2, int y1, int y2, int height, int disp, boolean top,boolean bot,String ppath)
     {
+		if (tracing)
+			System.out.println("drawline(...) called.");
     	//if top or bottom panel, use a different material
     	if(top==false)
     		ppath = ppath.substring(0,ppath.length()-4)+"b.jpg";
@@ -1082,71 +1141,168 @@ public class ArchApp extends Application
 				length = (int) Math.sqrt((Math.pow(lenx,2) + Math.pow(leny,2)));
 				length += 2;
 				rotation = (float) -(Math.atan((double) (leny) / (lenx)));
-				if(y2 > y1 & x1 > x2)
+				if(y2 > y1 && x1 > x2)
 					rotation += FastMath.PI;
-				if(y2 < y1 & x1 > x2)
+				if(y2 < y1 && x1 > x2)
 					rotation += FastMath.PI;
 			}
 		}
 		
 		// Draw a quad between the 2 given vertices
-		Edge3D quad1 = new Edge3D();
-		quad1.geometry = new Geometry("Box", new Quad(length, height));
-		quad1.geometry.setLocalTranslation(new Vector3f(x1, disp, y1));
-		quad1.geometry.rotate(0f, rotation, 0f);
         Material paper = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 		paper.setTexture("DiffuseMap", assetManager.loadTexture(ppath));
         paper.setFloat("Shininess", 1000);
-		quad1.geometry.setMaterial(paper);
+        
+		Edge3D.Segment segment = new Edge3D.Segment();
+		segment.side[0] = new Geometry("wallside0", new Quad(length, height));
+		segment.side[1] = new Geometry ("wallside1", new Quad(length,height));
+		segment.side[0].setLocalTranslation(new Vector3f(x1, disp, y1));
+		segment.side[1].setLocalTranslation(new Vector3f(x2, disp, y2));
+		segment.side[0].rotate(0f, rotation, 0f);
+		segment.side[1].rotate(0f, rotation + FastMath.PI, 0f);
+        segment.side[0].setMaterial(paper);
+		segment.side[1].setMaterial(paper);
     	if (shadowing)
-    		quad1.geometry.setShadowMode(ShadowMode.CastAndReceive);
-    	if (physics & top){
-    		addToPhysics(quad1);}
-		wallGeometry.geom.add(quad1);
-
-		// Double up the quad
-		Edge3D quad2 = new Edge3D();
-		quad2.geometry = new Geometry ("Box", new Quad(length,height));
-		quad2.geometry.setLocalTranslation(new Vector3f(x2, disp, y2));
-		quad2.geometry.rotate(0f, rotation + FastMath.PI, 0f);
-		quad2.geometry.setMaterial(paper);
-		if (shadowing)
-			quad2.geometry.setShadowMode(ShadowMode.CastAndReceive);
-		if (physics & top){
-			addToPhysics(quad2);}
-    	wallGeometry.geom.add(quad2);
-    	return; 
+    	{
+    		segment.side[0].setShadowMode(ShadowMode.CastAndReceive);
+			segment.side[1].setShadowMode(ShadowMode.CastAndReceive);
+    	}
+    	
+    	if (physics && top)
+    		addToPhysics(segment);
+		wall.segments.add(segment);
     }
 	/**********************FURNITURE3D CLASS**********************/
 	
 	private class Furniture3D
 	{
 		Spatial          spatial;
-		RigidBodyControl physics;
-		Spatial			 glass;
-		PointLight pl;
+		RigidBodyControl physics = null;
+		Geometry lightMarker = null;
+		private PointLight light = null;
+		private boolean    isP;
 		
-		Furniture3D (String path)
+		/** Sets the Furniture3D model to that stored at the path provided. */
+		Furniture3D (String path, boolean isP)
 		{
+			if (tracing)
+				System.out.printf("new Furniture3D(%s) called.\n", path);
+			if (path == null)
+				throw new IllegalArgumentException("null");
 			this.spatial = assetManager.loadModel(path);
-			glass = null;
-			pl = null;
-		}
-		Furniture3D (String path,int x)
-		{
-			this.spatial = assetManager.loadModel(path);
-	        pl = new PointLight();
-	        pl.setColor(new ColorRGBA(2, 2, 1.5f, 0));
-	        pl.setRadius(250f);
+			this.isP = isP;
 		}
 		
-		boolean islight(){
-			if (pl!=null){return true;}
-			else{return false;}
+		public boolean isPhysical ()
+		{
+			return isP;
+		}
+
+		/** Adds a point light to the current furniture with colour RGB (with values between 0 and 255) and 100% 
+		 *  intensity. This should be the default if you do not know the intensity to use.  */
+		public void addLight (int R, int G, int B)
+		{
+			//if (tracing)
+				System.out.printf("addLight(%d, %d, %d) called.\n", R, G, B);
+			addLight(R, G, B, 250);
+		}
+		
+		/** Adds a point light to the current furniture with colour RGB (with values between 0 and 255) and an 
+		 *  (optional) intensity I.  */
+		public void addLight (int R, int G, int B, int I)
+		{
+			if (tracing)
+				System.out.printf("addLight(%d, %d, %d, %d) called.\n", R, G, B, I);
+			if (R < 0 || R > 255 || G < 0 || G > 255 || B < 0 || B > 255)
+				throw new IllegalArgumentException("addLight called with a non-RGB value.");
+			if (I < 0)
+				throw new IllegalArgumentException("addLight called with a negative intensity.");				
+			if (light != null)
+			{
+				System.err.println("[WARNING @ArchApp] [SEVERITY: Medium] addLight called, but there is already a light.");
+				return;
+			}
+/*
+			light = new PointLight();
+			light.setColor(new ColorRGBA((float) R/255, (float) G/255, (float) B/255, 1));
+			light.setRadius(I);
+			light.setPosition(spatial.getLocalTranslation());*/
+			
+			lightMarker = new Geometry("lightmarker", new Sphere(4, 8, 2));
+			Vector3f centre = spatial.getLocalTranslation();
+			centre = centre.add(0, 60, 0);
+			System.out.printf("adding marker at (%d,%d,%d)\n", (int) centre.getX(), (int) centre.getY(), (int) centre.getZ());
+			lightMarker.setMaterial(wallmat);
+			lightMarker.setLocalTranslation(centre);
+			rootNode.attachChild(lightMarker);
+			
+		}
+		
+		/** Updates the attached light's position to the centre of the spatial. */
+		public void updateLight ()
+		{
+			if (tracing)
+				System.out.println("updateLight() called.");
+			if (light != null)
+			{
+				System.err.println("[WARNING @ArchApp] [SEVERITY: Medium] addLight called, but there is already a light.");
+				return;
+			}
+			//light.setPosition(spatial.getLocalTranslation());
+			lightMarker.setLocalTranslation(spatial.getLocalTranslation());
+		}
+		
+		/** Turns on the object's attached light (if it exists). */
+		public void turnOnLight ()
+		{
+			if (tracing)
+				System.out.println("turnOnLight() called.");
+			if (light == null)
+			{
+				System.err.println("[WARNING @ArchApp] [SEVERITY: Low] turnOnLight called on an object which has no light.");
+				return;				
+			}
+			
+			light.getColor().a = 1;
+		}
+
+		/** Turns off the object's attached light (if it exists). */
+		public void turnOffLight ()
+		{
+			if (tracing)
+				System.out.println("turnOffLight() called.");
+			if (light == null)
+			{
+				System.err.println("[WARNING @ArchApp] [SEVERITY: Low] turnOffLight called on an object which has no light.");
+				return;				
+			}
+
+			light.getColor().a = 0;
+		}
+
+		/** Returns true is the object has an attached light, or false if it does not. */
+		boolean hasLight ()
+		{
+			if (tracing)
+				System.out.println("hasLight() called.");
+			if (light == null)
+				return false;
+			return true;
+		}
+		
+		/** Returns the light object attached to the furniture. Will throw an exception if called when there is 
+		 *  no light. Use hasLight() to determine if the furniture owns a light. */
+		public PointLight getLight ()
+		{
+			if (tracing)
+				System.out.println("getLight() called.");
+			if (light == null)
+				throw new IllegalArgumentException("Object has no light.");
+			return light;
 		}
 	}
 	
-	private final HashMap<Coords, HashMap<Furniture, Furniture3D> > tabFurnitureSpatials
+	private final HashMap<Coords, HashMap<Furniture, Furniture3D> > tabFurniture
 		= new HashMap<Coords, HashMap<Furniture, Furniture3D> >();
 	
 	/**********************FURNITURE FUNCTIONS**********************/
@@ -1155,14 +1311,19 @@ public class ArchApp extends Application
       *  added */    
 	void addFurniture(Coords c, Furniture f)
 	{
+		if (tracing)
+			System.out.println("addFurniture(Coords, Furniture) called.");
 		if (c == null || f == null)
 			throw new IllegalArgumentException("null");
 
 		synchronized(syncLockObject)
 		{
-			HashMap<Furniture, Furniture3D> furniture = tabFurnitureSpatials.get(c);
+			HashMap<Furniture, Furniture3D> furniture = tabFurniture.get(c);
 			if (furniture == null)
+			{
+				System.err.println("[WARNING @ArchApp] [SEVERITY: High] addFurniture called with NULL furniture.");
 				return;
+			}
 
 			Furniture3D furn = furniture.get(f);
 			if (furn == null)
@@ -1170,9 +1331,8 @@ public class ArchApp extends Application
 				furn = makeFurniture(f);
 				furniture.put(f, furn);				
 				rootNode.attachChild(furn.spatial);
-				if(furn.islight()){
-					rootNode.addLight(furn.pl);
-				}
+				if (furn.hasLight())
+					rootNode.addLight(furn.getLight());
 			}
 		}
 	}
@@ -1181,6 +1341,8 @@ public class ArchApp extends Application
 	
 	private Furniture3D makeFurniture(Furniture f)
 	{
+		if (tracing)
+			System.out.println("makeFurniture(Furniture) called.");
 		Furniture3D furn;
 		Point center = f.getRotationCenter();
         String name = f.getObjPath();
@@ -1188,14 +1350,15 @@ public class ArchApp extends Application
     	
         // if object specified does not exist
         if(name == null || name.equals("none"))
-        	furn = new Furniture3D("req/armchair_1/armchair_1.obj");
-        else{
-        	if(f.isLight()){
-        		furn = new Furniture3D("req/" + name.substring(0, name.length() - 4) + "/" + name,1);
-        	}else{
-        		furn = new Furniture3D("req/" + name.substring(0, name.length() - 4) + "/" + name);
-        	}
+        {
+			System.err.println("[WARNING @ArchApp] [SEVERITY: Low] makeFurniture called with NULL furniture. Continuing to make an armchair (for no apparent reason).");
+        	furn = new Furniture3D("req/armchair_1/armchair_1.obj", true);
         }
+        else
+        {
+    		furn = new Furniture3D("req/" + name.substring(0, name.length() - 4) + "/" + name, f.isPhysical());
+        }
+        
         // model settings
         furn.spatial.scale(5, 5, 5);
 		float sinr = FastMath.sin(rotation);
@@ -1204,12 +1367,11 @@ public class ArchApp extends Application
 		furn.spatial.setLocalRotation(c);
 		furn.spatial.rotate(0, -FastMath.HALF_PI, -FastMath.PI);       
         furn.spatial.setLocalTranslation(center.x,-100f,center.y);
-        if(furn.islight()){
-        	furn.pl.setPosition(new Vector3f(center.x,-40f,center.y));
-        }
+    	if (f.isLight())
+    		furn.addLight(250, 250, 200);
     	if (shadowing)
     		furn.spatial.setShadowMode(ShadowMode.CastAndReceive);
-    	if (physics)
+    	if (physics && f.isPhysical())
     		addToPhysics(furn);
 
 
@@ -1222,107 +1384,100 @@ public class ArchApp extends Application
       *  known */
 	void removeFurniture(Coords c, Furniture f)
 	{
+		if (tracing)
+			System.out.println("removeFurniture(Coords, Furniture) called.");
 		if (c == null || f == null)
 			throw new IllegalArgumentException("null");
          
 		synchronized(syncLockObject)
 		{
-			HashMap<Furniture, Furniture3D> furniture = tabFurnitureSpatials.get(c);
-			if (furniture == null)
+			HashMap<Furniture, Furniture3D> furnitures = tabFurniture.get(c);
+			if (furnitures == null)
+			{
+				System.err.println("[WARNING @ArchApp] [SEVERITY: High] removeFurniture called with NULL furnitures.");
 				return;
+			}
 
-			Furniture3D furn = furniture.get(f);
+			Furniture3D furn = furnitures.get(f);
 			if (furn != null)
 			{
-				furniture.remove(f);
-				if (physics)
+				furnitures.remove(f);
+				if (physics && f.isPhysical())
 					removeFromPhysics(furn);
+				if (furn.hasLight())
+					rootNode.removeLight(furn.getLight());
 				rootNode.detachChild(furn.spatial);
-				if(furn.islight()){
-					rootNode.removeLight(furn.pl);
-				}
 			}
 		}
 	}
-
-	
-	/* Goes through all the walls in the given hashmap and adds them to the rootNode 
-	private void redrawAllEdges(HashMap<Edge, WallGeometry> edges)
-	{
-		Collection<WallGeometry> walls = edges.values();
-		Iterator<WallGeometry> iterator = walls.iterator();
-		WallGeometry wall;
-		while (iterator.hasNext())
-		{
-			wall = iterator.next();
-			Iterator itr = wall.geom.iterator();
-			while(itr.hasNext())
-				rootNode.attachChild((Geometry) itr.next());		
-		}
-	}*/
 	
 	
     /** Goes through all the furniture in the given hashmap and adds them to the rootNode */
 	private void redrawAllFurniture(HashMap<Furniture, Furniture3D> furnitures)
 	{
+		if (tracing)
+			System.out.println("redrawAllFurniture(HashMap<Furniture, Furniture3D>) called.");
+		if (furnitures == null)
+		{
+			System.err.println("[WARNING @ArchApp] [SEVERITY: High] redrawAllFurniture called with NULL furnitures.");
+			return;
+		}
+		
 		Collection<Furniture3D> furniture = furnitures.values();
 		Iterator<Furniture3D> iterator = furniture.iterator();
 		Furniture3D furn;
+		
 		while (iterator.hasNext())
 		{
 			furn = iterator.next();
-			addToPhysics(furn);
+			if (physics && furn.isPhysical())
+				addToPhysics(furn);
 			rootNode.attachChild(furn.spatial);
-			if(furn.islight()){
-				rootNode.addLight(furn.pl);
-			}
+			if (furn.hasLight())
+				rootNode.addLight(furn.getLight());
 		}
-	}
-	
-	/** Moves the given spatial to the new position of furniture f */
-	private void updatefurniture(Furniture3D furn, Furniture f)
-	{
-		// recalculate the furniture's position and move it
-		Point center = f.getRotationCenter();
-		furn.spatial.setLocalTranslation(center.x,-100f,center.y);
-        if(furn.islight()){
-        	furn.pl.setPosition(new Vector3f(center.x,-40f,center.y));
-        }
-		
-		// recalculate the furniture's rotation and adjust it
-		float rotation = (float) (f.getRotation() * 0.5);
-		float sinr = FastMath.sin(rotation);
-		float cosr = FastMath.cos(rotation);
-		/*float x = sinr * 0.0f;
-		float y = sinr * 1.0f;
-		float z = sinr * 0.0f;*/
-		//Quaternion c = new Quaternion(cosr, x, y, z);
-		Quaternion c = new Quaternion(cosr, 0, sinr, 0);
-		furn.spatial.setLocalRotation(c);
-		furn.spatial.rotate(0, -FastMath.HALF_PI, -FastMath.PI);
-		
-		// recalculate the furniture's physics (from position) and update it
-		updatePhysics(furn);
 	}
 	
 	
 	
 	/** Moves the given furniture. Returns if Coords c is not known yet or if f is not
       *  known */
-	void updateFurnitureChanged(Coords c, Furniture f)
+	void updateFurniture(Coords c, Furniture f)
 	{
+		if (tracing)
+			System.out.println("updateFurniture(Coords, Furniture) called.");
 		if (c == null || f == null)
 			throw new IllegalArgumentException("null");
          
 		synchronized(syncLockObject)
 		{
-			HashMap<Furniture, Furniture3D> furniture = tabFurnitureSpatials.get(c);
+			HashMap<Furniture, Furniture3D> furniture = tabFurniture.get(c);
 			if (furniture == null)
+			{
+				System.err.println("[WARNING @ArchApp] [SEVERITY: High] updateFurniture called with NULL furniture.");
 				return;
+			}
 
 			Furniture3D furn = furniture.get(f);
 			if (furn != null)
-				updatefurniture(furn, f);
+			{
+				// recalculate the furniture's position and move it
+				Point center = f.getRotationCenter();
+				furn.spatial.setLocalTranslation(center.x,-100f,center.y);
+		        if (furn.hasLight())
+		        	furn.updateLight();
+				
+				// recalculate the furniture's rotation and adjust it
+				float rotation = (float) (f.getRotation() * 0.5);
+				float sinr = FastMath.sin(rotation);
+				float cosr = FastMath.cos(rotation);
+				Quaternion q = new Quaternion(cosr, 0, sinr, 0);
+				furn.spatial.setLocalRotation(q);
+				furn.spatial.rotate(0, -FastMath.HALF_PI, -FastMath.PI);
+				
+				// recalculate the furniture's physics (from position) and update it
+				updatePhysics(furn);
+			}
 		}
 	}
 
@@ -1334,6 +1489,8 @@ public class ArchApp extends Application
 
     public void loadFPSText()
     {
+		if (tracing)
+			System.out.println("loadFPSText() called.");
         guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
         fpsText = new BitmapText(guiFont, false);
         fpsText.setLocalTranslation(0, fpsText.getLineHeight(), 0);
@@ -1345,6 +1502,8 @@ public class ArchApp extends Application
     
     public void loadStatsView()
     {
+		if (tracing)
+			System.out.println("loadStatsView() called.");
         statsView = new StatsView("Statistics View", assetManager, renderer.getStatistics());
         // move it up so it appears above fps text
         statsView.setLocalTranslation(0, fpsText.getLineHeight(), 0);
@@ -1359,6 +1518,8 @@ public class ArchApp extends Application
 
     public MovCam getFlyByCamera()
     {
+		if (tracing)
+			System.out.println("getFlyByCamera() called.");
         return flyCam;
     }
 
@@ -1366,6 +1527,8 @@ public class ArchApp extends Application
     
     public Node getGuiNode()
     {
+		if (tracing)
+			System.out.println("getGuiNode() called.");
         return guiNode;
     }
 
@@ -1373,6 +1536,8 @@ public class ArchApp extends Application
     
     public Node getRootNode()
     {
+		if (tracing)
+			System.out.println("getRootNode() called.");
         return rootNode;
     }
 
@@ -1380,6 +1545,8 @@ public class ArchApp extends Application
     
     public boolean isShowSettings()
     {
+		if (tracing)
+			System.out.println("isShowSettings() called.");
         return showSettings;
     }
 
@@ -1387,6 +1554,8 @@ public class ArchApp extends Application
     
     public void setShowSettings(boolean showSettings)
     {
+		if (tracing)
+			System.out.println("setShowSettings() called.");
         this.showSettings = showSettings;
     }
 }

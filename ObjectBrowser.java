@@ -295,7 +295,31 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 
 	      return false;
 	   }
+   
+    // The following items are not physical: Wall Light, Ceiling Light, All Doors, All Windows, Wallpaper, Carpet, Rug
+	public boolean isPhysical (int t)
+	{
+		if ((t == 13) || (t == 14) || (t >= 31 && t <= 40))
+			return false;
+		return true;
+	}
 	
+   //TODO: Jonny
+    public int[] getLight (int typeID)
+    {
+    	int[] result = {-1, -1};
+    	try
+    	{
+    		// nothing
+    	}
+    	catch (Exception e)
+    	{
+    		e.printStackTrace();
+    	}
+
+		return result;
+    }
+   
 	private void getDimensions(int itemTypeID, int isTweaked) {
 		draggedObject = null;
 		try {

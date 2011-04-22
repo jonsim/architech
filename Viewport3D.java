@@ -105,7 +105,7 @@ public class Viewport3D implements CoordsChangeListener {
             case CoordsChangeEvent.EDGE_CHANGED:
                // update the edge location
             	System.out.println(e.toString());
-               canvasApplication.updateEdgeChanged(e.getSource(), hasChanged);
+               canvasApplication.updateEdge(e.getSource(), hasChanged);
                break;
             case CoordsChangeEvent.EDGE_REMOVED:
                // remove the edge
@@ -123,7 +123,7 @@ public class Viewport3D implements CoordsChangeListener {
                break;
             case CoordsChangeEvent.FURNITURE_CHANGED:
                // update the furniture location
-               canvasApplication.updateFurnitureChanged(e.getSource(), hasChanged);
+               canvasApplication.updateFurniture(e.getSource(), hasChanged);
                break;
             case CoordsChangeEvent.FURNITURE_REMOVED:
                // remove the furniture

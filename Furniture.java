@@ -13,9 +13,10 @@ public class Furniture {
    private double rotation; // theta - in radians
    private String objPath;
    private boolean isDW; // is this a door/window
-   private boolean isD; // is this a door
-   private boolean isW; // is this a window
-   private boolean isL; //is this a light?
+   private boolean isD;  // is this a door
+   private boolean isW;  // is this a window
+   private boolean isL;  //is this a light?
+   private boolean isP;
 
    Furniture(FurnitureSQLData data, Point center, ObjectBrowser ob) {
       if (data == null || data.objPath == null || center == null) {
@@ -28,29 +29,31 @@ public class Furniture {
       this.rotation = 0;
       this.objPath = data.objPath;
       System.out.println("objpath="+objPath);
-      if(ob.isLight(data.type)){
-    	  isL = true;
-      }else{
-    	  isL = false;
-      }
+      isL = ob.isLight(data.type);
+      isP = ob.isPhysical(data.type);
       int ftype = ob.isDoorWindow( data.type );
-      if( ftype > -1) {
+      if ( ftype > -1)
+      {
           if( this.height < 10 )
             this.height = 10;
 
           isDW = true;
-          if(ftype==8) {
-             isD = true;
-             isW = false;
-             this.width = this.width + 10;
+          if (ftype == 8)
+          {
+        	  isD = true;
+              isW = false;
+              this.width += 10;
           }
-          if(ftype==9) {
-             isW = true;
-             isD = false;
-             this.width = this.width + 30;
+          else if (ftype == 9)
+          {
+              isW = true;
+              isD = false;
+              this.width += 30;
           }
-      } else {
-         isDW = false;
+      }
+      else
+      {
+          isDW = false;
       }
 
       setRotationCenter(center);
@@ -58,14 +61,11 @@ public class Furniture {
    }
 
    Furniture(String toLoadFrom) throws IllegalArgumentException {
-      if (toLoadFrom == null) {
+      if (toLoadFrom == null)
          throw new IllegalArgumentException("Null parameter");
-      }
-
       String[] split = toLoadFrom.split(",");
-      if (split.length < 11) {
-         throw new IllegalArgumentException("Too few fields (expected 11)");
-      }
+      if (split.length < 12)
+         throw new IllegalArgumentException("Too few fields (expected 12)");
 
       try {
          furnitureID = Integer.parseInt(split[0]);
@@ -81,17 +81,18 @@ public class Furniture {
 
       // objPath might contain commas, so load split from the end backwards.
       objPath = "";
-      for (int i=6; i < split.length - 4; i++) {
+      for (int i = 6; i < split.length - 5; i++)
         objPath += split[i];
-      }
-      isDW = java.lang.Boolean.parseBoolean(split[split.length - 4]);
-      isD = java.lang.Boolean.parseBoolean(split[split.length - 3]);
-      isW = java.lang.Boolean.parseBoolean(split[split.length - 2]);
-      isL = java.lang.Boolean.parseBoolean(split[split.length - 1]);
       
+      isDW = java.lang.Boolean.parseBoolean(split[split.length - 5]);
+      isD  = java.lang.Boolean.parseBoolean(split[split.length - 4]);
+      isW  = java.lang.Boolean.parseBoolean(split[split.length - 3]);
+      isL  = java.lang.Boolean.parseBoolean(split[split.length - 2]);
+      isP  = java.lang.Boolean.parseBoolean(split[split.length - 1]);
       if (isDW && !(isD || isW)) throw new IllegalArgumentException("Malformed furniture type doorwindow");
-      if (isD && isW) throw new IllegalArgumentException("Malformed furniture its both a door and a window");
-      if (isDW && isL) throw new IllegalArgumentException("Malformed furniture its both a doorwindow and a light");
+      if (isD && isW) throw new IllegalArgumentException("Malformed furniture is both a door and a window");
+      if (isDW && isL) throw new IllegalArgumentException("Malformed furniture is both a doorwindow and a light");
+      if (isDW && isP) throw new IllegalArgumentException("Malformed furniture is both a doorwindow and a physical object");
 
       recalcRectangle();
    }
@@ -107,7 +108,7 @@ public class Furniture {
    public String getSaveString() {
       return furnitureID + "," + width + "," + height + "," + rotationCenterX
          + "," + rotationCenterY + "," + rotation + "," + objPath + "," + isDW
-         + "," + isD + "," + isW + "," + isL;
+         + "," + isD + "," + isW + "," + isL + "," + isP;
    }
 
    /** Use the method in the Coords class instead! Sets the Furniture's location */
@@ -146,6 +147,12 @@ public class Furniture {
    /** Checks if the current object is a light */
    public boolean isLight() {
       return isL;
+   }
+   
+   /** Checks if the current object is a physical object (i.e. you can
+    *  collide with it in the 3D view. */
+   public boolean isPhysical () {
+	   return isP;
    }
 
    /** Use moveFurniture() in the coordinates class instead! */
