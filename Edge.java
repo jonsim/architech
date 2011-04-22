@@ -1,11 +1,6 @@
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Line2D;
-import java.awt.geom.PathIterator;
-import java.awt.geom.Point2D;
-import java.awt.geom.QuadCurve2D;
+import java.awt.geom.*;
+import java.awt.geom.Line2D.*;
+import java.awt.*;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -25,7 +20,9 @@ public class Edge {
    private final Line2D.Float tangent2 = new Line2D.Float();
    private final LinkedList<Furniture> doorWindow = new LinkedList<Furniture>();
    private String texpath = "";
-   public boolean doRecalcCtrl = false;
+   public boolean wasStraight = false;
+   private double oldRotation;
+   private int changedV = 0;
 
    /** Creates a new edge from the given vertices. Doesn't add it to the coordStore.
     *  If null is given for a vertex then that vertex will be made at 0,0,0
@@ -67,21 +64,33 @@ public class Edge {
    /** Updates v1, refuses to update if you give it null. Also updates the ctrl
     *  point to halfway between the two points. When a new line is drawn this is
     *  called, and the new line has ctrl point 0,0 so it should be updated. */
-   public void setV1(Coords.Vertex v1) {
+   public void setV1(Coords.Vertex v1, boolean isMerging) {
       if (v1 == null) return;
 
       this.v1 = v1;
-      resetCtrlPositionToHalfway();
+      if(!isMerging) resetCtrlPositionToHalfway();
    }
 
    /** Updates v2, refuses to update if you give it null. Also updates the ctrl
     *  point to halfway between the two points. When a new line is drawn this is
     *  called, and the new line has ctrl point 0,0 so it should be updated. */
-   public void setV2(Coords.Vertex v2) {
+   public void setV2(Coords.Vertex v2, boolean isMerging) {
       if (v2 == null) return;
 
       this.v2 = v2;
-      resetCtrlPositionToHalfway();
+      if(!isMerging) resetCtrlPositionToHalfway();
+   }
+
+   /** comment */
+   public void storeRotation(int vNum) {
+      oldRotation = getRotation();
+      changedV = vNum;
+   }
+
+   /** comment */
+   public void discardRotation() {
+      oldRotation = 0.0;
+      changedV = 0;
    }
 
    /** Returns true if the point lies within the coordinates of the control point */
@@ -150,13 +159,17 @@ public class Edge {
       return null;
    }
 
-   public double getRotation() {
+   public static double getRotation(Coords.Vertex v1, Coords.Vertex v2) {
       double delta_x = v1.getX() - v2.getX();
       double delta_y = v1.getY() - v2.getY();
       return Math.atan2(delta_y, delta_x);
    }
 
-   public boolean isStraight() {
+   public double getRotation() {
+      return getRotation(v1, v2);
+   }
+
+   public static boolean isStraight(Coords.Vertex v1, Coords.Vertex v2, Point.Float ctrl) {
       int xDiff = 0, yDiff = 0;
 
       if ( ctrl.getX() == ( ( v1.getX() + v2.getX() ) / 2 ) )
@@ -179,6 +192,10 @@ public class Edge {
       return false;
    }
 
+   public boolean isStraight() {
+      return isStraight(v1, v2, ctrl);
+   }
+
    public boolean doorWindowAt(Point p) {
       ListIterator<Furniture> ite = doorWindow.listIterator();
       
@@ -193,6 +210,60 @@ public class Edge {
    public final void resetCtrlPositionToHalfway() {
       ctrl.setLocation( ( v1.getX() + v2.getX() ) / 2, ( v1.getY() + v2.getY() ) / 2 );
       recalcTopDownView();
+   }
+
+   /** Adjusts the ctrl point for a curve */
+   public final void resetCurveCtrlPosition() {
+      Coords.Vertex pivot;
+
+      if( wasStraight ) {
+         resetCtrlPositionToHalfway();
+         wasStraight = false;
+         discardRotation();
+         return;
+      }
+
+      if( changedV == 0 )
+         return;
+      
+      if( changedV == 1 )
+         pivot = v2;
+      else
+         pivot = v1;
+
+      double change = getRotation() - oldRotation;
+      
+      if( change != 0 ) {
+         double x = pivot.getX() + ( ( ctrl.getX() - pivot.getX() ) * Math.cos(change) - ( ctrl.getY() - pivot.getY() ) * Math.sin(change) );
+         double y = pivot.getY() + ( ( ctrl.getX() - pivot.getX() ) * Math.sin(change) + ( ctrl.getY() - pivot.getY() ) * Math.cos(change) );
+         ctrl.setLocation(x, y);
+      }
+   }
+
+   public void resetDoorsWindows(Coords coords) {
+      Coords.Vertex pivot;
+
+      if( changedV == 0 )
+         return;
+
+      if( changedV == 1 )
+         pivot = v2;
+      else
+         pivot = v1;
+
+      double change = getRotation() - oldRotation;
+
+      ListIterator<Furniture> ite = doorWindow.listIterator();
+      while( ite.hasNext() ) {
+         Furniture f = ite.next();
+
+         if( change != 0 ) {
+            double x = pivot.getX() + ( ( f.getRotationCenter().getX() - pivot.getX() ) * Math.cos(change) - ( f.getRotationCenter().getY() - pivot.getY() ) * Math.sin(change) );
+            double y = pivot.getY() + ( ( f.getRotationCenter().getX() - pivot.getX() ) * Math.sin(change) + ( f.getRotationCenter().getY() - pivot.getY() ) * Math.cos(change) );
+            f.set( coords.snapToEdge( new Point( (int) x, (int) y ) ) );
+            f.setRotation( getRotation() );
+         }
+      }
    }
 
    /** Keeps the top down (2D) view of this line up to date */
@@ -227,9 +298,11 @@ public class Edge {
          
       } else g2.draw(topDownViewCurve);
 
-      ListIterator<Furniture> ite = doorWindow.listIterator();
-      while ( ite.hasNext() ) {
-         ite.next().paint(g2);
+      if( isStraight() ) {
+         ListIterator<Furniture> ite = doorWindow.listIterator();
+         while ( ite.hasNext() ) {
+            ite.next().paint(g2);
+         }
       }
    }
 
