@@ -856,7 +856,7 @@ public class ArchApp extends Application
 					Edge3D.Segment segment = segment_itr.next();
 					removeFromPhysics(segment);
 					rootNode.detachChild(segment.side[0]);
-					rootNode.attachChild(segment.side[1]);
+					rootNode.detachChild(segment.side[1]);
 				}
 				Iterator<Geometry> furniture_itr = wall.attachedFurniture.iterator();
 				while (furniture_itr.hasNext())
