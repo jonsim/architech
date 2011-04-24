@@ -969,11 +969,18 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 			 if(selectedindex==-1){
 				 JOptionPane.showMessageDialog(null, "No item selected","Error - Can't delete", 1);
 			 }else{
-				 preview.removeitem(selectedindex);
-				 fields.remove(selectedpos);
-				 main.frontEnd.getDButtons().twButtons(false);
-				 rembutton(false);
-				 selectedindex=-1;
+				 int n = JOptionPane.showConfirmDialog(
+						    null,
+						    "Are you sure you want to delete this item?",
+						    "Item Deletion",
+						    JOptionPane.YES_NO_OPTION);
+				 if(n==JOptionPane.YES_OPTION){
+					 preview.removeitem(selectedindex);
+					 fields.remove(selectedpos);
+					 main.frontEnd.getDButtons().twButtons(false);
+					 rembutton(false);
+					 selectedindex=-1;
+				 }
 			 }
 		 }
 		 if (comm.equals("save")){
