@@ -71,7 +71,8 @@ public class Compone {
 				}
 			}
 		}
-		matfile = output.toString();		
+		matfile = output.toString();	
+		System.out.println("matfile = " +matfile);
 	}
 	
 	public void texture(String path, String fname){
@@ -86,11 +87,16 @@ public class Compone {
 					found = 1;
 					output.append("map_Kd " + fname).append(System.getProperty("line.separator"));
 				}else{
-					output.append(lines[i]).append(System.getProperty("line.separator"));
+					if(lines[i].substring(0,2).equals("Kd")){
+						output.append("Kd 1.0 1.0 1.0").append(System.getProperty("line.separator"));
+					}
+					else
+						output.append(lines[i]).append(System.getProperty("line.separator"));
 				}
 		}
 		if(found==0){output.append("map_Kd " + fname).append(System.getProperty("line.separator"));}
 		matfile = output.toString();
+		System.out.println("matfile = " +matfile);
 	}
 	
 	public void appendscalex(double num){
