@@ -390,7 +390,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
    }
 
    private void getFloorScreenshot() {
-      if (true) return; // stop the program completely crashing (for now) when a
+      //if (true) return; // stop the program completely crashing (for now) when a
                         // vertex is deleted - 3d will give exceptions but will be ok
 
       // this.paint(Graphics g) - "Invoked by Swing to draw components. Applica-
@@ -417,7 +417,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
       DateFormat df = new SimpleDateFormat("ddMM_hh_mm_ss");
       Date now = Calendar.getInstance().getTime();
       String nows = df.format(now);
-      this.paint(g);
+      this.repaint();
       g.dispose();
       BufferedImage floor = image;
       ImageFilter ceilfilter = new RGBImageFilter() {
@@ -494,20 +494,19 @@ class TwoDPanel extends JPanel implements ChangeListener {
       polygonReverse.remove(i);
    }
 
-   private void deleteFloorFill(ArrayList<Edge> edges) {
+   // This needs to be changed to work when only one is selected because that means no vertices are selected
+   private void deleteFloorFill(ArrayList<Coords.Vertex> vertices) {
       int a = 0;
       int i = 0;
       int j = 0;
-      Edge e;
-      while (a < edges.size()) {
-         e = edges.get(a);
-         if (e != null) {
+      Coords.Vertex v;
+      while (a < vertices.size()) {
+         v = vertices.get(a);
+         if (v != null) {
             while (i < polygonEdges.size()) {
                while (j < polygonEdges.get(i).size()) {
-                  if (polygonEdges.get(i).get(j).getV1().equals(e.getV1())
-                          || polygonEdges.get(i).get(j).getV2().equals(e.getV1())
-                          || polygonEdges.get(i).get(j).getV1().equals(e.getV2())
-                          || polygonEdges.get(i).get(j).getV2().equals(e.getV2())) {
+                  if (polygonEdges.get(i).get(j).getV1().equals(v)
+                          || polygonEdges.get(i).get(j).getV2().equals(v)) {
                      polygons.remove(i);
                      polygonEdges.remove(i);
                      polygonFills.remove(i);
@@ -801,7 +800,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
          if ((c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE) && designButtons.isSelectTool()) {
             // This call might change a little as it depends on brent's module
-            deleteFloorFill(handlerVertexSelect.getSelectedE());
+            deleteFloorFill(handlerVertexSelect.getSelectedV());
             handlerVertexSelect.deleteSelected();
             handlerDoorWindowMove.delete();
 
