@@ -585,9 +585,6 @@ public class Coords {
        y2 = quadCurve.getY2();
        ctrlX = quadCurve.getCtrlX();
        ctrlY = quadCurve.getCtrlY();
-       double testX = x1 - f.getRotationCenterX();
-       double testY = y1 - f.getRotationCenterY();
-       if(testX <= f.getWidth()/2 && testX >= -f.getWidth()/2 && testY <= f.getHeight()/2 && testY >= -f.getHeight()/2) return true;
        if (intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, f.getRotationCenterX() + f.getWidth() / 2)
                || intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY() + f.getHeight() / 2, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, f.getRotationCenterX() + f.getWidth() / 2)
                || intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, f.getRotationCenterY() + f.getHeight() / 2)
@@ -1394,7 +1391,6 @@ public class Coords {
          // test e1 has snapped to grid and e2 hasn't
          e1 = c.newEdge(v1, v2, true); // snap to grid
          e2 = c.newEdge(v1, v2, false); // no snap
-         e1 = null;
          if (c.vertices.size() != 3 || c.edges.size() != 2 ||
                !(c.vertices.contains(v1)
                  && c.vertices.contains(v2)
@@ -1405,7 +1401,6 @@ public class Coords {
 
          // test edge deletion, edge 2 should be removed but not the vertices
          c.delete(e2);
-         e1 = null; e2 = null;
          if (c.vertices.size() != 2 || c.edges.size() != 1 ||
                !(c.vertices.contains(v1)
                  && c.vertices.contains(new Vertex(120, 120, 0))
@@ -1413,22 +1408,14 @@ public class Coords {
             System.err.println("e2 - edge deletion error");
          }
 
-         System.out.println(c.vertices);
-         ListIterator<Vertex> iterator = c.vertices.listIterator();
-         while (iterator.hasNext()) {
-            Vertex v = iterator.next();
-            System.out.println("x=" + v.p.x() + " y=" + v.p.y() + " z=" + v.p.z() + " " + c.vertices.contains(v1) + " " + c.vertices.contains(v2) + " " + c.vertices.contains(new Vertex(120, 120, 120)));
-         }
-
          // every edge and vertex should be deleted with this
-         e1 = null; e2 = null;
-         c.delete(v1);
+         c.delete(e1.getV1());
          if (c.vertices.size() != 0 || c.edges.size() != 0) {
             System.err.println("e3 - vertex deletion error (unexpected remaining nodes/edges)");
          }
-         System.out.println(c.vertices.contains(v1) + " " + c.vertices.size() + " " + c.edges.size());
 
          // test furniture intersections
+         e1 = null; e2 = null;
          e1 = c.newEdge(v1, v2, false);
          e2 = null;
          Furniture f = new Furniture("15,80.0,45.0,121.0,121.0,-0.051237167403418805,sofa_1.obj,false,false,false,false,true");
@@ -1442,36 +1429,37 @@ public class Coords {
             System.err.println("e5 - getEdges() error, it contains incorrect elements");
          }
          c.delete(e1);
-         
-         // test set to make sure it properly merges vertices
+
+         // test mergeVertices to make sure it properly merges vertices
          e1 = c.newEdge(v1, v2, false);
          Vertex v3 = new Vertex(120,120,0);
-         e2 = c.newEdge(v1, v3, false);
+         e2 = c.newEdge(v1, new Vertex(120,120,0), false);
 
-         c.set(v3, 121, 121, 0, false);
+         c.mergeVertices(e2.getV2(), 121, 121, 0, false);
+
          if (c.vertices.size() != 2 || c.edges.size() != 2) {
             System.err.println("e6 - set has corrupted the edges or vertices list, incorrect size");
          }
-         if (!c.vertices.contains(v1) || !c.vertices.contains(v3)) {
+         if (!c.vertices.contains(v1) || !c.vertices.contains(e2.getV2())) {
             System.err.println("e7 - wrong vertex was moved with set, the one to be changed was deleted/replaced");
          }
-         if (c.vertices.contains(v2)) {
+         if (c.vertices.contains(v3)) {
             System.err.println("e8 - wrong vertex was replaced with set, the one to be replaced is still there");
          }
-         if (!(v3.p.x() == 121 && v3.p.y() == 121 && v3.p.z() == 0) ) {
+         if (!(e2.getV2().p.x() == 121 && e2.getV2().p.y() == 121 && e2.getV2().p.z() == 0) ) {
             System.err.println("e9 - vertex to be moved isn't in the right place");
          }
 
          // test the coord system can lookup where the points are
          Point lookup = new Point(121,121);
          Vertex at = c.vertexAt(lookup);
-         if  (at == null || at != v3) {
+         if  (at == null || at != e2.getV2()) {
             System.err.println("e10 - vertex lookup failure");
          }
 
          // test the coord systen can still lookup points
          Vertex inUseLookup = c.vertexInUse((float) 121, (float) 121, (float) 0);
-         if (inUseLookup == null || inUseLookup != v3 || inUseLookup.p.x() != 121 || inUseLookup.p.y() != 121 || inUseLookup.p.z() != 0) {
+         if (inUseLookup == null || inUseLookup != e2.getV2() || inUseLookup.p.x() != 121 || inUseLookup.p.y() != 121 || inUseLookup.p.z() != 0) {
             System.err.println("e11 - vertex in use lookup failure");
          }
 

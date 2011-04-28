@@ -168,33 +168,6 @@ class TwoDPanel extends JPanel implements ChangeListener {
                     (int) Math.round(getHeight() / zoomScale));
          }
 
-         //FURNITURE
-         g2.setColor(Color.BLUE);
-         coords.paintFurniture(g2);
-
-         Furniture furnitureMove = handlerFurnitureMove.getFurniture();
-         if ((inProgressHandler == null || inProgressHandler == handlerFurnitureMove) && furnitureMove != null) {
-            if (handlerFurnitureMove.isCollided()) {
-               g2.setColor(Color.RED);
-            } else {
-               g2.setColor(Color.GREEN);
-            }
-            furnitureMove.paint(g2);
-         } else if (hoverFurniture != null && designButtons.isSelectTool()) {
-            g2.setColor(Color.CYAN);
-            hoverFurniture.paint(g2);
-         }
-
-         furnitureMove = handlerDoorWindowMove.getFurniture();
-         if ((inProgressHandler == null || inProgressHandler == handlerDoorWindowMove) && furnitureMove != null) {
-            if (coords.doorWindowInvalidPosition(furnitureMove)) {
-               g2.setColor(Color.RED);
-            } else {
-               g2.setColor(Color.GREEN);
-            }
-            furnitureMove.paint(g2);
-         }
-
 
          // EDGES
          coords.paintEdges(g2, designButtons.isCurveTool());
@@ -277,7 +250,32 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
          coords.paintLineSplits(g2, (int) Math.round(vertexDiameter / zoomScale));
 
-         
+         //FURNITURE
+         g2.setColor(Color.BLUE);
+         coords.paintFurniture(g2);
+
+         Furniture furnitureMove = handlerFurnitureMove.getFurniture();
+         if ((inProgressHandler == null || inProgressHandler == handlerFurnitureMove) && furnitureMove != null) {
+            if (handlerFurnitureMove.isCollided()) {
+               g2.setColor(Color.RED);
+            } else {
+               g2.setColor(Color.GREEN);
+            }
+            furnitureMove.paint(g2);
+         } else if (hoverFurniture != null && designButtons.isSelectTool()) {
+            g2.setColor(Color.CYAN);
+            hoverFurniture.paint(g2);
+         }
+
+         furnitureMove = handlerDoorWindowMove.getFurniture();
+         if ((inProgressHandler == null || inProgressHandler == handlerDoorWindowMove) && furnitureMove != null) {
+            if (coords.doorWindowInvalidPosition(furnitureMove)) {
+               g2.setColor(Color.RED);
+            } else {
+               g2.setColor(Color.GREEN);
+            }
+            furnitureMove.paint(g2);
+         }
 
          Color fill = new Color(Color.BLUE.getRed(), Color.BLUE.getGreen(), Color.BLUE.getBlue(), 50);
          g2.setColor(fill);
@@ -419,7 +417,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
       DateFormat df = new SimpleDateFormat("ddMM_hh_mm_ss");
       Date now = Calendar.getInstance().getTime();
       String nows = df.format(now);
-      this.repaint();
+      this.paint(g);
       g.dispose();
       BufferedImage floor = image;
       ImageFilter ceilfilter = new RGBImageFilter() {
@@ -496,19 +494,20 @@ class TwoDPanel extends JPanel implements ChangeListener {
       polygonReverse.remove(i);
    }
 
-   // This needs to be changed to work when only one is selected because that means no vertices are selected
-   private void deleteFloorFill(ArrayList<Coords.Vertex> vertices) {
+   private void deleteFloorFill(ArrayList<Edge> edges) {
       int a = 0;
       int i = 0;
       int j = 0;
-      Coords.Vertex v;
-      while (a < vertices.size()) {
-         v = vertices.get(a);
-         if (v != null) {
+      Edge e;
+      while (a < edges.size()) {
+         e = edges.get(a);
+         if (e != null) {
             while (i < polygonEdges.size()) {
                while (j < polygonEdges.get(i).size()) {
-                  if (polygonEdges.get(i).get(j).getV1().equals(v)
-                          || polygonEdges.get(i).get(j).getV2().equals(v)) {
+                  if (polygonEdges.get(i).get(j).getV1().equals(e.getV1())
+                          || polygonEdges.get(i).get(j).getV2().equals(e.getV1())
+                          || polygonEdges.get(i).get(j).getV1().equals(e.getV2())
+                          || polygonEdges.get(i).get(j).getV2().equals(e.getV2())) {
                      polygons.remove(i);
                      polygonEdges.remove(i);
                      polygonFills.remove(i);
@@ -802,7 +801,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
          if ((c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE) && designButtons.isSelectTool()) {
             // This call might change a little as it depends on brent's module
-            deleteFloorFill(handlerVertexSelect.getSelectedV());
+            deleteFloorFill(handlerVertexSelect.getSelectedE());
             handlerVertexSelect.deleteSelected();
             handlerDoorWindowMove.delete();
 

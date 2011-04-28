@@ -51,8 +51,8 @@ public class HandlerFurnitureMove {
          double deltaX = p.getX() - furniture.getRotationCenterX();
          double deltaY = p.getY() - furniture.getRotationCenterY();
          double rotation = deltaX == 0
-            ? ((deltaY >= 0) ? Math.PI / 2 : -Math.PI / 2)
-            : (Math.atan2(deltaY, deltaX));
+            ? ((deltaY >= 0) ? 0 : -Math.PI)
+            : (Math.atan2(deltaY, deltaX)-Math.PI/2);
 
          coords.rotateFurniture(furniture, rotation);
 
