@@ -168,6 +168,33 @@ class TwoDPanel extends JPanel implements ChangeListener {
                     (int) Math.round(getHeight() / zoomScale));
          }
 
+         //FURNITURE
+         g2.setColor(Color.BLUE);
+         coords.paintFurniture(g2);
+
+         Furniture furnitureMove = handlerFurnitureMove.getFurniture();
+         if ((inProgressHandler == null || inProgressHandler == handlerFurnitureMove) && furnitureMove != null) {
+            if (handlerFurnitureMove.isCollided()) {
+               g2.setColor(Color.RED);
+            } else {
+               g2.setColor(Color.GREEN);
+            }
+            furnitureMove.paint(g2);
+         } else if (hoverFurniture != null && designButtons.isSelectTool()) {
+            g2.setColor(Color.CYAN);
+            hoverFurniture.paint(g2);
+         }
+
+         furnitureMove = handlerDoorWindowMove.getFurniture();
+         if ((inProgressHandler == null || inProgressHandler == handlerDoorWindowMove) && furnitureMove != null) {
+            if (coords.doorWindowInvalidPosition(furnitureMove)) {
+               g2.setColor(Color.RED);
+            } else {
+               g2.setColor(Color.GREEN);
+            }
+            furnitureMove.paint(g2);
+         }
+
 
          // EDGES
          coords.paintEdges(g2, designButtons.isCurveTool());
@@ -250,32 +277,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
          coords.paintLineSplits(g2, (int) Math.round(vertexDiameter / zoomScale));
 
-         //FURNITURE
-         g2.setColor(Color.BLUE);
-         coords.paintFurniture(g2);
-
-         Furniture furnitureMove = handlerFurnitureMove.getFurniture();
-         if ((inProgressHandler == null || inProgressHandler == handlerFurnitureMove) && furnitureMove != null) {
-            if (handlerFurnitureMove.isCollided()) {
-               g2.setColor(Color.RED);
-            } else {
-               g2.setColor(Color.GREEN);
-            }
-            furnitureMove.paint(g2);
-         } else if (hoverFurniture != null && designButtons.isSelectTool()) {
-            g2.setColor(Color.CYAN);
-            hoverFurniture.paint(g2);
-         }
-
-         furnitureMove = handlerDoorWindowMove.getFurniture();
-         if ((inProgressHandler == null || inProgressHandler == handlerDoorWindowMove) && furnitureMove != null) {
-            if (coords.doorWindowInvalidPosition(furnitureMove)) {
-               g2.setColor(Color.RED);
-            } else {
-               g2.setColor(Color.GREEN);
-            }
-            furnitureMove.paint(g2);
-         }
+         
 
          Color fill = new Color(Color.BLUE.getRed(), Color.BLUE.getGreen(), Color.BLUE.getBlue(), 50);
          g2.setColor(fill);

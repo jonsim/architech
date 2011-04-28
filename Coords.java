@@ -585,6 +585,9 @@ public class Coords {
        y2 = quadCurve.getY2();
        ctrlX = quadCurve.getCtrlX();
        ctrlY = quadCurve.getCtrlY();
+       double testX = x1 - f.getRotationCenterX();
+       double testY = y1 - f.getRotationCenterY();
+       if(testX <= f.getWidth()/2 && testX >= -f.getWidth()/2 && testY <= f.getHeight()/2 && testY >= -f.getHeight()/2) return true;
        if (intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, f.getRotationCenterX() + f.getWidth() / 2)
                || intersectsLine(eqn, y1, ctrlY, y2, f.getRotationCenterY() + f.getHeight() / 2, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, f.getRotationCenterX() + f.getWidth() / 2)
                || intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX() - f.getWidth() / 2, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, f.getRotationCenterY() + f.getHeight() / 2)
