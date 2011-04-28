@@ -65,6 +65,10 @@ public class Main {
    /** Sets the default look and feel. (must be done before anything else)
     * Runs the program. Catches any un-handled exceptions and displays them. */
    public static void main(String[] args) {
+
+      //Coords.testCoords();
+      //if (true) return;
+
       try {
          setSystemLookAndFeel();
          Main program = new Main();

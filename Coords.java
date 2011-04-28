@@ -1380,6 +1380,118 @@ public class Coords {
       return -1;
    }
 
+   public static void testCoords() {
+      // Edge related tests
+      {
+         Coords c = new Coords("blank save name");
+         Vertex v1 = new Vertex(0,0,0);
+         Vertex v2 = new Vertex(121,121,0);
+         Edge e1, e2;
+         
+         // test e1 has snapped to grid and e2 hasn't
+         e1 = c.newEdge(v1, v2, true); // snap to grid
+         e2 = c.newEdge(v1, v2, false); // no snap
+         e1 = null;
+         if (c.vertices.size() != 3 || c.edges.size() != 2 ||
+               !(c.vertices.contains(v1)
+                 && c.vertices.contains(v2)
+                 && c.vertices.contains(new Vertex(120, 120, 0))
+               )) {
+            System.err.println("e1 - edge didn't snap to grid correctly / vertex merge error");
+         }
+
+         // test edge deletion, edge 2 should be removed but not the vertices
+         c.delete(e2);
+         e1 = null; e2 = null;
+         if (c.vertices.size() != 2 || c.edges.size() != 1 ||
+               !(c.vertices.contains(v1)
+                 && c.vertices.contains(new Vertex(120, 120, 0))
+               )) {
+            System.err.println("e2 - edge deletion error");
+         }
+
+         System.out.println(c.vertices);
+         ListIterator<Vertex> iterator = c.vertices.listIterator();
+         while (iterator.hasNext()) {
+            Vertex v = iterator.next();
+            System.out.println("x=" + v.p.x() + " y=" + v.p.y() + " z=" + v.p.z() + " " + c.vertices.contains(v1) + " " + c.vertices.contains(v2) + " " + c.vertices.contains(new Vertex(120, 120, 120)));
+         }
+
+         // every edge and vertex should be deleted with this
+         e1 = null; e2 = null;
+         c.delete(v1);
+         if (c.vertices.size() != 0 || c.edges.size() != 0) {
+            System.err.println("e3 - vertex deletion error (unexpected remaining nodes/edges)");
+         }
+         System.out.println(c.vertices.contains(v1) + " " + c.vertices.size() + " " + c.edges.size());
+
+         // test furniture intersections
+         e1 = c.newEdge(v1, v2, false);
+         e2 = null;
+         Furniture f = new Furniture("15,80.0,45.0,121.0,121.0,-0.051237167403418805,sofa_1.obj,false,false,false,false,true");
+         if (!c.furnitureWallIntersect(f,e1)) {
+            System.err.println("e4 - furniture intersection error");
+         }
+
+         // test getEdges()
+         Edge[] shouldContainE1 = c.getEdges();
+         if (shouldContainE1 == null || shouldContainE1.length != 1 || shouldContainE1[0] != e1) {
+            System.err.println("e5 - getEdges() error, it contains incorrect elements");
+         }
+         c.delete(e1);
+         
+         // test set to make sure it properly merges vertices
+         e1 = c.newEdge(v1, v2, false);
+         Vertex v3 = new Vertex(120,120,0);
+         e2 = c.newEdge(v1, v3, false);
+
+         c.set(v3, 121, 121, 0, false);
+         if (c.vertices.size() != 2 || c.edges.size() != 2) {
+            System.err.println("e6 - set has corrupted the edges or vertices list, incorrect size");
+         }
+         if (!c.vertices.contains(v1) || !c.vertices.contains(v3)) {
+            System.err.println("e7 - wrong vertex was moved with set, the one to be changed was deleted/replaced");
+         }
+         if (c.vertices.contains(v2)) {
+            System.err.println("e8 - wrong vertex was replaced with set, the one to be replaced is still there");
+         }
+         if (!(v3.p.x() == 121 && v3.p.y() == 121 && v3.p.z() == 0) ) {
+            System.err.println("e9 - vertex to be moved isn't in the right place");
+         }
+
+         // test the coord system can lookup where the points are
+         Point lookup = new Point(121,121);
+         Vertex at = c.vertexAt(lookup);
+         if  (at == null || at != v3) {
+            System.err.println("e10 - vertex lookup failure");
+         }
+
+         // test the coord systen can still lookup points
+         Vertex inUseLookup = c.vertexInUse((float) 121, (float) 121, (float) 0);
+         if (inUseLookup == null || inUseLookup != v3 || inUseLookup.p.x() != 121 || inUseLookup.p.y() != 121 || inUseLookup.p.z() != 0) {
+            System.err.println("e11 - vertex in use lookup failure");
+         }
+
+         // test the splitting from merged vertices function
+         c.delete(e1);
+         c.delete(e2);
+         v3 = new Vertex(30,30,0);
+         e1 = c.newEdge(v1, v2, false);
+         e2 = c.newEdge(v2, v3, false);
+         c.vertexMoveOrSplit(e2, true, 121, 160, 0, false);
+         if (!(c.vertices.size() == 4)
+               || !(c.vertices.contains(v1)
+                    && c.vertices.contains(v2)
+                    && c.vertices.contains(v3)
+                    && c.vertices.contains(new Vertex(121,160,0))
+               )) {
+            System.err.println("e12 - vertex didn't split correctly");
+         }
+      }
+
+      System.out.println("Coords test complete");
+   }
+
    //-CHANGE-EVENT-STUFF--------------------------------------------------------
    
    private javax.swing.event.EventListenerList listenerList = new javax.swing.event.EventListenerList();
