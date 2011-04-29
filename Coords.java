@@ -1038,6 +1038,8 @@ public class Coords {
 
          v.set(x, y, z);
 
+         System.out.println("here");
+
          // fire a shit load of events
          for (Edge e : affectedEdges) {
             if( e.wasStraight ) {
