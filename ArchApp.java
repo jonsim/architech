@@ -19,6 +19,7 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
+import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
@@ -605,6 +606,55 @@ public class ArchApp extends Application
     }
     
     
+    /** A dangerous method that removes every single object in every single tab's physics information. 
+     *  Computationally expensive (especially since a lot of the physics information removed will have 
+     *  to be rebuilt later as it's still needed) but who cares. 
+     *  Use only if you are mentally challenged. */
+    private void removeAllFromPhysicsForMentalists ()
+    {
+		if (tracing)
+			System.out.println("removeAllFromPhysicsDangerous() called.");
+
+		// remove every segment in every edge from physics
+		Iterator<HashMap<Edge, Edge3D>> itr_allEdges = tabEdges.values().iterator();
+		while (itr_allEdges.hasNext())
+		{
+			HashMap<Edge, Edge3D> edges = itr_allEdges.next();
+			
+			if (edges != null)
+			{
+				Collection<Edge3D> col_edges = edges.values();
+				Iterator<Edge3D> itr_edges = col_edges.iterator();
+				while (itr_edges.hasNext())
+				{
+					Edge3D edge = itr_edges.next();
+					Iterator<Edge3D.Segment> itr_segments = edge.segments.iterator();
+					while (itr_segments.hasNext())
+						removeFromPhysics(itr_segments.next());
+				}
+			}
+		}
+		
+		// remove every furniture item from physics
+		Iterator<HashMap<Furniture, Furniture3D>> itr_allFurnitures = tabFurniture.values().iterator();
+		while (itr_allFurnitures.hasNext())
+		{
+			HashMap<Furniture, Furniture3D> furnitures = itr_allFurnitures.next();
+			
+			if (furnitures != null)
+			{
+				Collection<Furniture3D> col_furnitures = furnitures.values();
+				Iterator<Furniture3D> itr_furnitures = col_furnitures.iterator();
+				while (itr_furnitures.hasNext())
+					removeFromPhysics(itr_furnitures.next());
+			}			
+		}
+		
+		// remove scene from physics
+    	removeFromPhysics(floor_plane);	    	
+    }
+    
+    
     
     // NB: updatePhysics for Edge3D is not currently needed because edges are completely
     // removed and remade when the walls are 'updated'. The respective add/remove functions
@@ -616,8 +666,7 @@ public class ArchApp extends Application
     }*/
     
     
-    // TODO: I think this doesn't actually remove all from physics. To do this I think you need to manually go through every item 
-    // and call removeFromPhysics (to remove all controllers from spatials as well as just the instances attached to the rootnode).
+    // bla
     private void removeAllFromPhysics (Coords c)
     {
 		if (tracing)
@@ -660,14 +709,34 @@ public class ArchApp extends Application
     
 	/**********************OTHER FUNCTIONS**********************/
     
-	private void clearAll(Coords c)
+	private void clearAll(Coords c, boolean userIsMental)
     {
-		//if (tracing)
-			System.out.println("clearall() called.");
-		removeAllFromPhysics(c);
+		if (tracing)
+			System.out.println("clearall(Coords) called.");
+		if (!userIsMental && c == null)
+			throw new IllegalArgumentException("clearAll(null, false) is an illegal argument pairing. Suggests you know the co-ords to clear yet you give it none.");
+		
+		if (userIsMental)
+			removeAllFromPhysicsForMentalists();
+		else
+			removeAllFromPhysics(c);
+
+		detachAllLights(c);
 		rootNode.detachAllChildren();
+		
 		setupScene();
     }
+	
+	
+	
+	/*private void clearAll()
+	{
+		//if (tracing)
+			System.out.println("clearall() called. Someone must be crazy.");
+		removeAllFromPhysicsForMentalists();
+		rootNode.detachAllChildren();
+		setupScene();		
+	}*/
 	
 	
 	
@@ -731,7 +800,8 @@ public class ArchApp extends Application
 		synchronized(syncLockObject)
 		{
 			// completely remove all edges/furniture/lights/physics from the scene
-			clearAll(newTab);
+			//clearAll(newTab);
+			clearAll(newTab, true);
 			
 			// if the coordinate space supplied doesn't exist, exit having cleared the space.
 			if (newTab == null)
@@ -955,7 +1025,7 @@ public class ArchApp extends Application
 
     private Edge3D makeEdge (Edge e)
     {
-		//if (tracing)
+		if (tracing)
 			System.out.println("makeWall(Edge) called.");
     	int x1 = (int) e.getV1().getX();
     	int y1 = (int) e.getV1().getY();
@@ -1226,7 +1296,7 @@ public class ArchApp extends Application
 	
 	private Furniture3D makeFurniture(Furniture f)
 	{
-		//if (tracing)
+		if (tracing)
 			System.out.println("makeFurniture(Furniture) called.");
 		Furniture3D furn;
 		Point center = f.getRotationCenter();
@@ -1397,6 +1467,30 @@ public class ArchApp extends Application
 				// recalculate the furniture's physics (from position) and update it
 				if (furn.physics != null)
 					updatePhysics(furn);
+			}
+		}
+	}
+	
+	
+	
+	private void detachAllLights (Coords c)
+	{
+		if (tracing)
+			System.out.println("detachAllLights called");
+		if (c != null)
+		{
+			HashMap<Furniture, Furniture3D> furnitures = tabFurniture.get(c);
+			
+			if (furnitures != null)
+			{
+				Iterator<Furniture3D> itr_furnitures = furnitures.values().iterator();
+				
+				while (itr_furnitures.hasNext())
+				{
+					Furniture3D furniture = itr_furnitures.next();
+					if (furniture.hasLight())
+						rootNode.removeLight(furniture.getLight());
+				}
 			}
 		}
 	}

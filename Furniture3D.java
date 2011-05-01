@@ -58,23 +58,10 @@ import com.jme3.scene.Spatial;
 
 			light = new PointLight();
 			light.setColor(new ColorRGBA((float) R/255, (float) G/255, (float) B/255, 1));
-			//light.setColor(new ColorRGBA(1, 0, 0, 1));
 			light.setRadius(I);
 			Vector3f centre = spatial.getLocalTranslation();
 			centre = centre.add(0, getHeight(), 0);
 			light.setPosition(centre);
-/*
-			lightMarker = new Geometry("lightmarker", new Box(Vector3f.ZERO, 1, 1, 1));
-	        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-	        mat.setColor("Color", ColorRGBA.Blue);
-	        lightMarker.setMaterial(wallmat);
-			Vector3f centre = spatial.getLocalTranslation();
-			//centre = centre.add(0, 60, 0);
-			//lightMarker.setMaterial(wallmat);
-			lightMarker.setLocalTranslation(centre);
-			rootNode.attachChild(lightMarker);
-			System.out.printf("adding marker at (%d,%d,%d)\n", (int) centre.getX(), (int) centre.getY(), (int) centre.getZ());*/
-			
 		}
 		
 		/** Updates the attached light's position to the centre of the spatial. */
