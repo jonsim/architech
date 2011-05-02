@@ -1,11 +1,14 @@
 import java.awt.event.*;
 import java.awt.Toolkit;
 import javax.swing.*;
+import java.util.Arrays;
+import javax.swing.JOptionPane;
 
 /** Creates the menu that appears at the top of the main window */
 public class FrontEndMenu extends JMenuBar implements ActionListener {
    private FrontEnd frontEnd;
-   private JMenuItem create, open, save, saveAs, saveCopyAs, helpContents, undo, fullScreen, tweaker;
+   private JMenuItem create, open, save, saveAs, saveCopyAs, helpContents;//, undo, fullScreen, tweaker;
+   private final static String url = "https://sites.google.com/site/architechsoftware/";
 
    FrontEndMenu(FrontEnd frontEnd) {
       this.frontEnd = frontEnd;
@@ -17,14 +20,14 @@ public class FrontEndMenu extends JMenuBar implements ActionListener {
       saveAs.addActionListener(this);
       saveCopyAs.addActionListener(this);
 
-      addEditMenu();
-      undo.addActionListener(this);
+      //addEditMenu();
+      //undo.addActionListener(this);
 
-      addViewMenu();
-      fullScreen.addActionListener(this);
+      //addViewMenu();
+      //fullScreen.addActionListener(this);
 
-      addCustomisationMenu();
-      tweaker.addActionListener(this);
+      //addCustomisationMenu();
+      //tweaker.addActionListener(this);
 
       addHelpMenu();
       helpContents.addActionListener(this);
@@ -65,7 +68,7 @@ public class FrontEndMenu extends JMenuBar implements ActionListener {
 
       this.add(menu);
    }
-
+/*
    private void addEditMenu() {
       JMenu menu;
       int shortcutMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
@@ -112,7 +115,7 @@ public class FrontEndMenu extends JMenuBar implements ActionListener {
 
       this.add(menu);
    }
-
+*/
    private void addHelpMenu() {
       JMenu menu;
       int shortcutMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
@@ -144,16 +147,55 @@ public class FrontEndMenu extends JMenuBar implements ActionListener {
       } else if (source == saveCopyAs) {
          frontEnd.currentCoordsSaveCopyAs();
       } else if (source == helpContents) {
-         System.out.println("Help Contents...");
 
-      } else if (source == undo) {
-         System.out.println("Undo...");
+         /*******************************************************************
+          * BELOW CODE SUPPLIED FROM http://www.centerkey.com/java/browser/ *
+          *******************************************************************/
+         final String[] browsers = { "google-chrome", "firefox", "opera",
+            "epiphany", "konqueror", "conkeror", "midori", "kazehakase", "mozilla" };
+      
+         try {
+            //attempt to use Desktop library from JDK 1.6+
+            Class<?> d = Class.forName("java.awt.Desktop");
+            d.getDeclaredMethod("browse", new Class[] {java.net.URI.class}).invoke(
+               d.getDeclaredMethod("getDesktop").invoke(null), new Object[] {java.net.URI.create(url)});
+            //above code mimicks: java.awt.Desktop.getDesktop().browse()
+         } catch (Exception ignore) {
+            //library not available or failed
+            String osName = System.getProperty("os.name");
+            try {
+               if (osName.startsWith("Mac OS")) {
+                  Class.forName("com.apple.eio.FileManager").getDeclaredMethod(
+                     "openURL", new Class[] {String.class}).invoke(null, new Object[] {url});
+               } else if (osName.startsWith("Windows")) {
+                  Runtime.getRuntime().exec( "rundll32 url.dll,FileProtocolHandler " + url);
+               } else {
+                  //assume Unix or Linux
+                  String browser = null;
+                  for (String b : browsers) {
+                     if (browser == null && Runtime.getRuntime().exec(
+                           new String[] {"which", b}).getInputStream().read() != -1) {
+                        Runtime.getRuntime().exec(new String[] {browser = b, url});
+                     }
+                  }
+                  if (browser == null) {
+                     throw new Exception(Arrays.toString(browsers));
+                  }
+               }
+            } catch (Exception err) {
+               JOptionPane.showMessageDialog(null, "Error attempting to launch web browser\n" + err.toString());
+            }
+         }
 
-      } else if (source == fullScreen) {
-         System.out.println("Full Screen...");
 
-      } else if (source == tweaker) {
-         System.out.println("Model Tweaker...");
+      //} else if (source == undo) {
+      //   System.out.println("Undo...");
+
+      //} else if (source == fullScreen) {
+      //   System.out.println("Full Screen...");
+
+      //} else if (source == tweaker) {
+      //   System.out.println("Model Tweaker...");
 
       } else {
          Main.showFatalExceptionTraceWindow(
