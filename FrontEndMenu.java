@@ -122,11 +122,11 @@ public class FrontEndMenu extends JMenuBar implements ActionListener {
 
       menu = new JMenu("Help");
       menu.setMnemonic(KeyEvent.VK_H);
-      menu.getAccessibleContext().setAccessibleDescription("Help option menu");
+      menu.getAccessibleContext().setAccessibleDescription("Help option menu (online)");
 
-      helpContents = new JMenuItem("Help Contents", KeyEvent.VK_H);
+      helpContents = new JMenuItem("Help Contents (Online)", KeyEvent.VK_H);
       helpContents.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, shortcutMask));
-      helpContents.getAccessibleContext().setAccessibleDescription("Show Help Contents");
+      helpContents.getAccessibleContext().setAccessibleDescription("Show Help Contents (Online)");
       menu.add(helpContents);
 
       this.add(menu);
