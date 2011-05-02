@@ -366,8 +366,12 @@ public class Coords {
       return false;
    }
 
-   public void splitEdges(Edge edge, Vertex vertex) {
-       if(edge == null && vertex == null) return;
+   public LinkedList<Edge> getSplitEdges() {
+       return new LinkedList<Edge>(splitEdges);
+   }
+
+   public boolean splitEdges(Edge edge, Vertex vertex) {
+       if(edge == null && vertex == null) return false;
        rememberedEdges.clear();
        if(edge != null) rememberedEdges.add(edge);
        else rememberedEdges.addAll(vertex.edgeUses);
@@ -378,6 +382,7 @@ public class Coords {
        Vertex locationCheck;
        int skipTest;
        int i;
+       boolean returnValue = false;
        while(!rememberedEdges.isEmpty()) {
            e = rememberedEdges.get(0);
            rememberedEdges.remove(0);
@@ -385,6 +390,7 @@ public class Coords {
            lineSplits.clear();
            findEdgeSplits(e, true);
            while(!splitEdges.isEmpty()) {
+               returnValue = true;
                skipTest = 0;
                i = 0;
                locationCheck = vertexAt(lineSplits.get(0));
@@ -397,11 +403,7 @@ public class Coords {
                    if(locationCheck.equals(e2.getV1()) || locationCheck.equals(e2.getV2())) skipTest += 2;
                }
                while(i < used.size()) {
-                   if(e1.equals(used.get(i))) {
-                       skipTest += 5;
-                       break;
-                   }
-                   if(e2.equals(used.get(i))) {
+                   if(e1.equals(used.get(i)) || e2.equals(used.get(i))) {
                        skipTest += 5;
                        break;
                    }
@@ -426,6 +428,7 @@ public class Coords {
                lineSplits.remove(0);
            }
        }
+       return returnValue;
    }
    
    private void splitCurve(QuadCurve2D quad, double x, double y) {
@@ -473,6 +476,7 @@ public class Coords {
    public void findEdgeSplits(Edge e, boolean storeEdges) {
        ListIterator<Edge> allEdgeIterator = edges.listIterator();
        Edge e1;
+       splitEdges.clear();
        lineSplits.clear();
        while(allEdgeIterator.hasNext()) {
            e1 = allEdgeIterator.next();
@@ -487,6 +491,7 @@ public class Coords {
        ListIterator<Edge> allEdgeIterator = edges.listIterator();
        Edge e1;
        Edge e2;
+       splitEdges.clear();
        lineSplits.clear();
        while(vEdgeIterator.hasNext()) {
            e1 = vEdgeIterator.next();

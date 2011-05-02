@@ -11,7 +11,8 @@ public class HandlerVertexMove {
    private Coords.Vertex v = null;
    private final Point revert = new Point();
    private boolean isCollided = false;
-   private boolean hasMoved = true;
+   private boolean hasMoved = false;
+   private LinkedList<Edge> edgeList = new LinkedList<Edge>();
 
    HandlerVertexMove(Coords coords) {
       if (coords == null) throw new IllegalArgumentException("null coords");
@@ -32,6 +33,7 @@ public class HandlerVertexMove {
 
       isCollided = false;
       hasMoved = false;
+      edgeList.clear();
    }
 
    public void middle(Point p, boolean snapToGrid) {
@@ -57,7 +59,9 @@ public class HandlerVertexMove {
          mergedPoint = coords.mergeVertices(v, p.x, p.y, 0, snapToGrid);
          if(mergedPoint.x != -1 && mergedPoint.y != 1) coords.set(v, mergedPoint.x, mergedPoint.y, 0, snapToGrid);
          else coords.set(v, p.x, p.y, 0, snapToGrid);
-		 coords.splitEdges(null, v);
+         coords.findEdgeSplits(v, true);
+         edgeList = coords.getSplitEdges();
+	 coords.splitEdges(null, v);
       } else {
          //reset to start
          coords.set(v, (float) revert.getX(), (float) revert.getY(), 0, false);
@@ -82,5 +86,17 @@ public class HandlerVertexMove {
 
    public boolean isCollided() {
       return isCollided;
+   }
+
+   public ArrayList<Coords.Vertex> getVertexList() {
+       ArrayList<Coords.Vertex> vList = new ArrayList<Coords.Vertex>();
+       int i = 0;
+       while(i < edgeList.size()) {
+           vList.add(edgeList.get(i).getV1());
+           vList.add(edgeList.get(i).getV2());
+           i++;
+       }
+       edgeList.clear();
+       return vList;
    }
 }
