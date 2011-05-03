@@ -494,20 +494,18 @@ class TwoDPanel extends JPanel implements ChangeListener {
       polygonReverse.remove(i);
    }
 
-   private void deleteFloorFill(ArrayList<Edge> edges) {
+   private void deleteFloorFill(ArrayList<Coords.Vertex> vertices) {
       int a = 0;
       int i = 0;
       int j = 0;
-      Edge e;
-      while (a < edges.size()) {
-         e = edges.get(a);
-         if (e != null) {
+      Coords.Vertex v;
+      while (a < vertices.size()) {
+         v = vertices.get(a);
+         if (v != null) {
             while (i < polygonEdges.size()) {
                while (j < polygonEdges.get(i).size()) {
-                  if (polygonEdges.get(i).get(j).getV1().equals(e.getV1())
-                          || polygonEdges.get(i).get(j).getV2().equals(e.getV1())
-                          || polygonEdges.get(i).get(j).getV1().equals(e.getV2())
-                          || polygonEdges.get(i).get(j).getV2().equals(e.getV2())) {
+                  if (polygonEdges.get(i).get(j).getV1().equals(v)
+                      || polygonEdges.get(i).get(j).getV2().equals(v)) {
                      polygons.remove(i);
                      polygonEdges.remove(i);
                      polygonFills.remove(i);
@@ -639,11 +637,15 @@ class TwoDPanel extends JPanel implements ChangeListener {
             inProgressHandler = null;
             handlerEdgeCurve.stop(p);
 
-            //getFloorScreenshot();
-
+            ArrayList<Coords.Vertex> vList = handlerEdgeCurve.getVertexList();
+            deleteFloorFill(vList);
+            
          } else if (inProgressHandler == handlerEdgeDraw) {
             inProgressHandler = null;
             handlerEdgeDraw.stop(p, e.isShiftDown(), designButtons.isGridOn());
+
+            ArrayList<Coords.Vertex> vList = handlerEdgeDraw.getVertexList();
+            deleteFloorFill(vList);
 
          } else if (inProgressHandler == handlerVertexMove) {
             if (!handlerVertexMove.isCollided()) {
@@ -669,9 +671,10 @@ class TwoDPanel extends JPanel implements ChangeListener {
             inProgressHandler = null;
             handlerVertexMove.stop(p, designButtons.isGridOn());
 
-            callVertexSelect = true;
+            ArrayList<Coords.Vertex> vList = handlerVertexMove.getVertexList();
+            deleteFloorFill(vList);
 
-            //getFloorScreenshot();
+            callVertexSelect = true;
 
          } else if (inProgressHandler == handlerFurnitureMove) {
             inProgressHandler = null;
@@ -801,7 +804,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
          if ((c == KeyEvent.VK_BACK_SPACE || c == KeyEvent.VK_DELETE) && designButtons.isSelectTool()) {
             // This call might change a little as it depends on brent's module
-            deleteFloorFill(handlerVertexSelect.getSelectedE());
+            deleteFloorFill(handlerVertexSelect.getSelectedV());
             handlerVertexSelect.deleteSelected();
             handlerDoorWindowMove.delete();
 

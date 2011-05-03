@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.util.*;
 
 /**
  *
@@ -11,6 +12,7 @@ public class HandlerEdgeDraw {
    private boolean isCollided = false;
    private float startX;
    private float startY;
+   private LinkedList<Edge> edgeList = new LinkedList<Edge>();
 
    HandlerEdgeDraw(Coords coords) {
       if (coords == null) throw new IllegalArgumentException("null coords");
@@ -34,6 +36,7 @@ public class HandlerEdgeDraw {
       startY = p.y;
 
       isCollided = false;
+      edgeList.clear();
    }
 
    public void middle(Point p, boolean snapToAxis, boolean snapToGrid) {
@@ -94,7 +97,9 @@ public class HandlerEdgeDraw {
          mergedPoint = coords.mergeVertices(edge.getV2(), newX, newY, 0, snapToGrid);
          if(mergedPoint.x != -1 && mergedPoint.y != 1) coords.set(edge.getV2(), mergedPoint.x, mergedPoint.y, 0, snapToGrid);
          else coords.set(edge.getV2(), p.x, p.y, 0, snapToGrid);
-		 coords.splitEdges(edge, null);
+         coords.findEdgeSplits(edge, true);
+         edgeList = coords.getSplitEdges();
+	 coords.splitEdges(edge, null);
       } else {
          // revert
          coords.delete(edge);
@@ -115,5 +120,17 @@ public class HandlerEdgeDraw {
 
    public boolean isCollided() {
       return isCollided;
+   }
+
+   public ArrayList<Coords.Vertex> getVertexList() {
+       ArrayList<Coords.Vertex> vList = new ArrayList<Coords.Vertex>();
+       int i = 0;
+       while(i < edgeList.size()) {
+           vList.add(edgeList.get(i).getV1());
+           vList.add(edgeList.get(i).getV2());
+           i++;
+       }
+       edgeList.clear();
+       return vList;
    }
 }

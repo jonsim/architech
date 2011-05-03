@@ -1,4 +1,6 @@
 import java.awt.*;
+import java.util.LinkedList;
+import java.util.ArrayList;
 
 /**
  *
@@ -10,6 +12,8 @@ public class HandlerEdgeCurve {
    private Edge edge = null;
    private final Point revert = new Point();
    private boolean isCollided = false;
+   private LinkedList<Edge> edgeList = new LinkedList<Edge>();
+
 
    HandlerEdgeCurve(Coords coords) {
       if (coords == null) throw new IllegalArgumentException("null coords");
@@ -27,6 +31,7 @@ public class HandlerEdgeCurve {
       if (edge != null) revert.setLocation(edge.getCtrlX(), edge.getCtrlY());
 	  
 	  isCollided = false;
+          edgeList.clear();
    }
 
    public void middle(Point p) {
@@ -53,6 +58,8 @@ public class HandlerEdgeCurve {
       if (isCollided) coords.setEdgeCtrl(edge, revert);
       else {
 		coords.setEdgeCtrl(edge, p);
+                coords.findEdgeSplits(edge, true);
+                edgeList = coords.getSplitEdges();
 		coords.splitEdges(edge, null);
 	  }
 
@@ -65,5 +72,17 @@ public class HandlerEdgeCurve {
 
    public boolean isCollided() {
       return isCollided;
+   }
+
+   public ArrayList<Coords.Vertex> getVertexList() {
+       ArrayList<Coords.Vertex> vList = new ArrayList<Coords.Vertex>();
+       int i = 0;
+       while(i < edgeList.size()) {
+           vList.add(edgeList.get(i).getV1());
+           vList.add(edgeList.get(i).getV2());
+           i++;
+       }
+       edgeList.clear();
+       return vList;
    }
 }
