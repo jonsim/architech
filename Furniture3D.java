@@ -33,7 +33,6 @@ import com.jme3.scene.Spatial;
 		{
 			float centre = spatial.getWorldBound().getCenter().y;
 			float base = -100;
-			System.out.println("getHeight() = " + (centre-base)*2);
 			return (centre - base) * 2;
 		}
 		
