@@ -9,9 +9,13 @@ import com.jme3.scene.Spatial;
 	{
 		Spatial          spatial;
 		RigidBodyControl physics = null;
-		Geometry lightMarker = null;
 		private PointLight light = null;
+		private boolean lightToggleable = true;  // whether or not this light toggles (i.e. if it is on all the time (false) or only at night (true))
+		private boolean lightState = false; // true = on, false = off
+		private ColorRGBA lightColor;
 		private boolean    isP;
+		
+		
 		
 		/** Sets the Furniture3D model to that stored at the path provided. */
 		Furniture3D (Spatial spatial, boolean isP)
@@ -22,6 +26,9 @@ import com.jme3.scene.Spatial;
 			this.isP = isP;
 		}
 		
+		
+		
+		/** Returns the height of the spatial object. */
 		public float getHeight ()
 		{
 			float centre = spatial.getWorldBound().getCenter().y;
@@ -30,17 +37,34 @@ import com.jme3.scene.Spatial;
 			return (centre - base) * 2;
 		}
 		
+		
+		
+		/** Returns true if the object is physical, false if it is not. */
 		public boolean isPhysical ()
 		{
 			return isP;
 		}
+		
+		
+		
+		/** Sets whether the light attached to this furniture object can be toggled (i.e. if it is on all the 
+		 *  time (false) or only at night (true)). This method does NOT check whether the furniture has an 
+		 *  attached light. */
+		public void setLightToggleable (boolean t)
+		{
+			lightToggleable = t;
+		}
 
+		
+		
 		/** Adds a point light to the current furniture with colour RGB (with values between 0 and 255) and 100% 
 		 *  intensity. This should be the default if you do not know the intensity to use.  */
 		public void addLight (int R, int G, int B)
 		{
 			addLight(R, G, B, 250);
 		}
+		
+		
 		
 		/** Adds a point light to the current furniture with colour RGB (with values between 0 and 255) and an 
 		 *  (optional) intensity I.  */
@@ -52,61 +76,95 @@ import com.jme3.scene.Spatial;
 				throw new IllegalArgumentException("addLight called with a negative intensity.");
 			if (light != null)
 			{
-				System.err.println("[WARNING @ArchApp] [SEVERITY: Medium] addLight called, but there is already a light.");
+				System.err.println("[WARNING @Furniture3D] [SEVERITY: Medium] addLight called, but there is already a light.");
 				return;
 			}
 
 			light = new PointLight();
-			light.setColor(new ColorRGBA((float) R/255, (float) G/255, (float) B/255, 1));
+			lightColor = new ColorRGBA((float) R/255, (float) G/255, (float) B/255, 1);
+			light.setColor(lightColor);
 			light.setRadius(I);
 			Vector3f centre = spatial.getLocalTranslation();
 			centre = centre.add(0, getHeight(), 0);
 			light.setPosition(centre);
+			lightState = true;
 		}
+		
+		
 		
 		/** Updates the attached light's position to the centre of the spatial. */
 		public void updateLight ()
 		{
 			if (light == null)
 			{
-				System.err.println("[WARNING @ArchApp] [SEVERITY: Low] updateLight called, but there is no light.");
+				System.err.println("[WARNING @Furniture3D] [SEVERITY: Low] updateLight called, but there is no light.");
 				return;
 			}
-			//light.setPosition(spatial.getLocalTranslation());
-			lightMarker.setLocalTranslation(spatial.getLocalTranslation());
+			if (lightState)
+			{
+				Vector3f centre = spatial.getLocalTranslation();
+				centre = centre.add(0, getHeight(), 0);
+				light.setPosition(centre);
+			}
 		}
+		
+		
 		
 		/** Turns on the object's attached light (if it exists). */
 		public void turnOnLight ()
 		{
 			if (light == null)
 			{
-				System.err.println("[WARNING @ArchApp] [SEVERITY: Low] turnOnLight called on an object which has no light.");
+				System.err.println("[WARNING @Furniture3D] [SEVERITY: Low] turnOnLight called on an object which has no light.");
 				return;				
 			}
-			
-			light.getColor().a = 1;
+			if (lightToggleable)
+			{
+				Vector3f centre = spatial.getLocalTranslation();
+				centre = centre.add(0, getHeight(), 0);
+				light.setPosition(centre);
+				light.setColor(lightColor);
+				lightState = true;
+			}
 		}
 
+		
+		
 		/** Turns off the object's attached light (if it exists). */
 		public void turnOffLight ()
 		{
 			if (light == null)
 			{
-				System.err.println("[WARNING @ArchApp] [SEVERITY: Low] turnOffLight called on an object which has no light.");
+				System.err.println("[WARNING @Furniture3D] [SEVERITY: Low] turnOffLight called on an object which has no light.");
 				return;				
 			}
-
-			light.getColor().a = 0;
+			if (lightToggleable)
+			{
+				light.setColor(ColorRGBA.Black);
+				lightState = false;
+			}
+		}
+		
+		
+		
+		/** Returns true is the object has a light and it is turned on. Returns false otherwise. A return value of 
+		 *  false does NOT imply the object doesn't have a light; use hasLight() for this. */
+		public boolean getLightState ()
+		{
+			return lightState;
 		}
 
+		
+		
 		/** Returns true is the object has an attached light, or false if it does not. */
-		boolean hasLight ()
+		public boolean hasLight ()
 		{
 			if (light == null)
 				return false;
 			return true;
 		}
+		
+		
 		
 		/** Returns the light object attached to the furniture. Will throw an exception if called when there is 
 		 *  no light. Use hasLight() to determine if the furniture owns a light. */

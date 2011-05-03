@@ -19,7 +19,6 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
-import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
@@ -53,25 +52,42 @@ public class ArchApp extends Application
 {
 	/**********************GLOBAL VARIABLES**********************/
 	// toggle globals
-	private static final boolean shadowing = false; // determines whether or not to render shadows
-	private static final boolean physics   = true;  // determines whether or not to calculate physics (not 100% implemented)
-	private static final boolean overlay   = false; // displays overlay
-	private static final boolean tracing   = false;  // prints tracing information as various functions are called - for debugging.
+	/** Determines whether or not to render shadows. */
+	private static final boolean shadowing = false;
+	/** Determines whether or not to calculate physics (not 100% implemented). */
+	private static final boolean physics   = true;
+	/** Displays overlay. */
+	private static final boolean overlay   = false;
+	/** Prints tracing information as various functions are called - for debugging. */
+	private static final boolean tracing   = false;
 	
 	// lighting globals
-	private static final short[]  DAY_BRIGHTNESS = {245, 240, 200};	// RGB colour (0-255) of the sun light
-	private static final float    DAY_AMBIENCE = 2.0f;	// amount of ambient light in the scene (0 is none)
-	private static final Vector3f DAY_ANGLE = new Vector3f(0.8f, -2, -0.2f);  // vector direction of the sun
-	private static final float    DAY_SHADOW_INTENSITY = 0.5f;  // 0 = no shadows, 1 = pitch black shadows
-	private static Spatial        DAY_MAP = null;  // must be initialised in SimpleInitApp() due to dependence on assetManager
+	/** RGB colour (0-255) of the sun light. */
+	private static final short[]  DAY_BRIGHTNESS = {245, 240, 200};
+	/** Amount of ambient light in the scene (0 is none). */
+	private static final float    DAY_AMBIENCE = 2.0f;
+	/** Vector direction of the sun. */
+	private static final Vector3f DAY_ANGLE = new Vector3f(0.8f, -2, -0.2f);
+	/** 0 = no shadows, 1 = pitch black shadows. */
+	private static final float    DAY_SHADOW_INTENSITY = 0.5f;
+	/** Must be initialised in SimpleInitApp() due to dependence on assetManager. */
+	private static Spatial        DAY_MAP = null;
+	/** RGB colour (0-255) of the moon light. */
 	private static final short[]  NIGHT_BRIGHTNESS = {30, 30, 30};
+	/** Amount of ambient light in the scene (0 is none). */
 	private static final float    NIGHT_AMBIENCE = 0.8f;
+	/** Vector direction of the moon. */
 	private static final Vector3f NIGHT_ANGLE = new Vector3f(-0.2f, -0.8f, 0.6f);
+	/** 0 = no shadows, 1 = pitch black shadows. */
 	private static final float    NIGHT_SHADOW_INTENSITY = 0;
+	/** Must be initialised in SimpleInitApp() due to dependence on assetManager. */
 	private static Spatial        NIGHT_MAP = null;
+	/** Vector direction the player faces by default. */
 	private static Vector3f lookvec = new Vector3f(-540f, -50f, 360f);
+	/** Position the player starts at by default. */
 	private static final Vector3f START_VEC = new Vector3f(590, -15, 80);
-	private boolean day = true;  // true = day, false = night
+	/** true = day, false = night */
+	private boolean day = true;
 	private DirectionalLight sun;
 	private AmbientLight ambient;
     private PssmShadowRenderer psr;
@@ -108,12 +124,32 @@ public class ArchApp extends Application
     private Edge3D.Segment ceil = new Edge3D.Segment();
 	private Edge3D.Segment floor_plane = new Edge3D.Segment();
 	private Material invis,glass;
+	
+	/** Pointer to the coordinate space of the currently loaded tab. null implies an empty scene */
+	private Coords currentTab = null;
+
+    /** Simple container to store the player or camera information needed to restore the view. */
+	private class PlayerInformation
+	{
+		Vector3f   location;
+		Vector3f   direction;
+		
+		PlayerInformation (Vector3f loc, Vector3f dir)
+		{
+			this.location = loc;
+			this.direction= dir;
+		}
+	}
+	/** Saves the camera information for different tabs (or coordinate spaces). This is used to save
+	 *  the view as you switch back and forth between tabs. */
+	HashMap<Coords, PlayerInformation> tabPlayerInfo = new HashMap<Coords, PlayerInformation>();
 
     
     
     
 	/**********************MAIN FUNCTION**********************/
     
+	/** ArchApp rises from the mud. */
     ArchApp(Main main)
     {
     	super();
@@ -125,8 +161,11 @@ public class ArchApp extends Application
     
 	/**********************ACTION LISTNER**********************/
 
+    /** Action listener for ArchApps events. */
     private class AppActionListener implements ActionListener
     {
+        /** Called whenever an action is called. These should be used to move the player and provide 
+         *  other controls. */
         public void onAction(String name, boolean value, float tpf)
         {
     		if (tracing)
@@ -167,7 +206,12 @@ public class ArchApp extends Application
 	                System.out.println("Camera Position: ("+loc.x+", "+loc.y+", "+loc.z+")");
 	                System.out.println("Camera Rotation: "+rot);
 	                System.out.println("Camera Direction: "+cam.getDirection());
+	                cam.setLocation(new Vector3f(357.61813f, -46.365437f, 546.6056f));
 	            }
+            	else
+            	{
+            		System.out.println("uh oh");
+            	}
             else if (name.equals("SIMPLEAPP_Memory"))
             	BufferUtils.printCurrentDirectMemory(null);
         }
@@ -178,6 +222,7 @@ public class ArchApp extends Application
     
 	/**********************INITIALISATION FUNCTIONS**********************/
 
+    /** JME function. Let the fun commence. */
     @Override
     public void start()
     {
@@ -192,7 +237,8 @@ public class ArchApp extends Application
     }
 
     
-    
+
+    /** JME function. Updates the entire 3D window. */
     @Override
     public void update()
     {
@@ -226,6 +272,7 @@ public class ArchApp extends Application
     
     
     
+    /** JME function. Initialises the entire 3D window. Execution starts here. */
     @Override
     public void initialize()
     {
@@ -275,14 +322,18 @@ public class ArchApp extends Application
     
     
     
+    /** Initialises the camera. Beware the camera is tied to the 'player' object so calls of 
+     *  cam.setLocation will not have any effect. Similarly the camera's direction is set when the 
+     *  player is setup (so cam.lookAt will have no effect). */
     public void initCamera()
     {
 		if (tracing)
 			System.out.println("initCamera() called.");
         cam = new Camera(settings.getWidth(), settings.getHeight());
         cam.setFrustumPerspective(45f, (float)cam.getWidth() / cam.getHeight(), 1f, 10000f);
-        cam.setLocation(new Vector3f(357.61813f, -46.365437f, 546.6056f));
-        cam.lookAt(new Vector3f(400f, -50f, 0f), Vector3f.UNIT_Y);
+        cam.setAxes(cam.getLeft(), Vector3f.UNIT_Y, lookvec);
+        //cam.setLocation(new Vector3f(357.61813f, -46.365437f, 546.6056f));
+        //cam.lookAt(new Vector3f(400f, -50f, 0f), Vector3f.UNIT_Y);
         renderManager = new RenderManager(renderer);
         renderManager.setTimer(timer);
         viewPort = renderManager.createMainView("Default", cam);
@@ -291,10 +342,51 @@ public class ArchApp extends Application
         Camera guiCam = new Camera(settings.getWidth(), settings.getHeight());
         guiViewPort = renderManager.createPostView("Gui Default", guiCam);
         guiViewPort.setClearEnabled(false);
+        
+    }
+    
+    
+    
+    /** Positions the camera according to the coordinate space given. If the coordinate space does
+     *  not have a saved camera position (if it is a new tab or a loaded file) then it is set to the
+     *  default position. Otherwise loads the camera position from memory. */
+    private void repositionCamera(Coords c)
+    {
+    	PlayerInformation playerInfo = null;
+    	
+        stopPlayer();
+        
+    	if (c != null)
+    		playerInfo = tabPlayerInfo.get(c);
+    	if (playerInfo != null)
+    	{
+    		player.setPhysicsLocation(playerInfo.location);
+    		cam.lookAt(playerInfo.direction, Vector3f.UNIT_Y);
+            //cam.setDirection(playerInfo.direction);
+            //cam.setAxes(left, Vector3f.UNIT_Y, playerInfo.direction);
+    	}
+    	else
+    	{
+            player.setPhysicsLocation(START_VEC);
+            cam.lookAt(lookvec, Vector3f.UNIT_Y);
+    	}
+    }
+    
+    
+    
+    /** Stops the player moving. Used to stop the player sliding indefinitely when he is knocked 
+     *  and the user does not have focus or control of the 3D panel to call the event. */
+    private void stopPlayer ()
+    {
+    	left = false;
+    	right = false;
+    	up = false;
+    	down = false;    	
     }
 
     
     
+    /** JME function. Calls the necessary methods to initialise the scene. */
     public void simpleInitApp()
     {
 		if (tracing)
@@ -313,6 +405,7 @@ public class ArchApp extends Application
 
     
     
+    /** JME function. Called when the scene is updated (1/tpf times per second). */
     public void simpleUpdate(float tpf)
     {
 		//if (tracing)
@@ -337,12 +430,14 @@ public class ArchApp extends Application
 
     
     
+    /** JME function */
     public void simpleRender(RenderManager rm)
     {
     }
     
 	/**********************SETUP FUNCTIONS**********************/
 
+    /** Initialises the materials used by the scene. */
     private void setupMaterials ()
     {
 		if (tracing)
@@ -366,6 +461,8 @@ public class ArchApp extends Application
     
     
     
+    /** Applies the texture (stored in /img/fs/%NAME% where %NAME% is the value of arg0) to the
+     *  floor. */
     public void reloadfloor(String name)
     {
 		if (tracing)
@@ -384,8 +481,11 @@ public class ArchApp extends Application
 		    ((JmeCanvasContext) this.getContext()).getCanvas().requestFocus();
 		}
     }
+
+
     
-    //PointLight pl1, pl2;
+    /** Sets up the scene (the ground plane, ceiling, sky and lighting) adding it to the canvas 
+     *  and the physics space. */
     private void setupScene()
     {
 		if (tracing)
@@ -422,7 +522,9 @@ public class ArchApp extends Application
     
     
     
-    public void setupLighting ()
+    /** Initialises the lighting information for the scene. This is given by global constants 
+     *  for ease of editing. */
+    private void setupLighting ()
     {
 		if (tracing)
 			System.out.println("setupLighting() called.");
@@ -466,7 +568,8 @@ public class ArchApp extends Application
     
     
     
-    public void setupSky()
+    /** Initialises the scene's sky boxes. */
+    private void setupSky()
     {
 		if (tracing)
 			System.out.println("setupSky() called.");
@@ -480,6 +583,8 @@ public class ArchApp extends Application
     
     
     
+    /** Initialises the player information (the player's starting position is given by a global 
+     *  constant for ease of editing). */
     private void setupPlayer ()
     {
 		if (tracing)
@@ -501,6 +606,9 @@ public class ArchApp extends Application
     
 	/**********************DAY/NIGHT/LIGHTING FUNCTIONS**********************/
 
+    /** Toggles the Day/Night state. If it is day it will become night and visa versa. Toggling day
+     *  will turn all lights off (that can be) and toggling night will turn all lights on. 
+     *  The Day/Night lighting values are given by global constants for ease of editing. */
     public void toggleDay()
     {
 		if (tracing)
@@ -517,7 +625,7 @@ public class ArchApp extends Application
             	psr.setDirection(DAY_ANGLE);
             	psr.setShadowIntensity(DAY_SHADOW_INTENSITY);
             }
-            //turnOffLights();
+            turnOffLights(currentTab);
             day = true;
     	}
     	else
@@ -532,7 +640,7 @@ public class ArchApp extends Application
 	            psr.setDirection(NIGHT_ANGLE);
 	        	psr.setShadowIntensity(NIGHT_SHADOW_INTENSITY);
             }
-            //turnOnLights();
+            turnOnLights(currentTab);
             day = false;
     	}
 		// Stops you having to click to update the 3D
@@ -541,10 +649,68 @@ public class ArchApp extends Application
     
     
     
+    /** Turns on all lights connected to the given coordinate space's furniture items. */
+    private void turnOnLights(Coords c)
+    {
+    	if (c == null)
+    	{
+			System.err.println("[WARNING @ArchApp] [SEVERITY: High] turnOnLights called on a null co-ordinate space.");
+    		return;
+    	}
+    	
+    	HashMap<Furniture, Furniture3D> furnitures = tabFurniture.get(c);
+    	if (furnitures == null)
+    	{
+			System.err.println("[WARNING @ArchApp] [SEVERITY: Low] turnOnLights called on a co-ordinate space with no furniture.");
+    		return;
+    	}
+    	
+    	Iterator<Furniture3D> furnitures_itr = furnitures.values().iterator();
+    	while (furnitures_itr.hasNext())
+    	{
+    		Furniture3D furn = furnitures_itr.next();
+    		if (furn.hasLight())
+    			furn.turnOnLight();
+    	}
+    }
+    
+    
+
+    /** Turns off all lights attached to the given coordinate space's furniture items. Lights whose
+     *  lightToggleable flag is set to false will not be turned off (and indeed can't while the flag
+     *  remains false - use Furniture3D.setLightToggleable(true) to allow the light to be toggled
+     *  again). */
+    private void turnOffLights(Coords c)
+    {
+    	if (c == null)
+    	{
+			System.err.println("[WARNING @ArchApp] [SEVERITY: High] turnOffLights called on a null co-ordinate space.");
+    		return;
+    	}
+    	
+    	HashMap<Furniture, Furniture3D> furnitures = tabFurniture.get(c);
+    	if (furnitures == null)
+    	{
+			System.err.println("[WARNING @ArchApp] [SEVERITY: Low] turnOffLights called on a co-ordinate space with no furniture.");
+    		return;
+    	}
+    	
+    	Iterator<Furniture3D> furnitures_itr = furnitures.values().iterator();
+    	while (furnitures_itr.hasNext())
+    	{
+    		Furniture3D furn = furnitures_itr.next();
+    		if (furn.hasLight())
+    			furn.turnOffLight();
+    	}
+    }
+    
+    
+    
     
     
     /**********************PHYSICS FUNCTIONS**********************/
-	
+
+    /** Adds a Furniture3D to the physics space. */
     private void addToPhysics (Furniture3D furn)
     {
 		if (tracing)
@@ -555,7 +721,8 @@ public class ArchApp extends Application
     }
     
     
-    
+
+    /** Removes a Furniture3D from the physics space. */
     private void removeFromPhysics (Furniture3D furn)
     {
 		if (tracing)
@@ -568,7 +735,8 @@ public class ArchApp extends Application
     }
     
     
-    
+
+    /** Updates the physics information for a given Furniture3D. */
     private void updatePhysics (Furniture3D furn)
     {
 		if (tracing)
@@ -578,7 +746,8 @@ public class ArchApp extends Application
     }
     
     
-    
+
+    /** Adds a single Edge3D segment to the physics space. */
     private void addToPhysics (Edge3D.Segment segment)
     {
 		if (tracing)
@@ -594,6 +763,7 @@ public class ArchApp extends Application
     
     
     
+    /** Removes a single Edge3D segment from the physics space. */
     private void removeFromPhysics (Edge3D.Segment segment)
     {
 		if (tracing)
@@ -609,8 +779,8 @@ public class ArchApp extends Application
     /** A dangerous method that removes every single object in every single tab's physics information. 
      *  Computationally expensive (especially since a lot of the physics information removed will have 
      *  to be rebuilt later as it's still needed) but who cares. 
-     *  Use only if you are mentally challenged. */
-    private void removeAllFromPhysicsForMentalists ()
+     *  Use only if you are completely insane. */
+    /*private void removeAllFromPhysicsForMentalists ()
     {
 		if (tracing)
 			System.out.println("removeAllFromPhysicsDangerous() called.");
@@ -652,7 +822,7 @@ public class ArchApp extends Application
 		
 		// remove scene from physics
     	removeFromPhysics(floor_plane);	    	
-    }
+    }*/
     
     
     
@@ -667,6 +837,7 @@ public class ArchApp extends Application
     
     
     // bla
+    /** Removes all objects in the given tab from the physics space. */
     private void removeAllFromPhysics (Coords c)
     {
 		if (tracing)
@@ -709,19 +880,23 @@ public class ArchApp extends Application
     
 	/**********************OTHER FUNCTIONS**********************/
     
-	private void clearAll(Coords c, boolean userIsMental)
+    /** Removes all edges and furniture from both the canvas and the physics space. */
+	private void clearAll(Coords tab)
     {
 		if (tracing)
 			System.out.println("clearall(Coords) called.");
-		if (!userIsMental && c == null)
-			throw new IllegalArgumentException("clearAll(null, false) is an illegal argument pairing. Suggests you know the co-ords to clear yet you give it none.");
+		//if (!userIsMental && c == null)
+//			throw new IllegalArgumentException("clearAll(null, false) is an illegal argument pairing. Suggests you know the co-ords to clear yet you give it none.");
 		
-		if (userIsMental)
-			removeAllFromPhysicsForMentalists();
-		else
-			removeAllFromPhysics(c);
+		//if (userIsMental)
+//			removeAllFromPhysicsForMentalists();
+		//else
+		if (tab != null)
+		{
+			removeAllFromPhysics(tab);
 
-		detachAllLights(c);
+		detachAllLights(tab);
+		}
 		rootNode.detachAllChildren();
 		
 		setupScene();
@@ -729,35 +904,28 @@ public class ArchApp extends Application
 	
 	
 	
-	/*private void clearAll()
-	{
-		//if (tracing)
-			System.out.println("clearall() called. Someone must be crazy.");
-		removeAllFromPhysicsForMentalists();
-		rootNode.detachAllChildren();
-		setupScene();		
-	}*/
 	
 	
-	
-	
-	
-	/**********************EDGE3D CLASS**********************/
+	/**********************EDGE/EDGE3D TABLE**********************/
 	
 
 	
+	/** Links coordinate spaces to their table of edges. The resultant HashMap is a table
+	 *  connecting the 2D representation of an edge (Edge) to the 3D representation (Edge3D). */
 	private final HashMap<Coords, HashMap<Edge, Edge3D> > tabEdges
 		= new HashMap<Coords, HashMap<Edge, Edge3D> >();
 	
+	
 
+	
 	
 	
 	/**********************TAB FUNCTIONS**********************/
 	
-	/** This should be called after the given Coords is no longer used i.e.
-      *  immediately after, not immediately before, deletion. It forgets about
-      *  the edges. If called before, then the entry might be recreated. */
-	void tabRemoved(Coords tab)
+	/** This should be called after the given Coords is no longer used i.e. immediately after, 
+	 *  not immediately before, deletion. It forgets about the edges. If called before, then 
+	 *  the entry might be recreated. */
+	public void tabRemoved(Coords tab)
 	{
 		if (tracing)
 			System.out.println("tabRemoved(Coords) called.");
@@ -772,9 +940,9 @@ public class ArchApp extends Application
 
 	
 	
-	/** Public function to prepare edges for the given coords. If these coords haven't 	*
+	/** Public function to prepare edges for the given coords. If these coords haven't 
 	 *  been seen before then new objects will be created for it.						*/
-	void tabChanged(Coords newTab)
+	public void tabChanged(Coords newTab)
 	{
 		if (tracing)
 			System.out.println("tabChanged(Coords) called.");
@@ -788,25 +956,28 @@ public class ArchApp extends Application
 
 	
 	
-	/** Edges is the set of edges associated with those coords, likewise for furniture	*
-	 *  if these coords havn't been seen before both edges and furniture				*
-	 *  will be null (its a brand new tab). Either both will be null or not,			*
-	 *  never one or the other. If the tab has never been seen before then new			*
-	 *  objects will be created for it													*/
+	/** Edges is the set of edges associated with those coords, likewise for furniture 
+	 *  if these coords havn't been seen before both edges and furniture 
+	 *  will be null (its a brand new tab). Either both will be null or not, 
+	 *  never one or the other. If the tab has never been seen before then new 
+	 *  objects will be created for it. */
 	private void tabChangedIgnoreInitComplete(Coords newTab)
 	{
-		//if (tracing)
+		if (tracing)
 			System.out.println("tabChangedIgnoreInitComplete(Coords) called.");
 		synchronized(syncLockObject)
 		{
+			// save camera information
+			if (currentTab != null)
+				tabPlayerInfo.put(currentTab, new PlayerInformation(cam.getLocation().clone(), cam.getDirection().clone()));
+			
 			// completely remove all edges/furniture/lights/physics from the scene
-			//clearAll(newTab);
-			clearAll(newTab, true);
+			clearAll(currentTab);
 			
 			// if the coordinate space supplied doesn't exist, exit having cleared the space.
 			if (newTab == null)
 			{
-				System.out.println("    newTab = null");
+				currentTab = newTab;
 				return;
 			}
 
@@ -817,8 +988,6 @@ public class ArchApp extends Application
             	edges = makeAllEdges(newTab);
             	tabEdges.put(newTab, edges);
             }
-            else
-            	System.out.println("    edges != null");
 
 			// Recalculate the furniture in the coordinate space, adding them to a new HashMap.
             HashMap<Furniture, Furniture3D> furnitures = tabFurniture.get(newTab);
@@ -827,12 +996,13 @@ public class ArchApp extends Application
             	furnitures = makeAllFurniture(newTab);
             	tabFurniture.put(newTab, furnitures);
             }
-            else
-            	System.out.println("    furnitures != null");
 
             // draw all the newly calculated edges + furniture
+            //tabCameraLocations.put(currentTab, cam.getLocation());
             drawAllEdges(edges);
             drawAllFurniture(furnitures);
+            repositionCamera(newTab);
+			currentTab = newTab;
 		}
 	}
 
@@ -844,7 +1014,7 @@ public class ArchApp extends Application
 
 	/** Adds the given edge. Returns if Coords c is not known yet or if e is already
       * added */
-	void addEdge(Coords c, Edge e)
+	public void addEdge(Coords c, Edge e)
 	{
 		if (tracing)
 			System.out.println("addEdge(Coords, Edge) called.");
@@ -871,7 +1041,7 @@ public class ArchApp extends Application
 	
 	/** Removes the given edge. Returns if Coords c is not known yet or if e is not
       *  known */
-	void removeEdge(Coords c, Edge e)
+	public void removeEdge(Coords c, Edge e)
 	{
 		if (tracing)
 			System.out.println("removeEdge(Coords, Edge) called.");
@@ -899,7 +1069,7 @@ public class ArchApp extends Application
 	
 	/** Moves the given edge. Returns if Coords c is not known yet or if e is not
       *  known */
-	void updateEdge (Coords c, Edge e)
+	public void updateEdge (Coords c, Edge e)
 	{
 		if (tracing)
 			System.out.println("updateEdge(Coords, Edge) called.");
@@ -939,6 +1109,7 @@ public class ArchApp extends Application
 	
 	
 	
+	/** Removes the given edge and all its attached furniture from the canvas and the physics space. */
 	private void undrawEdge (Edge3D wall)
 	{
 		Iterator<Edge3D.Segment> segment_itr = wall.segments.iterator();
@@ -956,7 +1127,8 @@ public class ArchApp extends Application
 	}
 	
 	
-	
+
+	/** Adds the given edge and all its attached furniture to the canvas and the physics space. */
 	private void drawEdge (Edge3D wall)
 	{
 		Iterator<Edge3D.Segment> segment_itr = wall.segments.iterator();
@@ -971,6 +1143,8 @@ public class ArchApp extends Application
 		Iterator<Geometry> furniture_itr = wall.attachedFurniture.iterator();
 		while(furniture_itr.hasNext())
 			rootNode.attachChild(furniture_itr.next());
+
+		stopPlayer();
 	}
 
 	
@@ -993,8 +1167,8 @@ public class ArchApp extends Application
 	}
 	
 	
-	//private void undrawAllEdges (HashMap<Edge, Edge3D> edges)
-	private void undrawAllEdges (HashMap<Edge, Edge3D> edges)
+	
+	/*private void undrawAllEdges (HashMap<Edge, Edge3D> edges)
 	{
 		if (tracing)
 			System.out.println("redrawAllEdges(HashMap<Edge, Edge3D>) called.");
@@ -1008,14 +1182,17 @@ public class ArchApp extends Application
 		Iterator<Edge3D> wall_itr = walls.iterator();
 		while (wall_itr.hasNext())
 			undrawEdge(wall_itr.next());
-	}
+	}*/
 	
 
 	
-	/**********************WALL FUNCTIONS**********************/
+	/**********************EDGE3D FUNCTIONS**********************/
 	
+	/** Does a makeEdge for every Edge in the given coordinate space. */
 	private HashMap<Edge, Edge3D> makeAllEdges (Coords c)
 	{
+		if (c == null)
+			throw new IllegalArgumentException("null");
 		HashMap<Edge, Edge3D> edges = new HashMap<Edge, Edge3D>();
         for (Edge e : c.getEdges())
         	edges.put(e, makeEdge(e));
@@ -1023,6 +1200,10 @@ public class ArchApp extends Application
 	}
 	
 
+	
+	/** 'makes' an edge, loading the 3D edge container with the appropriate data from the given 2D edge 
+	 *  container. Does NOT add it to the canvas or physics space, it merely calculates the appropriate
+	 *  3D data. */
     private Edge3D makeEdge (Edge e)
     {
 		if (tracing)
@@ -1074,6 +1255,10 @@ public class ArchApp extends Application
     	return wall;
 	}
     
+    
+    
+    /** Recurses over an edge containing doors/windows adding them in a somewhat complicated but very 
+     *  clever way. You wouldn't understand. */
     private void wdoorcursion(Edge e,Edge3D wall,ArrayList<Furniture> dwsa,int x1,int x2,int y1,int y2)
     {
 		if (tracing)
@@ -1159,7 +1344,11 @@ public class ArchApp extends Application
 	    //recurse for the rest of the wall
 	    wdoorcursion(e,wall,dwsa,(int)dx2,x2,(int)dy2,y2);
     }
-	
+    
+    
+    
+	/** Recurses over a curved edge splitting it up into 2^level separate straight line chunks 
+	 *  and then making these. */
     private int recurvsion (Edge3D top, QuadCurve2D curve, int level, String ppath)
     {
 		if (tracing)
@@ -1181,6 +1370,11 @@ public class ArchApp extends Application
     	}
     }
     
+    
+    
+    /** Creates a 3D object between the 2 given points (x1,y1) and (x2,y2) with a height, displacement 
+     *  and texture as given and loads it into the given Edge3D container. Does NOT add the Edge to the 
+     *  canvas or physics space. */
     private void drawline (Edge3D wall, int x1, int x2, int y1, int y2, int height, int disp, String ppath)
     {
 		if (tracing)
@@ -1255,18 +1449,30 @@ public class ArchApp extends Application
     	
 		wall.segments.add(segment);
     }
-	/**********************FURNITURE3D CLASS**********************/
+    
+    
+    
+    
+    
+	/**********************FURNITURE/FURNITURE3D TABLE**********************/
 	
 
-	
+
+	/** Links coordinate spaces to their table of furniture. The resultant HashMap is a table
+	 *  connecting the 2D representation of a furniture item (Furniture) to the 3D 
+	 *  representation (Furniture3D). */
 	private final HashMap<Coords, HashMap<Furniture, Furniture3D> > tabFurniture
 		= new HashMap<Coords, HashMap<Furniture, Furniture3D> >();
+	
+	
+	
+	
 	
 	/**********************FURNITURE FUNCTIONS**********************/
 
 	/** Adds the given furniture. Returns if Coords c is not known yet or if f is already
-      *  added */    
-	void addFurniture(Coords c, Furniture f)
+      * added. */    
+	public void addFurniture(Coords c, Furniture f)
 	{
 		if (tracing)
 			System.out.println("addFurniture(Coords, Furniture) called.");
@@ -1294,6 +1500,9 @@ public class ArchApp extends Application
 
 	
 	
+	/** 'makes' a furniture item, loading the 3D container with the appropriate data from the given 2D  
+	 *  container. Does NOT add it to the canvas or physics space, it merely calculates the appropriate
+	 *  3D data. */
 	private Furniture3D makeFurniture(Furniture f)
 	{
 		if (tracing)
@@ -1322,7 +1531,11 @@ public class ArchApp extends Application
         furn.spatial.setLocalTranslation(center.x, -100f, center.y);
         
     	if (f.isLight())
+    	{
     		furn.addLight(255, 0, 0);
+    		if (day)
+    			furn.turnOffLight();
+    	}
     	if (shadowing)
     		furn.spatial.setShadowMode(ShadowMode.CastAndReceive);
 
@@ -1330,6 +1543,8 @@ public class ArchApp extends Application
 	}
 	
 	
+	
+	/** Makes all furniture items in the given coordinate space. */
 	private HashMap<Furniture, Furniture3D> makeAllFurniture (Coords c)
 	{
 		HashMap<Furniture, Furniture3D> furnitures = new HashMap<Furniture, Furniture3D>();
@@ -1341,8 +1556,8 @@ public class ArchApp extends Application
 	
 	
 	/** Removes the given furniture. Returns if Coords c is not known yet or if f is not
-      *  known */
-	void removeFurniture(Coords c, Furniture f)
+      * known */
+	public void removeFurniture(Coords c, Furniture f)
 	{
 		if (tracing)
 			System.out.println("removeFurniture(Coords, Furniture) called.");
@@ -1370,7 +1585,9 @@ public class ArchApp extends Application
 	}
 	
 	
-    /** Goes through all the furniture in the given hashmap and adds them to the rootNode */
+	
+    /** Goes through all the furniture in the given hashmap and adds them to the rootNode
+     *  and physics space. */
 	private void drawAllFurniture(HashMap<Furniture, Furniture3D> furnitures)
 	{
 		if (tracing)
@@ -1389,7 +1606,7 @@ public class ArchApp extends Application
 	
 	
 	
-	private void undrawAllFurniture (HashMap<Furniture, Furniture3D> furnitures)
+	/*private void undrawAllFurniture (HashMap<Furniture, Furniture3D> furnitures)
 	{
 		if (tracing)
 			System.out.println("undrawAllFurniture(HashMap<Furniture, Furniture3D>) called.");
@@ -1403,21 +1620,24 @@ public class ArchApp extends Application
 		Iterator<Furniture3D> furniture_itr = furniture.iterator();
 		while (furniture_itr.hasNext())
 			undrawFurniture(furniture_itr.next());		
-	}
+	}*/
 	
 	
 	
+	/** Adds the given furniture item to the canvas and physics space. */
 	private void drawFurniture (Furniture3D f)
 	{
 		rootNode.attachChild(f.spatial);
 		if (physics && f.isPhysical())
 			addToPhysics(f);
 		if (f.hasLight())
-			rootNode.addLight(f.getLight());		
+			rootNode.addLight(f.getLight());
+		stopPlayer();		
 	}
 	
 	
 	
+	/** Removes the given furniture item from the canvas and physics space. */
 	private void undrawFurniture (Furniture3D f)
 	{
 		rootNode.detachChild(f.spatial);
@@ -1430,8 +1650,8 @@ public class ArchApp extends Application
 	
 	
 	/** Moves the given furniture. Returns if Coords c is not known yet or if f is not
-      *  known */
-	void updateFurniture(Coords c, Furniture f)
+     *  known */
+	public void updateFurniture(Coords c, Furniture f)
 	{
 		if (tracing)
 			System.out.println("updateFurniture(Coords, Furniture) called.");
@@ -1453,8 +1673,6 @@ public class ArchApp extends Application
 				// recalculate the furniture's position and move it
 				Point center = f.getRotationCenter();
 				furn.spatial.setLocalTranslation(center.x,-100f,center.y);
-		        if (furn.hasLight())
-		        	furn.updateLight();
 				
 				// recalculate the furniture's rotation and adjust it
 				float rotation = (float) (f.getRotation() * 0.5);
@@ -1465,6 +1683,8 @@ public class ArchApp extends Application
 				furn.spatial.rotate(0, -FastMath.HALF_PI, -FastMath.PI);
 				
 				// recalculate the furniture's physics (from position) and update it
+		        if (furn.hasLight())
+		        	furn.updateLight();
 				if (furn.physics != null)
 					updatePhysics(furn);
 			}
@@ -1473,6 +1693,9 @@ public class ArchApp extends Application
 	
 	
 	
+	/** Removes all the lights attached to objects in the given coordinate space from the rootNode. 
+	 *  Provides a method to make up for the fact there is no equivalent of rootNode.detachAllChildren() 
+	 *  for Lights. */
 	private void detachAllLights (Coords c)
 	{
 		if (tracing)
@@ -1501,6 +1724,7 @@ public class ArchApp extends Application
     
 	/**********************OVERLAY FUNCTIONS**********************/
 
+	/** Shows the FPS text. */
     public void loadFPSText()
     {
 		if (tracing)
@@ -1513,7 +1737,8 @@ public class ArchApp extends Application
     }
 
     
-    
+
+	/** Shows the statistics text. */
     public void loadStatsView()
     {
 		if (tracing)
@@ -1530,6 +1755,7 @@ public class ArchApp extends Application
 	
 	/**********************GET FUNCTIONS**********************/
 
+    /** Returns the flyByCamera. */
     public MovCam getFlyByCamera()
     {
 		if (tracing)
@@ -1538,7 +1764,8 @@ public class ArchApp extends Application
     }
 
     
-    
+
+    /** Returns the gui node. */
     public Node getGuiNode()
     {
 		if (tracing)
@@ -1547,7 +1774,8 @@ public class ArchApp extends Application
     }
 
     
-    
+
+    /** Returns the root node. */
     public Node getRootNode()
     {
 		if (tracing)
@@ -1556,7 +1784,8 @@ public class ArchApp extends Application
     }
 
     
-    
+
+    /** Returns showSettings. */
     public boolean isShowSettings()
     {
 		if (tracing)
@@ -1565,7 +1794,8 @@ public class ArchApp extends Application
     }
 
     
-    
+
+    /** Sets showSettings to the given boolean. */
     public void setShowSettings(boolean showSettings)
     {
 		if (tracing)

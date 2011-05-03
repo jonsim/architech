@@ -4,6 +4,7 @@ import com.jme3.scene.Geometry;
 
 public class Edge3D
 {
+	/** A single segment making up a wall. A wall with have 1 or more of these. */
 	public static class Segment
 	{
 		public static enum Position {TOP, BOTTOM, FULL}
@@ -30,6 +31,8 @@ public class Edge3D
 	    }
 	}
 
+	
+	
 	ArrayList<Segment> segments;
 	ArrayList<Geometry> attachedFurniture;
 	private String[] texture = new String[2];

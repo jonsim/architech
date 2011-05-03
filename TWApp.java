@@ -1,39 +1,27 @@
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.awt.Rectangle;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
-import javax.imageio.ImageIO;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
 
-import jme3tools.converters.ImageToAwt;
-import com.jme3.app.*;
+import javax.imageio.ImageIO;
+import javax.swing.JOptionPane;
+
+import com.jme3.app.Application;
+import com.jme3.app.StatsView;
 import com.jme3.asset.plugins.FileLocator;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.font.BitmapFont;
@@ -41,27 +29,25 @@ import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
-import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
-import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
+import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeCanvasContext;
 import com.jme3.system.JmeContext.Type;
 import com.jme3.system.JmeSystem;
-import com.jme3.terrain.geomipmap.TerrainQuad;
-import com.jme3.terrain.heightmap.AbstractHeightMap;
-import com.jme3.terrain.heightmap.ImageBasedHeightMap;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.WrapMode;
 import com.jme3.util.BufferUtils;
@@ -75,7 +61,7 @@ public class TWApp extends Application implements ActionListener {
     private Node rootNode = new Node("Root Node");
     private Node guiNode = new Node("Gui Node");
     private ArrayList<Compone> furniture = new ArrayList<Compone>();
-    private int currentid = 0;
+    private static final boolean shadowing = false;
 
     private BitmapText fpsText;
     private BitmapFont guiFont;
@@ -87,7 +73,10 @@ public class TWApp extends Application implements ActionListener {
     private AppActionListener actionListener = new AppActionListener();
 
     private boolean isInitComplete = false;
-    public boolean isInitComplete(){return isInitComplete;}
+    public boolean isInitComplete()
+    {
+    	return isInitComplete;
+    }
 
     TWApp() {
        super();
@@ -232,17 +221,30 @@ public class TWApp extends Application implements ActionListener {
     public void simpleInitApp() {
 		flyCam.setDragToRotate(true);
 		addbackg();
-		PointLight pl;
-		
-		pl = new PointLight();
-		pl.setColor(ColorRGBA.White);
-		pl.setRadius(4f);
-		rootNode.addLight(pl);
-		
-		DirectionalLight dl = new DirectionalLight();
-		dl.setDirection(new Vector3f(-1, -1, -1).normalizeLocal());
-		dl.setColor(ColorRGBA.White);
-		rootNode.addLight(dl);
+		setupLighting();
+    }
+    
+    public void setupLighting ()
+    {
+        DirectionalLight sun = new DirectionalLight();
+        AmbientLight ambient = new AmbientLight();
+    	
+    	// add shadow renderer
+    	if (shadowing)
+    	{
+	        rootNode.setShadowMode(ShadowMode.Off);
+	        PssmShadowRenderer psr = new PssmShadowRenderer(assetManager, 1024, 4);
+	        viewPort.addProcessor(psr);
+        	psr.setDirection(new Vector3f(-1, -1, -1).normalizeLocal());
+        	psr.setShadowIntensity(0.5f);
+    	}
+
+    	// add directional and ambient lighting to the scene
+		sun.setDirection(new Vector3f(-1, -1, -1).normalizeLocal());
+		sun.setColor(ColorRGBA.White);
+		ambient.setColor(ColorRGBA.White.mult(1.5f));
+		rootNode.addLight(sun);
+    	rootNode.addLight(ambient);
     }
 
     public void additem(String path, String fname,int id){
@@ -251,6 +253,8 @@ public class TWApp extends Application implements ActionListener {
     	Spatial temp = assetManager.loadModel(fname);
 	    temp.setLocalScale(3f);
 	    temp.setLocalTranslation(108,-100,112);
+    	if (shadowing)
+    		temp.setShadowMode(ShadowMode.CastAndReceive);
 	    rootNode.attachChild(temp);
 	    
 	    //read mtl file
@@ -500,7 +504,7 @@ public class TWApp extends Application implements ActionListener {
     public void removeitem(int id){
     	int position=0;
     	int found = -1;
-    	Iterator iterator = furniture.iterator();
+    	Iterator<Compone> iterator = furniture.iterator();
 		while(iterator.hasNext()){
 			if(((Compone) iterator.next()).getid() == id){
 				found = position;
@@ -518,7 +522,7 @@ public class TWApp extends Application implements ActionListener {
     public void moveitem(int id, char dir){
     	int position=0;
     	int found = -1;
-    	Iterator iterator = furniture.iterator();
+    	Iterator<Compone> iterator = furniture.iterator();
 		while(iterator.hasNext()){
 			if(((Compone) iterator.next()).getid() == id){
 				found = position;
@@ -560,7 +564,7 @@ public class TWApp extends Application implements ActionListener {
     	Material mat =null;
     	int position=0;
     	int found = -1;
-    	Iterator iterator = furniture.iterator();
+    	Iterator<Compone> iterator = furniture.iterator();
 		while(iterator.hasNext()){
 			if(((Compone) iterator.next()).getid() == id){
 				found = position;
@@ -606,8 +610,7 @@ public class TWApp extends Application implements ActionListener {
     }
 
     void addbackg(){
-    	TerrainQuad terrain;
-		Material mat_terrain;
+    	Material mat_terrain;
 		Texture grass;
 		
 	    mat_terrain = new Material(assetManager, "Common/MatDefs/Terrain/Terrain.j3md");
@@ -620,6 +623,8 @@ public class TWApp extends Application implements ActionListener {
 	    Quad blah = new Quad(200,200);
 		Geometry geom = new Geometry("Box", blah);
 		geom.setMaterial(mat_terrain);
+    	if (shadowing)
+    		geom.setShadowMode(ShadowMode.Receive);
 		geom.setLocalTranslation(new Vector3f(200,-100,0));
 		geom.rotate((float) -Math.toRadians(90),(float) Math.toRadians(180),0f );
 	    rootNode.attachChild(geom);
@@ -634,6 +639,8 @@ public class TWApp extends Application implements ActionListener {
 	    blah = new Quad(200,200);
 		geom = new Geometry("Box", blah);
 		geom.setMaterial(mat_terrain);
+    	if (shadowing)
+    		geom.setShadowMode(ShadowMode.Receive);
 		geom.setLocalTranslation(new Vector3f(200,0,200));
 		geom.rotate((float) -Math.toRadians(270),(float) Math.toRadians(180),0f );
 	    rootNode.attachChild(geom);
@@ -647,24 +654,32 @@ public class TWApp extends Application implements ActionListener {
 	    
 	    Geometry wall = new Geometry ("Box", new Quad(200,100));
 		wall.setMaterial(mat_terrain);
+    	if (shadowing)
+    		wall.setShadowMode(ShadowMode.Receive);
 		wall.setLocalTranslation(new Vector3f(0, -100, 0));
 		wall.rotate(0f, (float) (Math.toRadians(180) + Math.PI), 0f);
 		rootNode.attachChild(wall);
 		
 		wall = new Geometry ("Box", new Quad(200,100));
 		wall.setMaterial(mat_terrain);
+    	if (shadowing)
+    		wall.setShadowMode(ShadowMode.Receive);
 		wall.setLocalTranslation(new Vector3f(200, -100, 0));
 		wall.rotate(0f, (float) (Math.toRadians(90) + Math.PI), 0f);
 		rootNode.attachChild(wall);
 		
 		wall = new Geometry ("Box", new Quad(200,100));
 		wall.setMaterial(mat_terrain);
+    	if (shadowing)
+    		wall.setShadowMode(ShadowMode.Receive);
 		wall.setLocalTranslation(new Vector3f(200, -100, 200));
 		wall.rotate(0f, (float) (Math.toRadians(360) + Math.PI), 0f);
 		rootNode.attachChild(wall);
 		
 		wall = new Geometry ("Box", new Quad(200,100));
 		wall.setMaterial(mat_terrain);
+    	if (shadowing)
+    		wall.setShadowMode(ShadowMode.Receive);
 		wall.setLocalTranslation(new Vector3f(0, -100, 200));
 		wall.rotate(0f, (float) (Math.toRadians(270) + Math.PI), 0f);
 		rootNode.attachChild(wall);	
