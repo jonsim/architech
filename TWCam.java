@@ -1,6 +1,4 @@
 import com.jme3.input.InputManager;
-import com.jme3.input.JoyInput;
-import com.jme3.input.Joystick;
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
@@ -127,7 +125,8 @@ public class TWCam implements AnalogListener, ActionListener {
 
     protected void sideCamera(float value, boolean sideways){
         Vector3f vel = new Vector3f();
-        Vector3f pos = cam.getLocation().clone(),des,mov=null;
+        Vector3f pos = cam.getLocation().clone();
+        //Vector3f des,mov=null;
 
         if (sideways){
             cam.getLeft(vel);
@@ -143,7 +142,7 @@ public class TWCam implements AnalogListener, ActionListener {
     public void onAnalog(String name, float value, float tpf) {
         if (!enabled)
             return;
-        Vector3f loc = cam.getLocation();
+        //Vector3f loc = cam.getLocation();
 
         if (name.equals("VARCAM_StrafeLeft") && mousein){
             rotateCamera(-value, initialUpVec);

@@ -1,9 +1,4 @@
-import com.jme3.system.AppSettings;
-import com.jme3.system.JmeCanvasContext;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.Canvas;
 
 /** Provides a canvas (with getCanvas()) containing the 3d window */
 public class Viewport3DEmpty extends Viewport3D {

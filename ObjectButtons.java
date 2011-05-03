@@ -1,11 +1,14 @@
-import java.net.URL;
-import javax.swing.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import javax.swing.border.Border;
-import javax.swing.border.TitledBorder;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 /** Stores a JPanel that contains buttons related to the ObjectBrowser window
  *
@@ -36,9 +39,9 @@ public class ObjectButtons implements ActionListener {
    }
 
    private void initPane() {
-      int leftAnchor = GridBagConstraints.LINE_START;
-      int rightAnchor = GridBagConstraints.LINE_END;
       int centerAnchor = GridBagConstraints.CENTER;
+      /*int leftAnchor = GridBagConstraints.LINE_START;
+      int rightAnchor = GridBagConstraints.LINE_END;
       int topLeftAnchor = GridBagConstraints.NORTHWEST;
       int topRightAnchor = GridBagConstraints.NORTHEAST;
 
@@ -47,7 +50,7 @@ public class ObjectButtons implements ActionListener {
       Insets top_right = new Insets(10, 0, 0, 10);
       Insets top_bottom_right = new Insets(10, 0, 10, 10);
       Insets right = new Insets(0, 0, 0, 10);
-      Insets bottom = new Insets(0, 0, 5, 0);
+      Insets bottom = new Insets(0, 0, 5, 0);*/
       Insets none = new Insets(0, 0, 0, 0);
 
       pane = new JPanel(new GridBagLayout());

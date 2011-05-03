@@ -171,7 +171,7 @@ public class MovCam implements AnalogListener, ActionListener {
     
     protected void xCamera(float value){
         Vector3f vel = new Vector3f(); 
-        Vector3f mov = null,des = null;
+        //Vector3f mov = null,des = null;
         Vector3f pos = cam.getLocation().clone();
         cam.getDirection(vel);
         if(value>=0) {vel = new Vector3f(vel.x ,0,vel.z);}
@@ -206,7 +206,8 @@ public class MovCam implements AnalogListener, ActionListener {
 
     protected void sideCamera(float value, boolean sideways){
         Vector3f vel = new Vector3f();
-        Vector3f pos = cam.getLocation().clone(),des,mov=null;
+        Vector3f pos = cam.getLocation().clone();
+        //Vector3f des,mov=null;
 
         if (sideways){
             cam.getLeft(vel);

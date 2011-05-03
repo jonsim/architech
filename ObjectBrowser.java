@@ -1,27 +1,52 @@
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.sql.*;
-import java.util.Arrays;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.dnd.DropTarget;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.Arrays;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
+import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.basic.BasicSplitPaneDivider;
-import javax.swing.ListSelectionModel;
-import java.awt.dnd.*;
-import javax.swing.BorderFactory;
-import javax.swing.border.Border;
-import javax.swing.border.EtchedBorder;
-import javax.swing.JScrollBar;
-import java.awt.Dimension;
 
 /**
  *
@@ -29,7 +54,7 @@ import java.awt.Dimension;
  */
 public class ObjectBrowser implements MouseListener, ActionListener {
    public static final String IMG_DIR = "img/database/";
-   private final Color divcol = new Color(74,74,74);
+   //private final Color divcol = new Color(74,74,74);
    private ListCellRenderer original;
    private boolean tweakmode;
    private int idcount=0;
@@ -80,11 +105,11 @@ public class ObjectBrowser implements MouseListener, ActionListener {
    private JScrollPane libraryScroller;
    private JScrollPane descriptionScroller;
    private JPanel picPan;
-   private String decName;
+   //private String decName;
    public boolean wall = false;
-   private JLabel piclabel;
-   private JPanel picture;
-   private String picpath,picname;
+   //private JLabel piclabel;
+   //private JPanel picture;
+   //private String picpath,picname;
 
 	ObjectBrowser(Main main) {
 		this.main = main;
@@ -125,7 +150,7 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 	    listTitle = new JLabel();
 	    listTitle.setFont(new Font("sansserif", Font.BOLD, 20));
 	    listTitle.setText(catTitle);
-		Insets top_left_bottom_right = new Insets(5,1,1,1);
+		//Insets top_left_bottom_right = new Insets(5,1,1,1);
 		GridBagConstraints gbc;
 	    gbc = FrontEnd.buildGBC(0, 0, 0.5, 0.5, GridBagConstraints.NORTH, new Insets(10,10,10,10));
 	    splitTop.add(listTitle, gbc);
@@ -474,7 +499,7 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 			picPan.remove(picLabel);
 			splitTop.revalidate();
 			try {
-				BufferedImage myPicture;
+				//BufferedImage myPicture;
 				if(object == dashedSeparator || object == backButtonText || object == wallpaperTitle) {
 					picLabel = new JLabel(new ImageIcon( FrontEnd.getImage(this, IMG_DIR+"blank.png") ));
           description.setText("");
@@ -609,7 +634,7 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 			picPan.remove(picLabel);
 			splitBottom.revalidate();
 			try {
-				BufferedImage myPicture;
+				//BufferedImage myPicture;
 				if(object == dashedSeparator || object == backButtonText) {
 					prev = FrontEnd.getImage(this, IMG_DIR+"blank.png");
 					prev = prev.getScaledInstance( 128, 128,  java.awt.Image.SCALE_SMOOTH ) ; 
@@ -792,7 +817,7 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 			objectName = fields.get(selectedpos).toString();
 			//System.out.println("Object Name = " + objectName);			
 			getDimensions(getItemType(objectName), getTweaked(objectName));
-			String test = getModel(objectName);
+			//String test = getModel(objectName);
 			//System.out.println("ObjPath - - - - - - - - - - "+test);
 			if(draggedObject != null) {
 				//System.out.println("Object Name = " + draggedObject.Name);

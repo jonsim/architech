@@ -1,12 +1,34 @@
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
-import javax.swing.*;
-import javax.swing.border.EtchedBorder;
-import javax.swing.event.*;
-import javax.swing.plaf.basic.BasicSplitPaneDivider;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.plaf.basic.BasicSplitPaneDivider;
 
 /** Creates and displays the whole main window and adds the various different
  *  JPanels to it.
@@ -219,17 +241,17 @@ public class FrontEnd implements WindowListener, ChangeListener {
    /** Adds all the things 2D, 3D, SQL etc. to the given pane */
    private void addWindowComponents(Container pane) {
       int leftAnchor = GridBagConstraints.LINE_START;
-      int rightAnchor = GridBagConstraints.LINE_END;
+      int topLeftAnchor = GridBagConstraints.NORTHWEST;
+      /*int rightAnchor = GridBagConstraints.LINE_END;
       int centerAnchor = GridBagConstraints.CENTER;
       int topCenterAnchor = GridBagConstraints.NORTH;
-      int topLeftAnchor = GridBagConstraints.NORTHWEST;
       int topRightAnchor = GridBagConstraints.NORTHEAST;
 
       Insets none = new Insets(0,0,0,0);
       Insets top_left_right = new Insets(10,10,0,10);
       Insets top_left_bottom_right = new Insets(10,10,10,10);
       Insets top_right = new Insets(10,0,0,10);
-      Insets top_bottom_right = new Insets(10,0,10,10);
+      Insets top_bottom_right = new Insets(10,0,10,10);*/
 
       pane.setLayout(new BorderLayout());
       GridBagConstraints c;      

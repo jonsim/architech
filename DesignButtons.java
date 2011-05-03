@@ -1,16 +1,24 @@
 
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.plaf.ComponentUI;
-import javax.swing.plaf.MenuItemUI;
-import javax.swing.plaf.basic.BasicButtonUI;
-import javax.swing.plaf.basic.BasicSliderUI;
-import javax.swing.plaf.metal.MetalButtonUI;
-import javax.swing.plaf.metal.MetalSliderUI;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Hashtable;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JToggleButton;
+import javax.swing.plaf.metal.MetalButtonUI;
 
 /** Holds the buttons for tools and features related to the 2D pane */
 public class DesignButtons implements ActionListener {
@@ -28,7 +36,7 @@ public class DesignButtons implements ActionListener {
    private JSlider zoomTool;
    private Cursor selectCursor, lineCursor,curveCursor;
    private JToggleButton gridTool;
-   private final Color back = new Color(74,74,74);
+   //private final Color back = new Color(74,74,74);
    private TWPalette twPalette;
    private boolean palonshow = false;
    private TWTex twTex;

@@ -1,8 +1,3 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.StringReader;
-
-import javax.swing.JPanel;
 import com.jme3.scene.Spatial;
 public class Compone {
 	

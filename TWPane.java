@@ -1,13 +1,10 @@
-import com.jme3.system.AppSettings;
-import com.jme3.system.JmeCanvasContext;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.Canvas;
+import java.awt.Dimension;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.BorderFactory;
-import javax.swing.JPanel;
+
+import com.jme3.system.AppSettings;
+import com.jme3.system.JmeCanvasContext;
 
 /** Provides a canvas (with getCanvas()) containing the 3d window */
 public class TWPane{

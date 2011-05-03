@@ -1,8 +1,10 @@
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.geom.Line2D.*;
-import java.io.*;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.io.File;
+
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
 
 /** Contains TwoDScrollPane, TwoDViewport, TwoDPanel, TwoDDropListener */
 public class TwoDScrollPane extends JScrollPane {
@@ -50,7 +52,7 @@ public class TwoDScrollPane extends JScrollPane {
       @Override
       public Dimension toViewCoordinates(Dimension size) {
          // calculate the difference between normal un-scaled size and scaled size
-         double scale = twoDPanel.getZoomScale();
+         //double scale = twoDPanel.getZoomScale();
          
          return super.toViewCoordinates(size);
       }
@@ -59,7 +61,7 @@ public class TwoDScrollPane extends JScrollPane {
       @Override
       public Point toViewCoordinates(Point p) {
          // calculate the difference between normal un-scaled size and scaled size
-         double scale = twoDPanel.getZoomScale();
+         //double scale = twoDPanel.getZoomScale();
          
          return super.toViewCoordinates(p);
       }
