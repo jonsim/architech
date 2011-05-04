@@ -389,7 +389,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
       return sortedList;
    }
 
-   private void getFloorScreenshot() {
+   public void getFloorScreenshot() {
       //if (true) return; // stop the program completely crashing (for now) when a
                         // vertex is deleted - 3d will give exceptions but will be ok
 
@@ -458,6 +458,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
       gettingScreenshot = false;
       repaint();
       currname = nows + ".png";
+      designButtons.viewport3D.getapp().reloadfloor(currname);
    }
 
    private void selectDragBoxVertices() {
@@ -523,7 +524,6 @@ class TwoDPanel extends JPanel implements ChangeListener {
          a++;
       }
       getFloorScreenshot();
-      designButtons.viewport3D.getapp().reloadfloor(currname);
    }
 
    private class TwoDPanelMouseListener implements MouseListener {
@@ -812,6 +812,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
                handlerFurnitureMove.delete();
                inProgressHandler = null;
             }
+            for(int i=0;i<20;i++)
+            	designButtons.viewport3D.focus();
          }
 
          if (c == KeyEvent.VK_F) {
@@ -876,7 +878,6 @@ class TwoDPanel extends JPanel implements ChangeListener {
             }
          }
          getFloorScreenshot();
-         designButtons.viewport3D.getapp().reloadfloor(currname);
       }
    }
 

@@ -29,7 +29,7 @@ public class DesignButtons implements ActionListener {
    private final FrontEnd frontEnd;
    private ObjectBrowser objectBrowser;
    private JPanel pane,fillcom;
-   private JButton selectTool, lineTool, curveTool,currentTool, dayToggle, tweaker, fillTool;
+   private JButton selectTool, lineTool, curveTool,currentTool, dayToggle, tweaker, fillTool,rfloor;
    private JButton deselectTool,dropD,dropT;
    private JButton TwUp,TwDown,TwLeft,TwRight,TwFor,TwBack,TwCol,TwTex,TwPlus,TwMinus,TwRotl,TwRotr;
    private JButton TwPx,TwMx,TwPy,TwMy,TwPz,TwMz;
@@ -149,6 +149,12 @@ public class DesignButtons implements ActionListener {
       fillcom.add(fillTool,c);
       c = FrontEnd.buildGBC(0, 1, 0.5, 0.5, GridBagConstraints.NORTH, new Insets(0,0,0,0));
       fillcom.add(dropD,c);
+      
+      rfloor = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "rfloor.png")));
+      rfloor.addActionListener(this);
+      rfloor.setMargin(margins);
+      rfloor.setUI(new MetalButtonUI());
+      rfloor.setToolTipText("Update the 3D view with the current 2D Floor filling");
       
       tweaker = new JButton(new ImageIcon(FrontEnd.getImage(this, IMG_DIR + "tweak.png")));
       tweaker.addActionListener(this);
@@ -363,6 +369,9 @@ public class DesignButtons implements ActionListener {
       c = FrontEnd.buildGBC(5, 1, 0.5, 0.5, topCenterAnchor, right);
       pane.add(fillcom, c);
       
+      //c = FrontEnd.buildGBC(6, 1, 0.5, 0.5, topCenterAnchor, right);
+      //pane.add(rfloor, c);
+      
       c = FrontEnd.buildGBC(6, 0, 0.5, 0.5, bottomCenterAnchor, right);
       pane.add(new JLabel("<html><font color='white'>Zoom"), c);
       c = FrontEnd.buildGBC(6, 1, 0.5, 0.5, topCenterAnchor, new Insets(0,0,0,30));
@@ -477,6 +486,8 @@ public class DesignButtons implements ActionListener {
 
       } else if (dayToggle == source) {
          viewport3D.toggleDay();
+         for(int i=0;i<10;i++)
+        	 viewport3D.focus();
          
       } else if (deselectTool == source) {
     	  frontEnd.getCurrentTab().getpanel().deselectall();
@@ -514,11 +525,11 @@ public class DesignButtons implements ActionListener {
     	  }else{
 	          viewport3D.shutdown3D();
 	    	  frontEnd.changetw();
-    	  }
-    	  
+    	  }    	  
       } else if(fillTool == source){
     	  frontEnd.getCurrentTab().getpanel().fillfloor();
-    	  
+      } else if(rfloor == source){
+    	  frontEnd.getCurrentTab().getpanel().getFloorScreenshot();    	  
       } else if(comm.equals("col")){
     	  objectBrowser.getprev().paintitem(objectBrowser.getselected(),0,twTex.ppath(),twTex.pname(),0f,twPalette.getr(),twPalette.getg(),twPalette.getb());
       

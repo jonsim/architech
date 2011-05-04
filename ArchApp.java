@@ -1331,7 +1331,7 @@ public class ArchApp extends Application
 	        //add window pane
 	        Geometry pane = new Geometry("pane", new Box(new Vector3f(0,0,0),26f,18f,1f));								
 			pane.setMaterial(glass);
-			System.out.println((float)e.getRotation());
+			//System.out.println((float)e.getRotation());
 			pane.rotate(0,(FastMath.TWO_PI)-(float)e.getRotation(),0f);
 			pane.setQueueBucket(Bucket.Transparent);
 			pane.setLocalTranslation(new Float(dwsa.get(mini).getRotationCenter().getX()), -49,new Float(dwsa.get(mini).getRotationCenter().getY()));

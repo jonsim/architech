@@ -57,7 +57,7 @@ public class Compone {
 		coloured = 1;
 		StringBuffer output = new StringBuffer();
 		String[] lines = matfile.split(System.getProperty("line.separator"));
-		for(int i=0;i<lines.length;i++){
+		for(int i=0;i<lines.length;i++){			
 			if(lines[i].substring(0,2).equals("Kd")){
 				output.append("Kd " + red + " " + green + " " + blue).append(System.getProperty("line.separator"));
 			}else{
