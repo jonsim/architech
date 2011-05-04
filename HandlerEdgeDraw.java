@@ -105,7 +105,7 @@ public class HandlerEdgeDraw {
          if(mergedPoint.x != -1 && mergedPoint.y != 1) coords.set(edge.getV1(), mergedPoint.x, mergedPoint.y, 0, snapToGrid);
          mergedPoint = coords.mergeVertices(edge.getV2(), newX, newY, 0, snapToGrid);
          if(mergedPoint.x != -1 && mergedPoint.y != 1) coords.set(edge.getV2(), mergedPoint.x, mergedPoint.y, 0, snapToGrid);
-         else coords.set(edge.getV2(), p.x, p.y, 0, snapToGrid);
+         else coords.set(edge.getV2(), newX, newY, 0, snapToGrid);
          coords.findEdgeSplits(edge, true);
          edgeList = coords.getSplitEdges();
 	 coords.splitEdges(edge, null);
