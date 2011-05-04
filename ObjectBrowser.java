@@ -16,6 +16,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.URL;
@@ -52,7 +53,7 @@ import javax.swing.plaf.basic.BasicSplitPaneDivider;
  *
  * @author Michael, Brent
  */
-public class ObjectBrowser implements MouseListener, ActionListener {
+public class ObjectBrowser implements MouseListener, ActionListener, KeyListener {
    public static final String IMG_DIR = "img/database/";
    //private final Color divcol = new Color(74,74,74);
    private ListCellRenderer original;
@@ -228,6 +229,7 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 			}
 		};
 		library.addMouseListener(this);
+		library.addKeyListener(this);
 		library.setDragEnabled(true);
 		SQLStatement("select * from CATEGORIES ORDER BY Category", "Category");
 		currentLibrary = 0;
@@ -775,6 +777,37 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 		}
 		//return null;
 	}
+	
+	private void testHarness() {
+            String[] expectedName = {"Standard Double Bed", "null"};
+            String testName;
+            int failCount = 0;
+            int i = 0;
+            int[] cIndex = {1, 4};
+            int[] tIndex = {1, 3};
+            int[] iIndex = {0, 0};
+            System.out.println("\n*****Begin Testing*****\n");
+            while(i < expectedName.length) {
+                library.setSelectedIndex(cIndex[i]);
+                selectCategory();
+                library.setSelectedIndex(tIndex[i]);
+                selectType();
+                testName = fields.get(iIndex[i]).toString();
+                System.out.println("Test " + i + ":\n\tExpected = " + expectedName[i] + "\n\tResult = " + testName);
+                if(expectedName[i].equals(testName)) System.out.println("\tPass\n");
+                else {
+                    System.out.println("\tFail\n");
+                    failCount++;
+                }
+                library.setSelectedIndex(fields.size()-1);
+                toType();
+                library.setSelectedIndex(fields.size()-1);
+                toCategories();
+                i++;
+            }
+            if(failCount == 0) System.out.println("All Tests Passed Successfully\n\n******End Testing******\n");
+            else System.out.println("Failed " + failCount + "/" + expectedName.length + " Tests\n\n******End Testing******\n");
+        }
 
 	
 	public void keyTyped(KeyEvent e) {}
@@ -799,7 +832,9 @@ public class ObjectBrowser implements MouseListener, ActionListener {
 			}
 		} else if(e.getKeyCode() == KeyEvent.VK_DELETE) {
 			deleteObject();
-		}
+		} else if(e.getKeyCode() == KeyEvent.VK_T) {
+            testHarness();
+        }
     }
     public void keyReleased(KeyEvent e) {}
 

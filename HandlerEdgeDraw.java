@@ -30,10 +30,19 @@ public class HandlerEdgeDraw {
          return;
       }
 
-      Coords.Vertex v = new Coords.Vertex(p.x, p.y, 0);
+      Coords.Vertex mergeCheck = coords.vertexAt(p);
+      Coords.Vertex v;
+
+      if(mergeCheck == null) {
+          v = new Coords.Vertex(p.x, p.y, 0);
+          startX = p.x;
+          startY = p.y;
+      } else {
+          v = new Coords.Vertex(mergeCheck.getX(), mergeCheck.getY(), 0);
+          startX = mergeCheck.getX();
+          startY = mergeCheck.getY();
+      }
       edge = coords.newEdge(v, v, snapToGrid);
-      startX = p.x;
-      startY = p.y;
 
       isCollided = false;
       edgeList.clear();
