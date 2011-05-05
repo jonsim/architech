@@ -318,7 +318,7 @@ public class Edge {
 
       //Font sanSerifFont = new Font("SanSerif", Font.PLAIN, 12);
       //g2.setFont(sanSerifFont);
-      g2.drawString( (length() / 40) + "m", x, y);
+      g2.drawString( (length() / 30) + "m", x, y);
    }
 
    /** Returns the length of this line */

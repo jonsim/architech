@@ -904,7 +904,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
   	} else {
      	zoomScale = scale;
   	}
-  	coords.changegw((int)(30/zoomScale));
+  	coords.changegw((int)(30*zoomScale));
+  	zoomScale = 1.0;
   	repaint();
    }
 
