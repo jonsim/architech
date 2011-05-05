@@ -163,8 +163,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
 
      	if (designButtons.isGridOn()) {
         	coords.drawGrid(g2,
-                	(int) Math.round(getWidth() / zoomScale), // if zoomScale gets small, make the grid big.
-                	(int) Math.round(getHeight() / zoomScale));
+                	(int) Math.round(getWidth()/ zoomScale), // if zoomScale gets small, make the grid big.
+                	(int) Math.round(getHeight()/ zoomScale));
      	}
 
 
@@ -904,7 +904,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
   	} else {
      	zoomScale = scale;
   	}
-
+  	coords.changegw((int)(30/zoomScale));
   	repaint();
    }
 
