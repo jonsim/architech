@@ -242,7 +242,7 @@ public class TWApp extends Application implements ActionListener {
     	// add directional and ambient lighting to the scene
 		sun.setDirection(new Vector3f(-1, -1, -1).normalizeLocal());
 		sun.setColor(ColorRGBA.White);
-		ambient.setColor(ColorRGBA.White.mult(1.5f));
+		ambient.setColor(ColorRGBA.White.mult(2.0f));
 		rootNode.addLight(sun);
     	rootNode.addLight(ambient);
     }

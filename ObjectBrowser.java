@@ -347,24 +347,20 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
 		return result;
     }
    
-	private void getDimensions(int itemTypeID, int isTweaked) {
+	private void getDimensions(int itemTypeID)
+	{
 		draggedObject = null;
-		try {
-       if (isTweaked == 0) {
-			    statement = connection.prepareStatement("select * from TYPE where ID='" + itemTypeID + "'");
-			    rs = statement.executeQuery();
-			    if(rs.next()) {
-				     draggedObject = new FurnitureObject(objectName, rs.getFloat("Length"), rs.getFloat("Width"), rs.getFloat("Height"));
-			    }
-       }
-       if (isTweaked == 1){
-          statement = connection.prepareStatement("select * from ITEM where Name='" + objectName + "'");
-			    rs = statement.executeQuery();
-			    if(rs.next()) {
-				     draggedObject = new FurnitureObject(objectName, rs.getFloat("Length"), rs.getFloat("Width"), rs.getFloat("Height"));
-			    }
-       }
-		} catch(Exception e) {
+		try
+		{
+        	statement = connection.prepareStatement("select * from ITEM where Name='" + objectName + "'");
+			rs = statement.executeQuery();
+			if(rs.next())
+			{
+				draggedObject = new FurnitureObject(objectName, rs.getFloat("Length"), rs.getFloat("Width"), rs.getFloat("Height"));
+			}
+		}
+		catch(Exception e)
+		{
 			e.printStackTrace();
 		}
 	}
@@ -398,7 +394,7 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
 		return itemType;
 	}
 
-	private int getTweaked(String itemName)
+	/*private int getTweaked(String itemName)
 	{
 		isTweaked = 0;
 		try {
@@ -411,7 +407,7 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
 			e.printStackTrace();
 		}
 		return isTweaked;
-	}
+	}*/
 
 	private int getTypeID(String typeName)
 	{
@@ -762,7 +758,7 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
 		}
 		else 
 		{
-			getDimensions(getItemType(objectName), getTweaked(objectName));
+			getDimensions(getItemType(objectName));
 			int ID = getID(itemName);
 			String objPath = getModel(objectName);
 			float width = 10;
@@ -851,7 +847,7 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
 			selectedpos = library.locationToIndex(e.getPoint());
 			objectName = fields.get(selectedpos).toString();
 			//System.out.println("Object Name = " + objectName);			
-			getDimensions(getItemType(objectName), getTweaked(objectName));
+			getDimensions(getItemType(objectName));
 			//String test = getModel(objectName);
 			//System.out.println("ObjPath - - - - - - - - - - "+test);
 			if(draggedObject != null) {
