@@ -166,7 +166,7 @@ public class Coords {
    private LinkedList<Edge> splitEdges = new LinkedList<Edge>();
    private LinkedList<Edge> rememberedEdges = new LinkedList<Edge>();
    private Furniture invalidDW = null;
-   private int gridWidth = 30; // makes grid lines at 0,30,60,...
+   private int gridWidth = 50; // makes grid lines at 0,30,60,...
   
    /** Creates a blank coordinate system */
    Coords(String associatedSaveName) {
