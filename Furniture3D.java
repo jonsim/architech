@@ -12,7 +12,7 @@ import com.jme3.scene.Spatial;
 		private boolean lightToggleable = true;  // whether or not this light toggles (i.e. if it is on all the time (false) or only at night (true))
 		private boolean lightState = false; // true = on, false = off
 		private ColorRGBA lightColor;
-		private boolean    isP;
+		private boolean isP;
 		
 		
 		
@@ -55,23 +55,28 @@ import com.jme3.scene.Spatial;
 
 		
 		
-		/** Adds a point light to the current furniture with colour RGB (with values between 0 and 255) and 100% 
-		 *  intensity. This should be the default if you do not know the intensity to use.  */
-		public void addLight (int R, int G, int B)
+		/** Adds a point light to the current furniture with colour defined by the integer array values. This 
+		 *  should contain an RGB colour in that order (with values between 0 and 255). Adds a light of this 
+		 *  colour and of 250px radius. This should be the default if you do not know the radius to use.  */
+		public void addLight (int[] v)
 		{
-			addLight(R, G, B, 250);
+			if (v.length != 4)
+				throw new IllegalArgumentException("addLight called with a non-4-element-array.");
+			addLight(v[0], v[1], v[2], 250, v[3]);
 		}
 		
 		
 		
 		/** Adds a point light to the current furniture with colour RGB (with values between 0 and 255) and an 
 		 *  (optional) intensity I.  */
-		public void addLight (int R, int G, int B, int I)
+		public void addLight (int R, int G, int B, int I, int lightMode)
 		{
 			if (R < 0 || R > 255 || G < 0 || G > 255 || B < 0 || B > 255)
 				throw new IllegalArgumentException("addLight called with a non-RGB value.");
 			if (I < 0)
 				throw new IllegalArgumentException("addLight called with a negative intensity.");
+			if (lightMode < 0 || lightMode > 1)
+				throw new IllegalArgumentException("addLight called with an illegal lightMode.");
 			if (light != null)
 			{
 				System.err.println("[WARNING @Furniture3D] [SEVERITY: Medium] addLight called, but there is already a light.");
@@ -86,6 +91,8 @@ import com.jme3.scene.Spatial;
 			centre = centre.add(0, getHeight(), 0);
 			light.setPosition(centre);
 			lightState = true;
+			if (lightMode == 1)
+				setLightToggleable(false);
 		}
 		
 		

@@ -1527,12 +1527,12 @@ public class ArchApp extends Application
 		float cosr = FastMath.cos(rotation);
 		Quaternion c = new Quaternion(cosr, 0, sinr, 0);
 		furn.spatial.setLocalRotation(c);
-		furn.spatial.rotate(0, -FastMath.HALF_PI, -FastMath.PI);       
+		furn.spatial.rotate(0, -FastMath.HALF_PI, -FastMath.PI);
         furn.spatial.setLocalTranslation(center.x, -100f, center.y);
         
     	if (f.isLight())
     	{
-    		furn.addLight(255, 0, 0);
+    		furn.addLight(f.getLight());
     		if (day)
     			furn.turnOffLight();
     	}

@@ -374,8 +374,8 @@ public class Coords {
        return new LinkedList<Edge>(splitEdges);
    }
 
-   public boolean splitEdges(Edge edge, Vertex vertex) {
-       if(edge == null && vertex == null) return false;
+   public void splitEdges(Edge edge, Vertex vertex) {
+       if(edge == null && vertex == null) return;
        rememberedEdges.clear();
        if(edge != null) rememberedEdges.add(edge);
        else rememberedEdges.addAll(vertex.edgeUses);
@@ -386,7 +386,6 @@ public class Coords {
        Vertex locationCheck;
        int skipTest;
        int i;
-       boolean returnValue = false;
        while(!rememberedEdges.isEmpty()) {
            e = rememberedEdges.get(0);
            rememberedEdges.remove(0);
@@ -394,7 +393,6 @@ public class Coords {
            lineSplits.clear();
            findEdgeSplits(e, true);
            while(!splitEdges.isEmpty()) {
-               returnValue = true;
                skipTest = 0;
                i = 0;
                locationCheck = vertexAt(lineSplits.get(0));
@@ -407,8 +405,12 @@ public class Coords {
                    if(locationCheck.equals(e2.getV1()) || locationCheck.equals(e2.getV2())) skipTest += 2;
                }
                while(i < used.size()) {
-                   if(e1.equals(used.get(i)) || e2.equals(used.get(i))) {
-                       skipTest += 5;
+                   if(e1.equals(used.get(i))) {
+                       skipTest += 11;
+                       break;
+                   }
+                   if(e2.equals(used.get(i))) {
+                       skipTest += 3;
                        break;
                    }
                    i++;
@@ -420,6 +422,7 @@ public class Coords {
                    splitCurve(e2.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
                    used.add(e2);
                    delete(e2);
+                   break;
                } else if(skipTest == 1) {
                    splitCurve(e2.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
                    used.add(e2);
@@ -428,11 +431,13 @@ public class Coords {
                    splitCurve(e1.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
                    used.add(e1);
                    delete(e1);
+                   break;
+               } else if(skipTest > 10) {
+                   break;
                }
                lineSplits.remove(0);
            }
        }
-       return returnValue;
    }
    
    private void splitCurve(QuadCurve2D quad, double x, double y) {

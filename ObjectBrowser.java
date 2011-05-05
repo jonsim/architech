@@ -308,7 +308,8 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
       return -1;
    }
    
-   public boolean isLight( int typeID ) {
+   // old isLight function when light was inferred from Category
+   /*public boolean isLight( int typeID ) {
 	      try {
 	         statement = connection.prepareStatement("select Category1, Category2, Category3 from TYPE where ID = '" + typeID + "'");
 	         rs = statement.executeQuery();
@@ -321,31 +322,61 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
 			}
 
 	      return false;
-	   }
+	   }*/
+   
+   // new isLight function collecting information on a per-item basis
+    public int[] getLight (int itemID)
+    {
+    	String light = null;
+    	String[] lightSplit;
+    	int[] lightValues = {0, 0, 0, 0};
+    	
+	    try
+		{
+	    	statement = connection.prepareStatement("select Light from ITEM where ID = '" + itemID + "'");
+	    	rs = statement.executeQuery();
+	    	if (rs.next())
+	    		light = rs.getString("Light");
+	    	if (light != null)
+	    	{
+	    		lightSplit = light.split(",");
+	    		if (lightSplit.length == 4)
+	    		{
+    				for (int i = 0; i < 4; i++)
+    				{
+    					try
+    					{
+	    					lightValues[i] = Integer.parseInt(lightSplit[i]);
+	    					if (lightValues[i] < 0 || lightValues[i] > 255)
+	    						lightValues[i] = 0;
+    					}
+    					catch (Exception e)
+    					{
+    	    				System.err.println("[WARNING @ObjectBrowser] [SEVERITY: Low] Found improperly formatted Light field (non numeric values). Ignoring entry.");
+    					}
+    				}
+	    		}
+	    		else
+	    		{
+    				System.err.println("[WARNING @ObjectBrowser] [SEVERITY: Low] Found non-null improperly formatted Light field (not enough arguments). Ignoring entry.");
+	    		}
+	    	}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return lightValues;
+	}
    
     // The following items are not physical: Wall Light, Ceiling Light, All Doors, All Windows, Wallpaper, Carpet, Rug
 	public boolean isPhysical (int t)
 	{
-		if ((t == 13) || (t == 14) || (t >= 31 && t <= 40))
+		if (t == 8 || t == 11 || t == 15 || t == 16 || t == 26 || t == 27)
 			return false;
 		return true;
 	}
-	
-   //TODO: Jonny
-    public int[] getLight (int typeID)
-    {
-    	int[] result = {-1, -1};
-    	try
-    	{
-    		// nothing
-    	}
-    	catch (Exception e)
-    	{
-    		e.printStackTrace();
-    	}
-
-		return result;
-    }
    
 	private void getDimensions(int itemTypeID)
 	{

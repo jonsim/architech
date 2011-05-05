@@ -17,8 +17,8 @@ public class Furniture {
    private boolean isDW; // is this a door/window
    private boolean isD;  // is this a door
    private boolean isW;  // is this a window
-   private boolean isL;  //is this a light?
    private boolean isP;
+   private int[] lightValues;  //this objects light value
 
    Furniture(FurnitureSQLData data, Point center, ObjectBrowser ob) {
       if (data == null || data.objPath == null || center == null) {
@@ -31,7 +31,7 @@ public class Furniture {
       this.rotation = 0;
       this.objPath = data.objPath;
       System.out.println("objpath="+objPath);
-      isL = ob.isLight(data.type);
+      lightValues = ob.getLight(data.furnitureID);
       isP = ob.isPhysical(data.type);
       int ftype = ob.isDoorWindow( data.type );
       if ( ftype > -1)
@@ -76,24 +76,28 @@ public class Furniture {
          rotationCenterX = java.lang.Float.parseFloat(split[3]);
          rotationCenterY = java.lang.Float.parseFloat(split[4]);
          rotation = java.lang.Double.parseDouble(split[5]);
+         lightValues = new int[4];
+         lightValues[0]  = java.lang.Integer.parseInt(split[6]);
+         lightValues[1]  = java.lang.Integer.parseInt(split[7]);
+         lightValues[2]  = java.lang.Integer.parseInt(split[8]);
+         lightValues[3]  = java.lang.Integer.parseInt(split[9]);
 
       } catch (NumberFormatException e) {
          throw new IllegalArgumentException("Malformed value in saved furniture object");
       }
 
-      // objPath might contain commas, so load split from the end backwards.
+      // objPath might contain commas, so load objPath with all the unaccounted for splits. Surely this 
+      // method will remove the commas and corrupt the link? i guess at least it doesnt break other shit though...
       objPath = "";
-      for (int i = 6; i < split.length - 5; i++)
+      for (int i = 10; i < split.length - 4; i++)
         objPath += split[i];
       
-      isDW = java.lang.Boolean.parseBoolean(split[split.length - 5]);
-      isD  = java.lang.Boolean.parseBoolean(split[split.length - 4]);
-      isW  = java.lang.Boolean.parseBoolean(split[split.length - 3]);
-      isL  = java.lang.Boolean.parseBoolean(split[split.length - 2]);
+      isDW = java.lang.Boolean.parseBoolean(split[split.length - 4]);
+      isD  = java.lang.Boolean.parseBoolean(split[split.length - 3]);
+      isW  = java.lang.Boolean.parseBoolean(split[split.length - 2]);
       isP  = java.lang.Boolean.parseBoolean(split[split.length - 1]);
       if (isDW && !(isD || isW)) throw new IllegalArgumentException("Malformed furniture type doorwindow");
       if (isD && isW) throw new IllegalArgumentException("Malformed furniture is both a door and a window");
-      if (isDW && isL) throw new IllegalArgumentException("Malformed furniture is both a doorwindow and a light");
       if (isDW && isP) throw new IllegalArgumentException("Malformed furniture is both a doorwindow and a physical object");
 
       recalcRectangle();
@@ -108,9 +112,9 @@ public class Furniture {
    }
 
    public String getSaveString() {
-      return furnitureID + "," + width + "," + height + "," + rotationCenterX
-         + "," + rotationCenterY + "," + rotation + "," + objPath + "," + isDW
-         + "," + isD + "," + isW + "," + isL + "," + isP;
+      return furnitureID + "," + width + "," + height + "," + rotationCenterX + "," + rotationCenterY + 
+             "," + rotation + "," + lightValues[0] + "," + lightValues[1] + "," + lightValues[2] + "," + 
+             lightValues[3] + "," + objPath + "," + isDW + "," + isD + "," + isW + "," + isP;
    }
 
    /** Use the method in the Coords class instead! Sets the Furniture's location */
@@ -146,9 +150,13 @@ public class Furniture {
       return isW;
    }
    
-   /** Checks if the current object is a light */
    public boolean isLight() {
-      return isL;
+	   return (lightValues[0] + lightValues[1] + lightValues[2]) > 0;
+   }
+   
+   /** Checks if the current object is a light */
+   public int[] getLight() {
+      return lightValues;
    }
    
    /** Checks if the current object is a physical object (i.e. you can
