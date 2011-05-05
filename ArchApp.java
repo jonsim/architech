@@ -12,6 +12,8 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
@@ -24,6 +26,7 @@ import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
+import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
@@ -104,6 +107,7 @@ public class ArchApp extends Application
     private final Object syncLockObject = new Object();
 
     // overlay globals
+    private BitmapText crossHair;
     private BitmapText fpsText;
     private BitmapFont guiFont;
     private StatsView statsView;
@@ -124,6 +128,7 @@ public class ArchApp extends Application
     private Edge3D.Segment ceil = new Edge3D.Segment();
 	private Edge3D.Segment floor_plane = new Edge3D.Segment();
 	private Material invis,glass;
+	private int numberOfEdges = 0;
 	
 	/** Pointer to the coordinate space of the currently loaded tab. null implies an empty scene */
 	private Coords currentTab = null;
@@ -193,6 +198,71 @@ public class ArchApp extends Application
             		down = true;
             	else
             		down = false;
+            else if (name.equals("PLAYER_CastRay"))
+            {
+            	if (value)
+            	{
+            	    crossHair.setLocalTranslation(main.viewport3D.getWidth()/2 - guiFont.getCharSet().getRenderedSize()/3*2,
+            	    		                      main.viewport3D.getHeight()/2 + crossHair.getLineHeight()/2, 0);
+            	    guiNode.attachChild(crossHair);
+            	}
+            	else
+            	{
+            		guiNode.detachAllChildren();
+            		
+	            	// Aim a ray from the camera and create a list of things it collides with
+	                CollisionResults results = new CollisionResults();
+	                Ray ray = new Ray(cam.getLocation(), cam.getDirection());
+	                rootNode.collideWith(ray, results);
+	                
+	                if (results.size() > 0)
+	                {
+	                	CollisionResult closest = results.getClosestCollision();
+	                	String IDString = closest.getGeometry().getName();
+	                	try 
+	                	{
+		                	Edge3D e = getEdge(currentTab, Integer.parseInt(IDString));
+		                	if (e == null)
+		                		System.err.println("[WARNING @ArchApp] [SEVERITY: High] Item selected in 3D was an Edge but its ID could not be found. Something has gone wrong.");
+		                	else
+		                	{
+		                		removeEdge(currentTab, e.get2DEdge());
+		                		addEdge(currentTab, e.get2DEdge(), !e.getDirection());
+		                	}
+	                	}
+	                	catch (Exception e)
+	                	{
+	                		System.out.println("Item (" + IDString + ") selected in 3D view is not an Edge.");
+	                	}
+	                }
+	                
+	                // 4. Print the results.
+	                /*System.out.println("----- Collisions? " + results.size() + "-----");
+	                for (int i = 0; i < results.size(); i++)
+	                {
+	                	// For each hit, we know distance, impact point, name of geometry.
+	                	float dist = results.getCollision(i).getDistance();
+	                	Vector3f pt = results.getCollision(i).getContactPoint();
+	                	String hit = results.getCollision(i).getGeometry().getName();
+	                	System.out.println("* Collision #" + i);
+	                	System.out.println("  You shot " + hit + " at " + pt + ", " + dist + " wu away.");
+	                }*/
+	                
+	                // 5. Use the results (we mark the hit object)
+	                /*if (results.size() > 0)
+	                {
+	                	// The closest collision point is what was truly hit:
+	                	CollisionResult closest = results.getClosestCollision();
+	                	// Let's interact - we mark the hit with a red dot.
+	                	Geometry mark = new Geometry("BOOM!", new Sphere(30, 30, 0.2f));
+	                	Material mark_mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+	                	mark_mat.setColor("Color", ColorRGBA.Red);
+	                	mark.setMaterial(mark_mat);
+	                	mark.setLocalTranslation(closest.getContactPoint());
+	                	rootNode.attachChild(mark);
+	                }*/
+            	}
+            }
             else if (name.equals("SIMPLEAPP_Exit"))
             	stop();
             else if (name.equals("SIMPLEAPP_ToggleDay"))
@@ -310,6 +380,10 @@ public class ArchApp extends Application
             inputManager.addMapping("PLAYER_Up",    new KeyTrigger(KeyInput.KEY_W));
             inputManager.addMapping("PLAYER_Down",  new KeyTrigger(KeyInput.KEY_S));
             inputManager.addListener(actionListener, "PLAYER_Left", "PLAYER_Right", "PLAYER_Up", "PLAYER_Down");
+            
+            //inputManager.addMapping("PLAYER_Click", new MouseButtonTrigger(1));
+            inputManager.addMapping("PLAYER_CastRay", new KeyTrigger(KeyInput.KEY_SPACE));
+            inputManager.addListener(actionListener, "PLAYER_CastRay");
         }
         
         setupMaterials();
@@ -457,6 +531,11 @@ public class ArchApp extends Application
 		glass = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
 		glass.setTexture("ColorMap", assetManager.loadTexture("req/window_1/pane.png"));
 		glass.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+		
+	    guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
+	    crossHair = new BitmapText(guiFont, false);
+	    crossHair.setSize(guiFont.getCharSet().getRenderedSize() * 2);
+	    crossHair.setText("+");
     }
     
     
@@ -1014,7 +1093,7 @@ public class ArchApp extends Application
 
 	/** Adds the given edge. Returns if Coords c is not known yet or if e is already
       * added */
-	public void addEdge(Coords c, Edge e)
+	public void addEdge(Coords c, Edge e, boolean reverseDirection)
 	{
 		if (tracing)
 			System.out.println("addEdge(Coords, Edge) called.");
@@ -1030,7 +1109,7 @@ public class ArchApp extends Application
 			Edge3D wall = edges.get(e);
 			if (wall == null)
 			{
-				wall = makeEdge(e); // make the new wall
+				wall = makeEdge(e, reverseDirection); // make the new wall
 				drawEdge(wall);
 				edges.put(e, wall);
 			}
@@ -1093,7 +1172,7 @@ public class ArchApp extends Application
 				wall.segments.clear();
 				wall.attachedFurniture.clear();
 				
-				Edge3D newWall = makeEdge(e);
+				Edge3D newWall = makeEdge(e, false);
 				
 				Iterator<Edge3D.Segment> segment_itr = newWall.segments.iterator();
 				while (segment_itr.hasNext())
@@ -1195,8 +1274,24 @@ public class ArchApp extends Application
 			throw new IllegalArgumentException("null");
 		HashMap<Edge, Edge3D> edges = new HashMap<Edge, Edge3D>();
         for (Edge e : c.getEdges())
-        	edges.put(e, makeEdge(e));
+        	edges.put(e, makeEdge(e, false));
         return edges;
+	}
+	
+	
+	
+	private Edge3D getEdge (Coords c, int ID)
+	{
+		HashMap<Edge, Edge3D> edges = tabEdges.get(c);
+		Iterator<Edge3D> edges_itr = edges.values().iterator();
+		
+		while (edges_itr.hasNext())
+		{
+			Edge3D e = edges_itr.next();
+			if (e.getID() == ID)
+				return e;
+		}
+		return null;
 	}
 	
 
@@ -1204,7 +1299,7 @@ public class ArchApp extends Application
 	/** 'makes' an edge, loading the 3D edge container with the appropriate data from the given 2D edge 
 	 *  container. Does NOT add it to the canvas or physics space, it merely calculates the appropriate
 	 *  3D data. */
-    private Edge3D makeEdge (Edge e)
+    private Edge3D makeEdge (Edge e, boolean reverseDirection)
     {
 		if (tracing)
 			System.out.println("makeWall(Edge) called.");
@@ -1232,24 +1327,26 @@ public class ArchApp extends Application
     	if (xx > 0 && yy > 0)
     		straight = true;
     	
-    	Edge3D wall = new Edge3D();
+    	Edge3D wall = new Edge3D(numberOfEdges++, e, reverseDirection);
     	if (!straight)    		
     	{
     		//draw a curved wall using the recursive procedure
     		QuadCurve2D qcurve = e.getqcurve();			
-    		recurvsion(wall,qcurve,4,e.tex());
+    		recurvsion(wall, qcurve, 4, e.tex(), reverseDirection);
     	}
     	else
     	{    		
     		//draw a straight wall without doors/windows
             Furniture[] dws = e.getDoorWindow();  
             if (dws == null)
-            	drawline(wall, x1, x2, y1, y2, 100, -100, e.tex());
+            {
+        		drawline(wall, x1, x2, y1, y2, 100, -100, e.tex(), reverseDirection);
+            }
             else
             {
 	            //draw a straight wall with doors/windows
 	            ArrayList<Furniture> dwsa = new ArrayList<Furniture>(Arrays.asList(dws));	            
-	            wdoorcursion(e,wall,dwsa,x1,x2,y1,y2);
+	            wdoorcursion(e, wall, dwsa, x1, x2, y1, y2, reverseDirection);
             }
     	}
     	return wall;
@@ -1259,14 +1356,14 @@ public class ArchApp extends Application
     
     /** Recurses over an edge containing doors/windows adding them in a somewhat complicated but very 
      *  clever way. You wouldn't understand. */
-    private void wdoorcursion(Edge e,Edge3D wall,ArrayList<Furniture> dwsa,int x1,int x2,int y1,int y2)
+    private void wdoorcursion(Edge e, Edge3D wall, ArrayList<Furniture> dwsa, int x1, int x2, int y1, int y2, boolean reverseDirection)
     {
 		if (tracing)
 			System.out.println("wdoorcursion(...) called.");                
     	//if all the windows and doors have been drawn
     	if (dwsa.size()==0)
     	{
-    		drawline(wall, x1, x2, y1, y2, 100, -100, e.tex());
+    		drawline(wall, x1, x2, y1, y2, 100, -100, e.tex(), reverseDirection);
     		return;
     	}
 	    //select the closest window or door thingumy
@@ -1307,10 +1404,10 @@ public class ArchApp extends Application
 	        dx2 = dwsa.get(mini).getRotationCenter().getX()+xtri;
 	        dy2 = dwsa.get(mini).getRotationCenter().getY()+ytri;
 	    }}
-	    drawline(wall,(int)x1,(int)dx1,(int)y1,(int)dy1,100,-100,e.tex());
+	    drawline(wall,(int)x1,(int)dx1,(int)y1,(int)dy1,100,-100,e.tex(),reverseDirection);
 	    if(dwsa.get(mini).isDoor()){
 	    	//draw top panel
-	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,e.tex());	
+	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,e.tex(),reverseDirection);	
 			//add door frame
 	    	Furniture3D furn = new Furniture3D(assetManager.loadModel("req/door_1/door_1.obj"), false);
 	        furn.spatial.scale(4.1f, 4.1f, 4.1f);
@@ -1320,8 +1417,8 @@ public class ArchApp extends Application
 	    }
 	    if(dwsa.get(mini).isWindow()){
 	    	//draw the top and bottom panels
-	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-30,e.tex());
-	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-100,e.tex());	
+	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30, -30,e.tex(),reverseDirection);
+	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-100,e.tex(),reverseDirection);	
 	    	//add window frame
 			Furniture3D furn = new Furniture3D(assetManager.loadModel("req/window_1/window_1.obj"), false);
 	        furn.spatial.scale(4.3f, 4.3f, 4.3f);
@@ -1342,20 +1439,20 @@ public class ArchApp extends Application
 	    dwsa.remove(mini);
 	    
 	    //recurse for the rest of the wall
-	    wdoorcursion(e,wall,dwsa,(int)dx2,x2,(int)dy2,y2);
+	    wdoorcursion(e,wall,dwsa,(int)dx2,x2,(int)dy2,y2,reverseDirection);
     }
     
     
     
 	/** Recurses over a curved edge splitting it up into 2^level separate straight line chunks 
 	 *  and then making these. */
-    private int recurvsion (Edge3D top, QuadCurve2D curve, int level, String ppath)
+    private int recurvsion (Edge3D top, QuadCurve2D curve, int level, String ppath, boolean reverseDirection)
     {
 		if (tracing)
 			System.out.println("recurvsion(...) called.");
     	if (level == 0)
     	{
-    		drawline(top, (int)curve.getX1(), (int)curve.getX2(), (int)curve.getY1(), (int)curve.getY2(), 100, -100, ppath);
+    		drawline(top, (int)curve.getX1(), (int)curve.getX2(), (int)curve.getY1(), (int)curve.getY2(), 100, -100, ppath, reverseDirection);
     		return -1;
     	}
     	else
@@ -1364,8 +1461,8 @@ public class ArchApp extends Application
     		QuadCurve2D left =  new QuadCurve2D.Float();
     		QuadCurve2D right = new QuadCurve2D.Float();
     		curve.subdivide(left, right);
-    		recurvsion(top, left, nlevel,ppath);
-    		recurvsion(top, right, nlevel,ppath);
+    		recurvsion(top, left,  nlevel, ppath, reverseDirection);
+    		recurvsion(top, right, nlevel, ppath, reverseDirection);
     		return 0;
     	}
     }
@@ -1375,10 +1472,19 @@ public class ArchApp extends Application
     /** Creates a 3D object between the 2 given points (x1,y1) and (x2,y2) with a height, displacement 
      *  and texture as given and loads it into the given Edge3D container. Does NOT add the Edge to the 
      *  canvas or physics space. */
-    private void drawline (Edge3D wall, int x1, int x2, int y1, int y2, int height, int disp, String ppath)
+    private void drawline (Edge3D wall, int x1, int x2, int y1, int y2, int height, int disp, String ppath, boolean reverseDirection)
     {
 		if (tracing)
 			System.out.println("drawline(...) called.");
+		if (reverseDirection)
+		{
+			int tmpx = x1;
+			int tmpy = y1;
+			x1 = x2;
+			y1 = y2;
+			x2 = tmpx;
+			y2 = tmpy;
+		}
 		
     	Edge3D.Segment.Position type;
 		if (height < 100)
@@ -1433,8 +1539,8 @@ public class ArchApp extends Application
         
 		//Edge3D.Segment segment = new Edge3D.Segment();
         Edge3D.Segment segment = new Edge3D.Segment(type);
-		segment.side[0] = new Geometry("wallside0", new Quad(length, height));
-		segment.side[1] = new Geometry ("wallside1", new Quad(length,height));
+		segment.side[0] = new Geometry(wall.getIDString(), new Quad(length, height));
+		segment.side[1] = new Geometry(wall.getIDString(), new Quad(length,height));
 		segment.side[0].setLocalTranslation(new Vector3f(x1, disp, y1));
 		segment.side[1].setLocalTranslation(new Vector3f(x2, disp, y2));
 		segment.side[0].rotate(0f, rotation, 0f);

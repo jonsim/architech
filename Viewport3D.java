@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 /** Provides a canvas (with getCanvas()) containing the 3d window */
 public class Viewport3D implements CoordsChangeListener {
    private ArchApp canvasApplication;
+   private AppSettings settings;
    private Main main;
 
    /** Used by Viewport3DEmpty to disable 3D */
@@ -23,7 +24,7 @@ public class Viewport3D implements CoordsChangeListener {
 
 //add clumsy 3D Window
       // create new JME appsettings
-      AppSettings settings = new AppSettings(true);
+      settings = new AppSettings(true);
       settings.setWidth(640);
       settings.setHeight(480);
       // create new canvas application
@@ -49,7 +50,7 @@ public class Viewport3D implements CoordsChangeListener {
    
    public void remake3D ()
    {
-	      AppSettings settings = new AppSettings(true);
+	      settings = new AppSettings(true);
 	      settings.setWidth(640);
 	      settings.setHeight(480);
 	      canvasApplication = new ArchApp(main);
@@ -65,6 +66,16 @@ public class Viewport3D implements CoordsChangeListener {
    /** Nicely disposes of the 3D stuff so that everything can close without exit(0) */
    public void shutdown3D() {
       canvasApplication.stop();
+   }
+   
+   public int getHeight ()
+   {
+	   return getCanvas().getHeight();
+   }
+   
+   public int getWidth ()
+   {
+	   return getCanvas().getWidth();
    }
    
    /** toggle day/night mode. this is almost certainly the wrong way to do this! */
@@ -104,7 +115,7 @@ public class Viewport3D implements CoordsChangeListener {
          switch (e.getChangeType()) {
             case CoordsChangeEvent.EDGE_ADDED:
                // add the new edge
-               canvasApplication.addEdge(e.getSource(), hasChanged);
+               canvasApplication.addEdge(e.getSource(), hasChanged, false);
                break;
             case CoordsChangeEvent.EDGE_CHANGED:
                // update the edge location
