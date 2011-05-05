@@ -96,7 +96,6 @@ public class FrontEnd implements WindowListener, ChangeListener {
          // FAILED TO LOAD, NOTIFY USER
          addTab("New File");
       }
-
       tabbedPane.addChangeListener(this);
    }
    
