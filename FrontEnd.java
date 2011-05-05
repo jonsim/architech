@@ -96,7 +96,6 @@ public class FrontEnd implements WindowListener, ChangeListener {
          // FAILED TO LOAD, NOTIFY USER
          addTab("New File");
       }
-
       tabbedPane.addChangeListener(this);
    }
    
@@ -108,6 +107,8 @@ public class FrontEnd implements WindowListener, ChangeListener {
 	   designButtons.changetonormal();
 	   main.objectBrowser.changetonormal();
 	   reinitTwoDAndThreeD();
+	   main.viewport3D.getCanvas().setMinimumSize(new Dimension(0,0));
+	   TwoDandThreeD.revalidate();
    }  
    
    public void changetw(){
@@ -115,7 +116,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
 	   TwoDandThreeD.setBottomComponent(new JPanel());
 	   main.viewport3D.shutdown3D();
 	   try{Thread.sleep(2000);}catch(InterruptedException e){}
-	   preview.make3d(new Dimension(TwoDandThreeD.getSize().width-10,TwoDandThreeD.getSize().height-10));
+	   preview.make3d(new Dimension(TwoDandThreeD.getSize().width-10,TwoDandThreeD.getSize().height-10));	  
        TwoDandThreeD.setTopComponent(preview.getCanvas());
 	   TwoDandThreeD.setDividerLocation(TwoDandThreeD.getMaximumDividerLocation());
        TwoDandThreeD.revalidate();
@@ -154,7 +155,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
 		  left.remove(topbuttons);
 		  left.revalidate();
 		  left.add(designButtons.getPane());
-		  designButtons.getSlider().setMinimumSize( new Dimension(200, 50) );
+		  //designButtons.getSlider().setMinimumSize( new Dimension(200, 50) );
    }
 
    /** Called whenever the current tab state is changed in tabbedPane */

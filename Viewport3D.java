@@ -58,7 +58,7 @@ public class Viewport3D implements CoordsChangeListener {
 	      canvasApplication.createCanvas();
 	      JmeCanvasContext ctx = (JmeCanvasContext) canvasApplication.getContext();
 	      ctx.setSystemListener(canvasApplication);
-	      ctx.getCanvas().setPreferredSize(new Dimension(640, 480));
+	      ctx.getCanvas().setPreferredSize(new Dimension(640,480));
 	      canvasApplication.startCanvas();
    }
 
@@ -91,6 +91,10 @@ public class Viewport3D implements CoordsChangeListener {
     *  tabChanged, then it will recreate edges, so call when its not needed anymore */
    public void tabRemoved(Coords coords) {
       canvasApplication.tabRemoved(coords);
+   }
+   
+   public void focus(){
+	   getCanvas().requestFocus();
    }
 
    public void coordsChangeOccurred(CoordsChangeEvent e) {

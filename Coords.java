@@ -166,8 +166,8 @@ public class Coords {
    private LinkedList<Edge> splitEdges = new LinkedList<Edge>();
    private LinkedList<Edge> rememberedEdges = new LinkedList<Edge>();
    private Furniture invalidDW = null;
-   private int gridWidth = 60; // makes grid lines at 0,60,120,...
-
+   private int gridWidth = 30; // makes grid lines at 0,30,60,...
+  
    /** Creates a blank coordinate system */
    Coords(String associatedSaveName) {
       this.associatedSaveName = associatedSaveName;
@@ -227,6 +227,10 @@ public class Coords {
       }
    }
 
+   public void changegw(int val){
+	   gridWidth = val;
+   }
+   
    /** Returns a string with the file name i.e. if the file is C:\hello.txt this
     *  will return hello.txt. Alternatively if the associated save file has not
     *  been set (this coords was not loaded from a file, it was created blank),
