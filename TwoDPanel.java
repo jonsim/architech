@@ -929,7 +929,6 @@ class TwoDPanel extends JPanel implements ChangeListener {
   		if(zoomScale<1.0){
   			val = Double.valueOf(twoDForm.format(1.0-zoomScale));
   			coords.changegw(50/(int) (val*10.0));
-  			System.out.println(50/(int) (val*10.0));
   		}
   		if(zoomScale>1.0){
   			val = Double.valueOf(twoDForm.format(zoomScale-1.0));

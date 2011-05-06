@@ -234,6 +234,9 @@ public class Coords {
 	   if(val==12) gridWidth=12.5f;
 	   else if(val==8) gridWidth =6.25f;
 	   else if(val==6) gridWidth =3.125f;
+	   else if(val==300) gridWidth =400f;
+	   else if(val==400) gridWidth =800f;
+	   else if(val==500) gridWidth =1600f;
 	   else gridWidth = val;
    }
    
