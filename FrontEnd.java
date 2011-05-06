@@ -364,7 +364,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
 
       try {
          if (tab.getCoords().getAssociatedSaveFile() == null) currentCoordsSaveAs();
-         else tab.getCoords().save();
+         else tab.getCoords().save(tab.getpanel());
       } catch (IOException e) {
          // SAVE FAILED, NOTIFY USER
       }
@@ -379,7 +379,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
       if (saveFile == null) return;
 
       try {
-         tab.getCoords().saveAs(saveFile);
+         tab.getCoords().saveAs(saveFile, tab.getpanel());
          tabbedPane.setTitleAt(tabbedPane.indexOfComponent(tab), tab.getCoords().getAssociatedSaveName());
       } catch (IOException e) {
          // SAVE FAILED, NOTIFY USER
@@ -395,7 +395,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
       if (saveFile == null) return;
 
       try {
-         tab.getCoords().saveCopyAs(saveFile);
+         tab.getCoords().saveCopyAs(saveFile, tab.getpanel());
       } catch (IOException e) {
          // SAVE FAILED, NOTIFY USER
       }
@@ -415,7 +415,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
          if (saveFile == null) { // user hasn't saved this coords yet
             if ((saveFile = userChoiceOfSaveFile()) == null) return false; // user doesn't want to exit
             try {
-               tab.getCoords().saveAs(saveFile);
+               tab.getCoords().saveAs(saveFile, tab.getpanel());
             } catch (IOException e) {
                return false; // UNABLE TO SAVE, ASK THE USER TO TRY AGAIN
             }
@@ -423,7 +423,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
 
          } else {
             try {
-               tab.getCoords().save();
+               tab.getCoords().save(tab.getpanel());
             } catch (IOException e) {
                return false; // UNABLE TO SAVE, ASK THE USER TO TRY AGAIN
             }

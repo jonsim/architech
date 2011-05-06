@@ -50,7 +50,7 @@ public class FileManager {
          try {
             boolean deleteResult = renameTo.delete();
             if (!deleteResult) {
-               System.err.println("Failure to build save file (jar)");
+               System.err.println("Failure to build save file (jar) e1");
                return false;
             }
             boolean retryresult = saveFile.renameTo(renameTo);
@@ -59,7 +59,7 @@ public class FileManager {
                 return false;
             }
          } catch (SecurityException f) {
-            System.err.println("Failure to build save file (jar)");
+            System.err.println("Failure to build save file (jar) e2");
             return false;
          }
       }
@@ -82,7 +82,8 @@ public class FileManager {
       File renameTo = new File(saveFile.getParentFile(), saveFile.getName() + ".temp");
       File[] toJar = { renameTo, fsScreenshot, csScreenshot };
 
-      renameCoordsSaveFile(saveFile, renameTo);
+      boolean result = renameCoordsSaveFile(saveFile, renameTo);
+      if (!result) return;
 
       try {
          int BUFFER_SIZE = 10240;
@@ -114,14 +115,14 @@ public class FileManager {
 
          out.close();
          stream.close();
-         System.out.println("Adding completed OK");
 
      } catch (Exception ex) {
         ex.printStackTrace();
-        System.out.println("Error: " + ex.getMessage());
+        System.err.println("Error saving to jar: " + ex.getMessage());
      }
 
      //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!delete temp txt file
+     System.out.println("Adding completed OK");
    }
 
    /** Returns a Coords or throws an exception if there is a problem reading */

@@ -1315,30 +1315,30 @@ public class Coords {
    /** Saves with the currently associated save file. Throws an IOException in the
     *  case that there is no associated save file yet, in this case you should be
     *  using saveAs(). It also sets requiredSave=false if everything saved OK */
-   public void save() throws IOException {
+   public void save(TwoDPanel panel) throws IOException {
       if (associatedSave == null) {
          throw new IOException("Save file has not been set, you should use saveAs in this case");
       }
-      save(associatedSave, true, false);
+      save(associatedSave, true, false, panel);
    }
 
    /** Saves as the given file. Updates the associated save file if its different
     *  and also sets requiredSave=false if everything saved OK */
-   public void saveAs(File saveAs) throws IOException {
-      save(saveAs, true, true);
+   public void saveAs(File saveAs, TwoDPanel panel) throws IOException {
+      save(saveAs, true, true, panel);
    }
 
    /** Saves as the given file. Does not change the associated save file, it will
     *  essentially make a copy in the background. Does not set requiredSave=false
     *  so if the user made changes they will still be required to save them to this
     *  Coords instance */
-   public void saveCopyAs(File saveAs) throws IOException {
-      save(saveAs, false, false);
+   public void saveCopyAs(File saveAs, TwoDPanel panel) throws IOException {
+      save(saveAs, false, false, panel);
    }
 
    /** save the stuff to the given file, if you save to a different file than the
     *  associated one, this coords instance has a new associated file set */
-   private void save(File saveAs, boolean updateSaveRequired, boolean updateAssociatedSave) throws IOException {
+   private void save(File saveAs, boolean updateSaveRequired, boolean updateAssociatedSave, TwoDPanel panel) throws IOException {
       // make the list of vertices that will be saved
       Vertex[] vArray = vertices.toArray(new Vertex[0]);
       float[][] saveVerts = new float[vArray.length][3];
@@ -1381,6 +1381,10 @@ public class Coords {
       Furniture[] fArray = saveFurniture.toArray(new Furniture[0]);
 
       FileManager.save(saveAs, saveVerts, saveEdges, fArray);
+      synchronized(panel.gettingScreenshotLock) {
+         FileManager.buildJar(saveAs, panel.getFsFloorScreenShot(), panel.getCsFloorScreenShot());
+      }
+      
       // if save() throws an IllegalArgumentException, saveRequired is (rightly) not reset
       if (updateSaveRequired) saveRequired = false;
       if (updateAssociatedSave) {

@@ -48,7 +48,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
    private ArrayList<ArrayList<Boolean>> polygonReverse = new ArrayList<ArrayList<Boolean>>();
    private String saveLocation = getClass().getResource("img").getPath() + "/";
    private double fillFlatness = 0.001;
-   private final Object gettingScreenshotLock = new Object();
+   public final Object gettingScreenshotLock = new Object();
    private String currname = null;
    private Rectangle selectionRectangle = new Rectangle();
    private Point rectStart = new Point();
@@ -140,27 +140,27 @@ class TwoDPanel extends JPanel implements ChangeListener {
    /** Draws grid, objects and vertices, highlights currently aimed at vertex */
    @Override
    public void paintComponent(Graphics g) {
-      synchronized(gettingScreenshotLock) {
 
-  	Graphics2D g2 = (Graphics2D) g;
-  	super.paintComponent(g2); // clear screen
-  	g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-          	RenderingHints.VALUE_ANTIALIAS_ON);
+    Graphics2D g2 = (Graphics2D) g;
+    super.paintComponent(g2); // clear screen
+    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+            RenderingHints.VALUE_ANTIALIAS_ON);
 
-  	int vertexDiameter = 10;
-  	float lineWidth = 1;
+    int vertexDiameter = 10;
+    float lineWidth = 1;
 
-  	BasicStroke lineStroke = new BasicStroke(lineWidth / (float) zoomScale);
-  	g2.setStroke(lineStroke);
-  	g2.scale(zoomScale, zoomScale);
+    BasicStroke lineStroke = new BasicStroke(lineWidth / (float) zoomScale);
+    g2.setStroke(lineStroke);
+    g2.scale(zoomScale, zoomScale);
 
-  	int i = 0;
-  	while (i < polygons.size()) {
-     	g2.setColor(polygonFills.get(i));
-     	g2.fill(polygons.get(i));
-     	i++;
-  	}
+    int i = 0;
+    while (i < polygons.size()) {
+    g2.setColor(polygonFills.get(i));
+    g2.fill(polygons.get(i));
+    i++;
+    }
 
+    synchronized(gettingScreenshotLock) {
      	if (designButtons.isGridOn()) {
         	coords.drawGrid(g2,
                 	(int) Math.round(getWidth()/ zoomScale), // if zoomScale gets small, make the grid big.
@@ -395,12 +395,13 @@ class TwoDPanel extends JPanel implements ChangeListener {
   	//	tions should not invoke paint directly, but should instead use the
   	//	repaint method to schedule the component for redrawing."
 
-       synchronized(gettingScreenshotLock) {
+       
 	
-            Dimension size = this.getSize();
-            BufferedImage image = (BufferedImage) this.createImage(size.width, size.height);
-            Graphics g = image.getGraphics();
-            //gettingScreenshot = true;
+        Dimension size = this.getSize();
+        BufferedImage image = (BufferedImage) this.createImage(size.width, size.height);
+        Graphics g = image.getGraphics();
+        
+        synchronized(gettingScreenshotLock) {
 
             File file = new File(getClass().getResource("img").getPath() + "/cs" + currname);
             file.delete();
@@ -450,10 +451,9 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 ImageIO.write(image, "png", csFloorScreenShotLocation(currname));
             } catch (IOException IOE) {
             }
-
-            repaint();
-            designButtons.viewport3D.getapp().reloadfloor(currname);
        }
+       repaint();
+       designButtons.viewport3D.getapp().reloadfloor(currname);
    }
 
    private File fsFloorScreenShotLocation(String currnameNotGlobal) {
