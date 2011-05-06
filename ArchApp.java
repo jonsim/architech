@@ -219,15 +219,19 @@ public class ArchApp extends Application
 	                {
 	                	CollisionResult closest = results.getClosestCollision();
 	                	String IDString = closest.getGeometry().getName();
-	                	try 
+	                	try
 	                	{
 		                	Edge3D e = getEdge(currentTab, Integer.parseInt(IDString));
 		                	if (e == null)
 		                		System.err.println("[WARNING @ArchApp] [SEVERITY: High] Item selected in 3D was an Edge but its ID could not be found. Something has gone wrong.");
 		                	else
 		                	{
+		                		Coords.Vertex temp = e.get2DEdge().getV1();
+		                		e.get2DEdge().setV1(e.get2DEdge().getV2(), true);
+		                		e.get2DEdge().setV2(temp, true);
+		                		
 		                		removeEdge(currentTab, e.get2DEdge());
-		                		addEdge(currentTab, e.get2DEdge(), !e.getDirection());
+		                		addEdge(currentTab, e.get2DEdge());
 		                	}
 	                	}
 	                	catch (Exception e)
@@ -1093,7 +1097,7 @@ public class ArchApp extends Application
 
 	/** Adds the given edge. Returns if Coords c is not known yet or if e is already
       * added */
-	public void addEdge(Coords c, Edge e, boolean reverseDirection)
+	public void addEdge(Coords c, Edge e)
 	{
 		if (tracing)
 			System.out.println("addEdge(Coords, Edge) called.");
@@ -1109,7 +1113,7 @@ public class ArchApp extends Application
 			Edge3D wall = edges.get(e);
 			if (wall == null)
 			{
-				wall = makeEdge(e, reverseDirection); // make the new wall
+				wall = makeEdge(e); // make the new wall
 				drawEdge(wall);
 				edges.put(e, wall);
 			}
@@ -1172,7 +1176,7 @@ public class ArchApp extends Application
 				wall.segments.clear();
 				wall.attachedFurniture.clear();
 				
-				Edge3D newWall = makeEdge(e, false);
+				Edge3D newWall = makeEdge(e);
 				
 				Iterator<Edge3D.Segment> segment_itr = newWall.segments.iterator();
 				while (segment_itr.hasNext())
@@ -1274,7 +1278,7 @@ public class ArchApp extends Application
 			throw new IllegalArgumentException("null");
 		HashMap<Edge, Edge3D> edges = new HashMap<Edge, Edge3D>();
         for (Edge e : c.getEdges())
-        	edges.put(e, makeEdge(e, false));
+        	edges.put(e, makeEdge(e));
         return edges;
 	}
 	
@@ -1299,7 +1303,7 @@ public class ArchApp extends Application
 	/** 'makes' an edge, loading the 3D edge container with the appropriate data from the given 2D edge 
 	 *  container. Does NOT add it to the canvas or physics space, it merely calculates the appropriate
 	 *  3D data. */
-    private Edge3D makeEdge (Edge e, boolean reverseDirection)
+    private Edge3D makeEdge (Edge e)
     {
 		if (tracing)
 			System.out.println("makeWall(Edge) called.");
@@ -1327,12 +1331,12 @@ public class ArchApp extends Application
     	if (xx > 0 && yy > 0)
     		straight = true;
     	
-    	Edge3D wall = new Edge3D(numberOfEdges++, e, reverseDirection);
+    	Edge3D wall = new Edge3D(e, numberOfEdges++);
     	if (!straight)    		
     	{
     		//draw a curved wall using the recursive procedure
     		QuadCurve2D qcurve = e.getqcurve();			
-    		recurvsion(wall, qcurve, 4, e.tex(), reverseDirection);
+    		recurvsion(wall, qcurve, 4, e.tex());
     	}
     	else
     	{    		
@@ -1340,13 +1344,13 @@ public class ArchApp extends Application
             Furniture[] dws = e.getDoorWindow();  
             if (dws == null)
             {
-        		drawline(wall, x1, x2, y1, y2, 100, -100, e.tex(), reverseDirection);
+        		drawline(wall, x1, x2, y1, y2, 100, -100, e.tex());
             }
             else
             {
 	            //draw a straight wall with doors/windows
 	            ArrayList<Furniture> dwsa = new ArrayList<Furniture>(Arrays.asList(dws));	            
-	            wdoorcursion(e, wall, dwsa, x1, x2, y1, y2, reverseDirection);
+	            wdoorcursion(e, wall, dwsa, x1, x2, y1, y2);
             }
     	}
     	return wall;
@@ -1356,14 +1360,14 @@ public class ArchApp extends Application
     
     /** Recurses over an edge containing doors/windows adding them in a somewhat complicated but very 
      *  clever way. You wouldn't understand. */
-    private void wdoorcursion(Edge e, Edge3D wall, ArrayList<Furniture> dwsa, int x1, int x2, int y1, int y2, boolean reverseDirection)
+    private void wdoorcursion(Edge e, Edge3D wall, ArrayList<Furniture> dwsa, int x1, int x2, int y1, int y2)
     {
 		if (tracing)
 			System.out.println("wdoorcursion(...) called.");                
     	//if all the windows and doors have been drawn
     	if (dwsa.size()==0)
     	{
-    		drawline(wall, x1, x2, y1, y2, 100, -100, e.tex(), reverseDirection);
+    		drawline(wall, x1, x2, y1, y2, 100, -100, e.tex());
     		return;
     	}
 	    //select the closest window or door thingumy
@@ -1404,10 +1408,10 @@ public class ArchApp extends Application
 	        dx2 = dwsa.get(mini).getRotationCenter().getX()+xtri;
 	        dy2 = dwsa.get(mini).getRotationCenter().getY()+ytri;
 	    }}
-	    drawline(wall,(int)x1,(int)dx1,(int)y1,(int)dy1,100,-100,e.tex(),reverseDirection);
+	    drawline(wall,(int)x1,(int)dx1,(int)y1,(int)dy1,100,-100,e.tex());
 	    if(dwsa.get(mini).isDoor()){
 	    	//draw top panel
-	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,e.tex(),reverseDirection);	
+	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,e.tex());	
 			//add door frame
 	    	Furniture3D furn = new Furniture3D(assetManager.loadModel("req/door_1/door_1.obj"), false);
 	        furn.spatial.scale(4.1f, 4.1f, 4.1f);
@@ -1417,8 +1421,8 @@ public class ArchApp extends Application
 	    }
 	    if(dwsa.get(mini).isWindow()){
 	    	//draw the top and bottom panels
-	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30, -30,e.tex(),reverseDirection);
-	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-100,e.tex(),reverseDirection);	
+	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30, -30,e.tex());
+	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-100,e.tex());	
 	    	//add window frame
 			Furniture3D furn = new Furniture3D(assetManager.loadModel("req/window_1/window_1.obj"), false);
 	        furn.spatial.scale(4.3f, 4.3f, 4.3f);
@@ -1439,20 +1443,20 @@ public class ArchApp extends Application
 	    dwsa.remove(mini);
 	    
 	    //recurse for the rest of the wall
-	    wdoorcursion(e,wall,dwsa,(int)dx2,x2,(int)dy2,y2,reverseDirection);
+	    wdoorcursion(e,wall,dwsa,(int)dx2,x2,(int)dy2,y2);
     }
     
     
     
 	/** Recurses over a curved edge splitting it up into 2^level separate straight line chunks 
 	 *  and then making these. */
-    private int recurvsion (Edge3D top, QuadCurve2D curve, int level, String ppath, boolean reverseDirection)
+    private int recurvsion (Edge3D top, QuadCurve2D curve, int level, String ppath)
     {
 		if (tracing)
 			System.out.println("recurvsion(...) called.");
     	if (level == 0)
     	{
-    		drawline(top, (int)curve.getX1(), (int)curve.getX2(), (int)curve.getY1(), (int)curve.getY2(), 100, -100, ppath, reverseDirection);
+    		drawline(top, (int)curve.getX1(), (int)curve.getX2(), (int)curve.getY1(), (int)curve.getY2(), 100, -100, ppath);
     		return -1;
     	}
     	else
@@ -1461,8 +1465,8 @@ public class ArchApp extends Application
     		QuadCurve2D left =  new QuadCurve2D.Float();
     		QuadCurve2D right = new QuadCurve2D.Float();
     		curve.subdivide(left, right);
-    		recurvsion(top, left,  nlevel, ppath, reverseDirection);
-    		recurvsion(top, right, nlevel, ppath, reverseDirection);
+    		recurvsion(top, left,  nlevel, ppath);
+    		recurvsion(top, right, nlevel, ppath);
     		return 0;
     	}
     }
@@ -1472,19 +1476,10 @@ public class ArchApp extends Application
     /** Creates a 3D object between the 2 given points (x1,y1) and (x2,y2) with a height, displacement 
      *  and texture as given and loads it into the given Edge3D container. Does NOT add the Edge to the 
      *  canvas or physics space. */
-    private void drawline (Edge3D wall, int x1, int x2, int y1, int y2, int height, int disp, String ppath, boolean reverseDirection)
+    private void drawline (Edge3D wall, int x1, int x2, int y1, int y2, int height, int disp, String ppath)
     {
 		if (tracing)
 			System.out.println("drawline(...) called.");
-		if (reverseDirection)
-		{
-			int tmpx = x1;
-			int tmpy = y1;
-			x1 = x2;
-			y1 = y2;
-			x2 = tmpx;
-			y2 = tmpy;
-		}
 		
     	Edge3D.Segment.Position type;
 		if (height < 100)

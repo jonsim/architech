@@ -31,7 +31,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
    private double zoomScale = 1.0;
    private final DesignButtons designButtons;
    private final Coords coords;
-   //private final ObjectBrowser objectBrowser;
+   private final ObjectBrowser objectBrowser;
    private Object inProgressHandler = null;
    private final HandlerEdgeCurve handlerEdgeCurve;
    private final HandlerEdgeDraw handlerEdgeDraw;
@@ -68,7 +68,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
   	}
 
   	this.designButtons = designButtons;
-  	//this.objectBrowser = objectBrowser;
+  	this.objectBrowser = objectBrowser;
 
   	setBackground(Color.WHITE);
   	setPreferredSize(new Dimension(2000, 1000));
@@ -78,7 +78,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
           	TwoDDropListener.acceptableActions, new TwoDDropListener(this, objectBrowser), false);
   	dropTarget.setActive(true);
 
-  	coords = file == null ? new Coords(nameIfNullFile) : FileManager.load(file);
+  	coords = file == null ? new Coords(nameIfNullFile, objectBrowser) : FileManager.load(file, objectBrowser);
   	coords.addCoordsChangeListener(new TwoDPanelCoordsChangeListener());
 
   	handlerEdgeCurve = new HandlerEdgeCurve(coords);

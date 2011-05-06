@@ -805,6 +805,26 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
 		//return null;
 	}
 	
+	public FurnitureSQLData getFurniture ( int itemID )
+	{
+		try {
+			statement = connection.prepareStatement("select * from ITEM where ID='" + itemID + "'");
+			rs = statement.executeQuery();
+			if (rs.next()) {
+				String objPath = rs.getString("Model");
+				float width = rs.getFloat("Length") * 50;
+				float length = rs.getFloat("Width") * 50;
+				int type = rs.getInt("Type");
+				
+				//System.out.println("ID: " + itemID + "; Width: " + rs.getFloat("Width") + "; Length: " + rs.getFloat("Length") + "; Type: " + rs.getInt("Type") + "; Model: " + rs.getString("Model"));
+				return new FurnitureSQLData(itemID, width, length, type, objPath);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	private void testHarness() {
             String[] expectedName = {"Standard Double Bed", "null"};
             String testName;

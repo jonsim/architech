@@ -16,6 +16,12 @@ import java.io.*;
 "
  */
 public class FileManager {
+	private ObjectBrowser ob;
+	
+	FileManager (ObjectBrowser ob)
+	{
+		this.ob = ob;
+	}
 
    /** Writes the given arrays to file in the expected format */
    public static void save(File saveAs, float[][] vertices, int[][] edges, Furniture[] furniture)
@@ -34,7 +40,7 @@ public class FileManager {
    }
 
    /** Returns a Coords or throws an exception if there is a problem reading */
-   public static Coords load(File file) throws IOException, Exception, IllegalArgumentException {
+   public static Coords load(File file, ObjectBrowser ob) throws IOException, Exception, IllegalArgumentException {
       if (file == null) throw new IllegalArgumentException("SaveAs is null");
       FileReader fileR = new FileReader(file);
       BufferedReader br = new BufferedReader(fileR);
@@ -66,12 +72,12 @@ public class FileManager {
          throw new Exception("The number of furniture items is either invalid or"
             + " not given in the file");
       }
-      Furniture[] furniture = loadFurniture(br, numFurniture);
+      Furniture[] furniture = loadFurniture(br, numFurniture, ob);
       if (furniture == null) throw new Exception("Unable to load all furniture");
 
 
       /* Loading might not reach this stage */
-      return new Coords(file, vertices, edges, furniture);
+      return new Coords(file, vertices, edges, furniture, ob);
    }
 
 
@@ -230,7 +236,7 @@ public class FileManager {
    }
 
    /** null if its unable to load all numFurniture # furniture objects */
-   private static Furniture[] loadFurniture(BufferedReader br, int numFurniture) throws IOException {
+   private static Furniture[] loadFurniture(BufferedReader br, int numFurniture, ObjectBrowser ob) throws IOException {
       if (numFurniture < 0) return null;
 
       String line;
@@ -239,7 +245,7 @@ public class FileManager {
 
       while (furnitureLoadCount < numFurniture && (line = br.readLine()) != null) {
          try {
-            furniture[furnitureLoadCount] = new Furniture(line);
+            furniture[furnitureLoadCount] = new Furniture(line, ob);
             furnitureLoadCount++;
          } catch (IllegalArgumentException e) {
             // skip this line, it is corrupt

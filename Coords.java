@@ -166,15 +166,17 @@ public class Coords {
    private LinkedList<Edge> splitEdges = new LinkedList<Edge>();
    private LinkedList<Edge> rememberedEdges = new LinkedList<Edge>();
    private Furniture invalidDW = null;
+   private static ObjectBrowser objectBrowser;
    private int gridWidth = 50; // makes grid lines at 0,30,60,...
   
    /** Creates a blank coordinate system */
-   Coords(String associatedSaveName) {
+   Coords(String associatedSaveName, ObjectBrowser ob) {
       this.associatedSaveName = associatedSaveName;
+      this.objectBrowser = ob;
    }
 
    /** Blindly makes vertices and edges, there might be orphaned/dup vertices */
-   Coords(File loadedFrom, float[][] vertices, int[][] edges, Furniture[] furniture) throws IllegalArgumentException {
+   Coords(File loadedFrom, float[][] vertices, int[][] edges, Furniture[] furniture, ObjectBrowser ob) throws IllegalArgumentException {
       if (loadedFrom == null || vertices == null || edges == null || furniture == null)
          throw new IllegalArgumentException("null argument");
       if (!loadedFrom.isFile()) {
@@ -182,6 +184,7 @@ public class Coords {
       }
       this.associatedSave = loadedFrom;
       this.associatedSaveName = loadedFrom.getName();
+      this.objectBrowser = ob;
 
       Vertex[] vertexA = new Vertex[vertices.length];
 
@@ -1397,7 +1400,7 @@ public class Coords {
    public static void testCoords() {
       // Edge related tests
       {
-         Coords c = new Coords("blank save name");
+         Coords c = new Coords("blank save name", objectBrowser);
          Vertex v1 = new Vertex(0,0,0);
          Vertex v2 = new Vertex(121,121,0);
          Edge e1, e2;
@@ -1432,7 +1435,7 @@ public class Coords {
          e1 = null; e2 = null;
          e1 = c.newEdge(v1, v2, false);
          e2 = null;
-         Furniture f = new Furniture("15,80.0,45.0,121.0,121.0,-0.051237167403418805,sofa_1.obj,false,false,false,false,true");
+         Furniture f = new Furniture("15,80.0,45.0,121.0,121.0,-0.051237167403418805,sofa_1.obj,false,false,false,false,true", objectBrowser);
          if (!c.furnitureWallIntersect(f,e1)) {
             System.err.println("e4 - furniture intersection error");
          }

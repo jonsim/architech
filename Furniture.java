@@ -30,7 +30,7 @@ public class Furniture {
       this.height = data.height;
       this.rotation = 0;
       this.objPath = data.objPath;
-      System.out.println("objpath="+objPath);
+      //System.out.println("objpath="+objPath);
       lightValues = ob.getLight(data.furnitureID);
       isP = ob.isPhysical(data.type);
       int ftype = ob.isDoorWindow( data.type );
@@ -62,43 +62,53 @@ public class Furniture {
       recalcRectangle();
    }
 
-   Furniture(String toLoadFrom) throws IllegalArgumentException {
+   Furniture(String toLoadFrom, ObjectBrowser ob) throws IllegalArgumentException {
       if (toLoadFrom == null)
          throw new IllegalArgumentException("Null parameter");
       String[] split = toLoadFrom.split(",");
-      if (split.length < 12)
-         throw new IllegalArgumentException("Too few fields (expected 12)");
+      if (split.length < 4)
+         throw new IllegalArgumentException("Too few fields (expected 4)");
 
       try {
          furnitureID = Integer.parseInt(split[0]);
-         width = java.lang.Float.parseFloat(split[1]);
-         height = java.lang.Float.parseFloat(split[2]);
-         rotationCenterX = java.lang.Float.parseFloat(split[3]);
-         rotationCenterY = java.lang.Float.parseFloat(split[4]);
-         rotation = java.lang.Double.parseDouble(split[5]);
-         lightValues = new int[4];
-         lightValues[0]  = java.lang.Integer.parseInt(split[6]);
-         lightValues[1]  = java.lang.Integer.parseInt(split[7]);
-         lightValues[2]  = java.lang.Integer.parseInt(split[8]);
-         lightValues[3]  = java.lang.Integer.parseInt(split[9]);
+         FurnitureSQLData data = ob.getFurniture(furnitureID);
+         this.width = data.width;
+         this.height = data.height;
+         this.objPath = data.objPath;
+         rotationCenterX = java.lang.Float.parseFloat(split[1]);
+         rotationCenterY = java.lang.Float.parseFloat(split[2]);
+         rotation = java.lang.Double.parseDouble(split[3]);
+
+         lightValues = ob.getLight(data.furnitureID);
+         isP = ob.isPhysical(data.type);
+         int ftype = ob.isDoorWindow( data.type );
+         if ( ftype > -1)
+         {
+             if( this.height < 10 )
+               this.height = 10;
+
+             isDW = true;
+             if (ftype == 8)
+             {
+           	  isD = true;
+                 isW = false;
+                 this.width += 10;
+             }
+             else if (ftype == 9)
+             {
+                 isW = true;
+                 isD = false;
+                 this.width += 30;
+             }
+         }
+         else
+         {
+             isDW = false;
+         }
 
       } catch (NumberFormatException e) {
          throw new IllegalArgumentException("Malformed value in saved furniture object");
       }
-
-      // objPath might contain commas, so load objPath with all the unaccounted for splits. Surely this 
-      // method will remove the commas and corrupt the link? i guess at least it doesnt break other shit though...
-      objPath = "";
-      for (int i = 10; i < split.length - 4; i++)
-        objPath += split[i];
-      
-      isDW = java.lang.Boolean.parseBoolean(split[split.length - 4]);
-      isD  = java.lang.Boolean.parseBoolean(split[split.length - 3]);
-      isW  = java.lang.Boolean.parseBoolean(split[split.length - 2]);
-      isP  = java.lang.Boolean.parseBoolean(split[split.length - 1]);
-      if (isDW && !(isD || isW)) throw new IllegalArgumentException("Malformed furniture type doorwindow");
-      if (isD && isW) throw new IllegalArgumentException("Malformed furniture is both a door and a window");
-      if (isDW && isP) throw new IllegalArgumentException("Malformed furniture is both a doorwindow and a physical object");
 
       recalcRectangle();
    }
@@ -112,9 +122,7 @@ public class Furniture {
    }
 
    public String getSaveString() {
-      return furnitureID + "," + width + "," + height + "," + rotationCenterX + "," + rotationCenterY + 
-             "," + rotation + "," + lightValues[0] + "," + lightValues[1] + "," + lightValues[2] + "," + 
-             lightValues[3] + "," + objPath + "," + isDW + "," + isD + "," + isW + "," + isP;
+      return furnitureID + "," + rotationCenterX + "," + rotationCenterY + "," + rotation;
    }
 
    /** Use the method in the Coords class instead! Sets the Furniture's location */

@@ -54,20 +54,18 @@ public class Edge3D
 	private String[] texture = new String[2];
 	private static final boolean tracing = false;
 	private Edge edge2D;
-	private boolean direction;
 	private int ID;
 	
 	
 	
 	/** Creates a 3D edge, setting its 'parent' Edge e (the 2D edge this 3D 
 	 *  edge represents). Throws an exception if no parent is given. */
-	Edge3D (int ID, Edge parent, boolean direction)
+	Edge3D (Edge parent, int ID)
 	{
 		if (tracing)
 			System.out.println("new Edge3D() called.");
 		this.ID = ID;
 		this.edge2D = parent;
-		this.direction = direction;
 		segments = new ArrayList<Segment>();
 		attachedFurniture = new ArrayList<Geometry>();
 		texture[0] = "img/wallpapers/default.jpg";
@@ -89,13 +87,6 @@ public class Edge3D
 	public Edge get2DEdge ()
 	{
 		return edge2D;
-	}
-	
-	
-	
-	public boolean getDirection ()
-	{
-		return direction;
 	}
 	
 	
