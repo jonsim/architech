@@ -517,6 +517,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
   	int i = 0;
   	int j = 0;
   	Coords.Vertex v;
+	boolean hasChanged = false;
   	while (a < vertices.size()) {
      	v = vertices.get(a);
      	if (v != null) {
@@ -528,6 +529,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
                  	polygonEdges.remove(i);
                  	polygonFills.remove(i);
                  	polygonReverse.remove(i);
+					hasChanged = true;
                  	i--;
                  	break;
               	}
@@ -540,7 +542,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
      	}
      	a++;
   	}
-  	getFloorScreenshot();
+  	if(hasChanged) getFloorScreenshot();
    }
 
    private class TwoDPanelMouseListener implements MouseListener {
