@@ -13,16 +13,21 @@ import com.jme3.scene.Spatial;
 		private boolean lightState = false; // true = on, false = off
 		private ColorRGBA lightColor;
 		private boolean isP;
+		private boolean isCO;
+		private float height;
 		
 		
 		
 		/** Sets the Furniture3D model to that stored at the path provided. */
-		Furniture3D (Spatial spatial, boolean isP)
+		Furniture3D (Spatial spatial, boolean isP, boolean isCO)
 		{
 			if (spatial == null)
 				throw new IllegalArgumentException("null");
 			this.spatial = spatial;
+			spatial.setLocalTranslation(0, -100f, 0);
+			this.height = (spatial.getWorldBound().getCenter().y + 100) * 2;
 			this.isP = isP;
+			this.isCO = isCO;
 		}
 		
 		
@@ -30,9 +35,7 @@ import com.jme3.scene.Spatial;
 		/** Returns the height of the spatial object. */
 		public float getHeight ()
 		{
-			float centre = spatial.getWorldBound().getCenter().y;
-			float base = -100;
-			return (centre - base) * 2;
+			return height;
 		}
 		
 		
@@ -88,7 +91,10 @@ import com.jme3.scene.Spatial;
 			light.setColor(lightColor);
 			light.setRadius(I);
 			Vector3f centre = spatial.getLocalTranslation();
-			centre = centre.add(0, getHeight(), 0);
+			if (isCO)
+				centre = centre.subtract(0, getHeight() + 0.5f, 0);
+			else
+				centre = centre.add(0, getHeight(), 0);
 			light.setPosition(centre);
 			lightState = true;
 			if (lightMode == 1)
@@ -108,7 +114,10 @@ import com.jme3.scene.Spatial;
 			if (lightState)
 			{
 				Vector3f centre = spatial.getLocalTranslation();
-				centre = centre.add(0, getHeight(), 0);
+				if (isCO)
+					centre = centre.subtract(0, getHeight() + 0.5f, 0);
+				else
+					centre = centre.add(0, getHeight(), 0);
 				light.setPosition(centre);
 			}
 		}
@@ -126,7 +135,10 @@ import com.jme3.scene.Spatial;
 			if (lightToggleable)
 			{
 				Vector3f centre = spatial.getLocalTranslation();
-				centre = centre.add(0, getHeight(), 0);
+				if (isCO)
+					centre = centre.subtract(0, getHeight() + 0.5f, 0);
+				else
+					centre = centre.add(0, getHeight(), 0);
 				light.setPosition(centre);
 				light.setColor(lightColor);
 				lightState = true;

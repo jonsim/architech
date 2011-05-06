@@ -350,11 +350,12 @@ public class Coords {
            Edge e = edgeIterator.next();
            if(furnitureWallIntersect(f, e)) return true;
        }
+       boolean thisIsCeilingObject = f.isCeilingObject(); // TONIGHT WE DINE IN HELL
        ListIterator<Furniture> furnitureIterator = furniture.listIterator();
        while (furnitureIterator.hasNext()) {
            Furniture fur = furnitureIterator.next();
            if (fur != f) {
-               if (rectangleIntersect(f, fur)) {
+               if (rectangleIntersect(f, fur) && (thisIsCeilingObject == fur.isCeilingObject())) {
                    return true;
                }
            }

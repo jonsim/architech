@@ -1417,7 +1417,7 @@ public class ArchApp extends Application
 	    	//draw top panel
 	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,doorpanel,-doorpanel,e.tex());	
 			//add door frame
-	    	Furniture3D furn = new Furniture3D(assetManager.loadModel("req/door_1/door_1.obj"), false);
+	    	Furniture3D furn = new Furniture3D(assetManager.loadModel("req/door_1/door_1.obj"), false, false);
 	        furn.spatial.scale(4.1f, 4.1f, 4.1f);
 	        furn.spatial.rotate(0f,-FastMath.HALF_PI+((FastMath.TWO_PI)-(float)e.getRotation()), 0f);    
 	        furn.spatial.setLocalTranslation(new Float(dwsa.get(mini).getRotationCenter().getX()),-100f,new Float(dwsa.get(mini).getRotationCenter().getY()));
@@ -1428,7 +1428,7 @@ public class ArchApp extends Application
 	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30, -30,e.tex());
 	    	drawline(wall,(int)dx1,(int)dx2,(int)dy1,(int)dy2,30,-100,e.tex());	
 	    	//add window frame
-			Furniture3D furn = new Furniture3D(assetManager.loadModel("req/window_1/window_1.obj"), false);
+			Furniture3D furn = new Furniture3D(assetManager.loadModel("req/window_1/window_1.obj"), false, false);
 	        furn.spatial.scale(4.3f, 4.3f, 4.3f);
 	        furn.spatial.rotate(0f, -FastMath.HALF_PI+((FastMath.TWO_PI)-(float)e.getRotation()), 0f);
 	        furn.spatial.setLocalTranslation(new Float(dwsa.get(mini).getRotationCenter().getX()),-70f,new Float(dwsa.get(mini).getRotationCenter().getY()));
@@ -1621,10 +1621,10 @@ public class ArchApp extends Application
         if(name == null || name.equals("none"))
         {
 			System.err.println("[WARNING @ArchApp] [SEVERITY: Low] makeFurniture called with NULL furniture. Continuing to make an armchair (for no apparent reason).");
-        	furn = new Furniture3D(assetManager.loadModel("req/armchair_1/armchair_1.obj"), true);
+        	furn = new Furniture3D(assetManager.loadModel("req/armchair_1/armchair_1.obj"), true, false);
         }
         else
-    		furn = new Furniture3D(assetManager.loadModel("req/" + name.substring(0, name.length() - 4) + "/" + name), f.isPhysical());
+    		furn = new Furniture3D(assetManager.loadModel("req/" + name.substring(0, name.length() - 4) + "/" + name), f.isPhysical(), f.isCeilingObject());
         
         // model settings
         furn.spatial.scale(5, 5, 5);
@@ -1633,7 +1633,10 @@ public class ArchApp extends Application
 		Quaternion c = new Quaternion(cosr, 0, sinr, 0);
 		furn.spatial.setLocalRotation(c);
 		furn.spatial.rotate(0, -FastMath.HALF_PI, -FastMath.PI);
-        furn.spatial.setLocalTranslation(center.x, -100f, center.y);
+		if (f.isCeilingObject())
+			furn.spatial.setLocalTranslation(center.x, -furn.getHeight(), center.y);
+		else
+			furn.spatial.setLocalTranslation(center.x, -100f, center.y);
         
     	if (f.isLight())
     	{
@@ -1777,7 +1780,10 @@ public class ArchApp extends Application
 			{
 				// recalculate the furniture's position and move it
 				Point center = f.getRotationCenter();
-				furn.spatial.setLocalTranslation(center.x,-100f,center.y);
+				if (f.isCeilingObject())
+					furn.spatial.setLocalTranslation(center.x, -furn.getHeight(), center.y);
+				else
+					furn.spatial.setLocalTranslation(center.x, -100f, center.y);
 				
 				// recalculate the furniture's rotation and adjust it
 				float rotation = (float) (f.getRotation() * 0.5);
