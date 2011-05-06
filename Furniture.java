@@ -58,6 +58,10 @@ public class Furniture {
           isDW = false;
       }
 
+      if (isDW && !(isD || isW)) throw new IllegalArgumentException("Malformed furniture type doorwindow");
+      if (isD && isW) throw new IllegalArgumentException("Malformed furniture is both a door and a window");
+      if (isDW && isP) throw new IllegalArgumentException("Malformed furniture is both a doorwindow and a physical object");
+
       setRotationCenter(center);
       recalcRectangle();
    }
@@ -109,6 +113,10 @@ public class Furniture {
       } catch (NumberFormatException e) {
          throw new IllegalArgumentException("Malformed value in saved furniture object");
       }
+
+      if (isDW && !(isD || isW)) throw new IllegalArgumentException("Malformed furniture type doorwindow");
+      if (isD && isW) throw new IllegalArgumentException("Malformed furniture is both a door and a window");
+      if (isDW && isP) throw new IllegalArgumentException("Malformed furniture is both a doorwindow and a physical object");
 
       recalcRectangle();
    }

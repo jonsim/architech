@@ -444,16 +444,29 @@ class TwoDPanel extends JPanel implements ChangeListener {
             AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
             image = op.filter(image, null);
 
+            currname = nows + ".png";
             try {
-            ImageIO.write(floor, "png", new File(saveLocation + "fs" + nows + ".png"));
-            ImageIO.write(image, "png", new File(saveLocation + "cs" + nows + ".png"));
+                ImageIO.write(floor, "png", fsFloorScreenShotLocation(currname));
+                ImageIO.write(image, "png", csFloorScreenShotLocation(currname));
             } catch (IOException IOE) {
             }
-            //gettingScreenshot = false;
+
             repaint();
-            currname = nows + ".png";
             designButtons.viewport3D.getapp().reloadfloor(currname);
        }
+   }
+
+   private File fsFloorScreenShotLocation(String currnameNotGlobal) {
+      return new File(saveLocation + "fs" + currnameNotGlobal);
+   }
+   private File csFloorScreenShotLocation(String currnameNotGlobal) {
+      return new File(saveLocation + "cs" + currnameNotGlobal);
+   }
+   public File getFsFloorScreenShot() {
+      return fsFloorScreenShotLocation(currname);
+   }
+   public File getCsFloorScreenShot() {
+      return csFloorScreenShotLocation(currname);
    }
 
    private void selectDragBoxVertices() {

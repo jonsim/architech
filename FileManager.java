@@ -20,75 +20,108 @@ import java.util.jar.Manifest;
  */
 public class FileManager {
 
-
-public class CreateJarFile {
-
-              private int BUFFER_SIZE = 10240;
-              protected void createJarArchive(File archiveFile, File[] tobeJared) {
-                try {
-                  byte buffer[] = new byte[BUFFER_SIZE];
-                  // Open archive file
-                  FileOutputStream stream = new FileOutputStream(archiveFile);
-                  JarOutputStream out = new JarOutputStream(stream, new Manifest());
-
-                  for (int i = 0; i < tobeJared.length; i++) {
-                    if (tobeJared[i] == null || !tobeJared[i].exists()
-                        || tobeJared[i].isDirectory())
-                      continue; // Just in case...
-                    System.out.println("Adding " + tobeJared[i].getName());
-
-                    // Add archive entry
-                    JarEntry jarAdd = new JarEntry(tobeJared[i].getName());
-                    jarAdd.setTime(tobeJared[i].lastModified());
-                    out.putNextEntry(jarAdd);
-
-                    // Write file to archive
-                    FileInputStream in = new FileInputStream(tobeJared[i]);
-                    while (true) {
-                      int nRead = in.read(buffer, 0, buffer.length);
-                      if (nRead <= 0)
-                        break;
-                      out.write(buffer, 0, nRead);
-                    }
-                    in.close();
-                  }
-
-                  out.close();
-                  stream.close();
-                  System.out.println("Adding completed OK");
-                } catch (Exception ex) {
-                  ex.printStackTrace();
-                  System.out.println("Error: " + ex.getMessage());
-                }
-              }
-            }
-
    /** Writes the given arrays to file in the expected format */
    public static void save(File saveAs, float[][] vertices, int[][] edges, Furniture[] furniture)
          throws IOException, IllegalArgumentException {
-      if (saveAs == null) throw new IllegalArgumentException("SaveAs is null");
-
-
 
       // write to save text file
-      // create jar
-      // copy save text file in
-      // lock images directory
-      // copy images in
-      // I need saveLocation, currname, the two images (if there are more throw error) 
-
-
-
+      if (saveAs == null) throw new IllegalArgumentException("SaveAs is null");
       FileWriter fileW = new FileWriter(saveAs);
       BufferedWriter bw = new BufferedWriter(fileW);
-
       saveVertices(bw, vertices);
       bw.newLine();
       saveEdges(bw, edges);
       bw.newLine();
       saveFurniture(bw, furniture);
-
       bw.flush();
+
+      System.out.println(saveAs.getAbsolutePath() + " sfdg " + saveAs.getName());
+      System.out.println(new File(saveAs.getParentFile(), saveAs.getName() + ".jar").getAbsoluteFile());
+   }
+
+   /** Returns true if the rename was successful */
+   private static boolean renameCoordsSaveFile(File saveFile, File renameTo) {
+      try {
+         boolean result = saveFile.renameTo(renameTo);
+         if (!result) throw new SecurityException("write failed");
+         
+      } catch (SecurityException e) {
+         /*write failed*/
+         try {
+            boolean deleteResult = renameTo.delete();
+            if (!deleteResult) {
+               System.err.println("Failure to build save file (jar)");
+               return false;
+            }
+            boolean retryresult = saveFile.renameTo(renameTo);
+            if (!retryresult) {
+                System.err.println("Failure to rename after delete");
+                return false;
+            }
+         } catch (SecurityException f) {
+            System.err.println("Failure to build save file (jar)");
+            return false;
+         }
+      }
+
+      return true;
+   }
+
+   /** lock images directory
+     * coords save file has been written, rename it to temp
+     * create jar with the old save file name
+     * copy save text file in
+     * copy images in
+     * I need saveLocation, currname, the two images (if there are more throw error) */
+   public static void buildJar(File saveFile, File fsScreenshot, File csScreenshot) {
+      if (saveFile == null || fsScreenshot == null || csScreenshot == null ) {
+          throw new IllegalArgumentException("null parameter");
+      }
+
+      File jarFile = new File(saveFile.getAbsolutePath());
+      File renameTo = new File(saveFile.getParentFile(), saveFile.getName() + ".temp");
+      File[] toJar = { renameTo, fsScreenshot, csScreenshot };
+
+      renameCoordsSaveFile(saveFile, renameTo);
+
+      try {
+         int BUFFER_SIZE = 10240;
+         byte buffer[] = new byte[BUFFER_SIZE];
+         // Open archive file
+         FileOutputStream stream = new FileOutputStream(jarFile);//archiveFile);
+         JarOutputStream out = new JarOutputStream(stream, new Manifest());
+
+         for (int i = 0; i < toJar.length; i++) {
+           if (toJar[i] == null || !toJar[i].exists()
+               || toJar[i].isDirectory())
+             continue; // Just in case...
+           System.out.println("Adding " + toJar[i].getAbsolutePath());
+
+           // Add archive entry
+           JarEntry jarAdd = new JarEntry(toJar[i].getName());
+           jarAdd.setTime(toJar[i].lastModified());
+           out.putNextEntry(jarAdd);
+
+           // Write file to archive
+           FileInputStream in = new FileInputStream(toJar[i]);
+           while (true) {
+             int nRead = in.read(buffer, 0, buffer.length);
+             if (nRead <= 0) break;
+             out.write(buffer, 0, nRead);
+           }
+           in.close();
+         }
+
+         out.close();
+         stream.close();
+         System.out.println("Adding completed OK");
+
+     } catch (Exception ex) {
+        ex.printStackTrace();
+        System.out.println("Error: " + ex.getMessage());
+     }
+
+     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!delete temp txt file
    }
 
    /** Returns a Coords or throws an exception if there is a problem reading */

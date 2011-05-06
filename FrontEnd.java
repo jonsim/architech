@@ -457,6 +457,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
    /** Invoked when the user attempts to close the window from the window's system menu. */
    public void windowClosing(WindowEvent e) {
       if (quit()) {
+         System.exit(0); // if JME thread is still running, this makes sure
          window.dispose();
          main.viewport3D.shutdown3D();
          System.exit(0); // if JME thread is still running, this makes sure
