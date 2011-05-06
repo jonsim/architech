@@ -49,6 +49,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
    private String saveLocation = getClass().getResource("img").getPath() + "/";
    private double fillFlatness = 0.001;
    public final Object gettingScreenshotLock = new Object();
+   private boolean gettingScreenshot = false;
    private String currname = null;
    private Rectangle selectionRectangle = new Rectangle();
    private Point rectStart = new Point();
@@ -160,128 +161,128 @@ class TwoDPanel extends JPanel implements ChangeListener {
     i++;
     }
 
-    synchronized(gettingScreenshotLock) {
-     	if (designButtons.isGridOn()) {
-        	coords.drawGrid(g2,
-                	(int) Math.round(getWidth()/ zoomScale), // if zoomScale gets small, make the grid big.
-                	(int) Math.round(getHeight()/ zoomScale));
-     	}
+    if (gettingScreenshot) return;
+
+    if (designButtons.isGridOn()) {
+            coords.drawGrid(g2,
+                    (int) Math.round(getWidth()/ zoomScale), // if zoomScale gets small, make the grid big.
+                    (int) Math.round(getHeight()/ zoomScale));
+    }
 
 
-     	// EDGES
-     	coords.paintEdges(g2, designButtons.isCurveTool());
-     	coords.paintInvalidDW(g2);
+    // EDGES
+    coords.paintEdges(g2, designButtons.isCurveTool());
+    coords.paintInvalidDW(g2);
 
-     	// VERTICES (first paint any edges that are colliding related to the vertex moving)
-     	Coords.Vertex vertexMove = handlerVertexMove.getVertex();
-     	if (inProgressHandler == handlerVertexMove && vertexMove != null) {
-        	if (handlerVertexMove.isCollided()) {
-           	ListIterator<Edge> edgeIterator = vertexMove.getEdges().listIterator();
-           	g2.setColor(Color.red);
-           	while (edgeIterator.hasNext()) {
-              	Edge e = edgeIterator.next();
-              	e.paint(g2, false);
-           	}
-        	}
-     	}
+    // VERTICES (first paint any edges that are colliding related to the vertex moving)
+    Coords.Vertex vertexMove = handlerVertexMove.getVertex();
+    if (inProgressHandler == handlerVertexMove && vertexMove != null) {
+            if (handlerVertexMove.isCollided()) {
+            ListIterator<Edge> edgeIterator = vertexMove.getEdges().listIterator();
+            g2.setColor(Color.red);
+            while (edgeIterator.hasNext()) {
+            Edge e = edgeIterator.next();
+            e.paint(g2, false);
+            }
+            }
+    }
 
-     	coords.paintVertices(g2, (int) Math.round(vertexDiameter / zoomScale));
+    coords.paintVertices(g2, (int) Math.round(vertexDiameter / zoomScale));
 
-     	if (inProgressHandler == handlerVertexMove && vertexMove != null) {
-        	if (handlerVertexMove.isCollided()) {
-           	g2.setColor(Color.RED);
-        	} else {
-           	g2.setColor(Color.BLUE);
-        	}
-        	vertexMove.paint(g2, (int) Math.round(vertexDiameter / zoomScale));
-     	}
+    if (inProgressHandler == handlerVertexMove && vertexMove != null) {
+            if (handlerVertexMove.isCollided()) {
+            g2.setColor(Color.RED);
+            } else {
+            g2.setColor(Color.BLUE);
+            }
+            vertexMove.paint(g2, (int) Math.round(vertexDiameter / zoomScale));
+    }
 
-     	/*if (hoverVertex != null) {
-     	g2.setColor(Color.red);
-     	hoverVertex.paint(g2, (int) Math.round(vertexDiameter / zoomScale));
-     	}*/
+    /*if (hoverVertex != null) {
+    g2.setColor(Color.red);
+    hoverVertex.paint(g2, (int) Math.round(vertexDiameter / zoomScale));
+    }*/
 
-     	ArrayList<Coords.Vertex> selectedVertices = handlerVertexSelect.getSelectedV();
-     	if (!selectedVertices.isEmpty()) {
-        	g2.setColor(Color.BLUE);
-        	for (int j = 0; j < selectedVertices.size(); j++) {
-           	Coords.Vertex v = selectedVertices.get(j);
-           	v.paint(g2, (int) Math.round(vertexDiameter / zoomScale));
-        	}
-     	}
+    ArrayList<Coords.Vertex> selectedVertices = handlerVertexSelect.getSelectedV();
+    if (!selectedVertices.isEmpty()) {
+            g2.setColor(Color.BLUE);
+            for (int j = 0; j < selectedVertices.size(); j++) {
+            Coords.Vertex v = selectedVertices.get(j);
+            v.paint(g2, (int) Math.round(vertexDiameter / zoomScale));
+            }
+    }
 
-     	ArrayList<Edge> wallEdges = handlerVertexSelect.getSelectedE();
-     	if (!wallEdges.isEmpty()) {
-        	g2.setColor(Color.BLUE);
-        	for (int k = 0; k < wallEdges.size(); k++) {
-           	Edge edge = wallEdges.get(k);
-           	edge.paint(g2, false);
-        	}
-     	}
+    ArrayList<Edge> wallEdges = handlerVertexSelect.getSelectedE();
+    if (!wallEdges.isEmpty()) {
+            g2.setColor(Color.BLUE);
+            for (int k = 0; k < wallEdges.size(); k++) {
+            Edge edge = wallEdges.get(k);
+            edge.paint(g2, false);
+            }
+    }
 
 
-     	// EDGE IF THE USER IS DRAWING ONE
-     	Edge edgeDraw = handlerEdgeDraw.getEdge();
-     	if (inProgressHandler == handlerEdgeDraw && edgeDraw != null) {
-        	g2.setColor(Color.BLACK);
-        	edgeDraw.paintLengthText(g2);
+    // EDGE IF THE USER IS DRAWING ONE
+    Edge edgeDraw = handlerEdgeDraw.getEdge();
+    if (inProgressHandler == handlerEdgeDraw && edgeDraw != null) {
+            g2.setColor(Color.BLACK);
+            edgeDraw.paintLengthText(g2);
 
-        	if (handlerEdgeDraw.isCollided()) {
-           	g2.setColor(Color.RED);
-           	edgeDraw.getV1().paint(g2, (int) Math.round(vertexDiameter / zoomScale));
-           	edgeDraw.getV2().paint(g2, (int) Math.round(vertexDiameter / zoomScale));
-           	edgeDraw.paint(g2, false);
-        	}
-     	}
+            if (handlerEdgeDraw.isCollided()) {
+            g2.setColor(Color.RED);
+            edgeDraw.getV1().paint(g2, (int) Math.round(vertexDiameter / zoomScale));
+            edgeDraw.getV2().paint(g2, (int) Math.round(vertexDiameter / zoomScale));
+            edgeDraw.paint(g2, false);
+            }
+    }
 
-     	Edge edgeCurve = handlerEdgeCurve.getEdge();
-     	if (inProgressHandler == handlerEdgeCurve && edgeCurve != null) {
-        	g2.setColor(Color.BLACK);
-        	edgeCurve.paintLengthText(g2);
+    Edge edgeCurve = handlerEdgeCurve.getEdge();
+    if (inProgressHandler == handlerEdgeCurve && edgeCurve != null) {
+            g2.setColor(Color.BLACK);
+            edgeCurve.paintLengthText(g2);
 
-        	if (handlerEdgeCurve.isCollided()) {
-           	g2.setColor(Color.RED);
-           	edgeCurve.getV1().paint(g2, (int) Math.round(vertexDiameter / zoomScale));
-           	edgeCurve.getV2().paint(g2, (int) Math.round(vertexDiameter / zoomScale));
-           	edgeCurve.paint(g2, false);
-        	}
-     	}
+            if (handlerEdgeCurve.isCollided()) {
+            g2.setColor(Color.RED);
+            edgeCurve.getV1().paint(g2, (int) Math.round(vertexDiameter / zoomScale));
+            edgeCurve.getV2().paint(g2, (int) Math.round(vertexDiameter / zoomScale));
+            edgeCurve.paint(g2, false);
+            }
+    }
 
-     	coords.paintLineSplits(g2, (int) Math.round(vertexDiameter / zoomScale));
+    coords.paintLineSplits(g2, (int) Math.round(vertexDiameter / zoomScale));
 
-     	//FURNITURE
-     	g2.setColor(Color.BLUE);
-     	coords.paintFurniture(g2);
+    //FURNITURE
+    g2.setColor(Color.BLUE);
+    coords.paintFurniture(g2);
 
-     	Furniture furnitureMove = handlerFurnitureMove.getFurniture();
-     	if ((inProgressHandler == null || inProgressHandler == handlerFurnitureMove) && furnitureMove != null) {
-        	if (handlerFurnitureMove.isCollided()) {
-           	g2.setColor(Color.RED);
-        	} else {
-           	g2.setColor(Color.GREEN);
-        	}
-        	furnitureMove.paint(g2);
-     	} else if (hoverFurniture != null && designButtons.isSelectTool()) {
-        	g2.setColor(Color.CYAN);
-        	hoverFurniture.paint(g2);
-     	}
+    Furniture furnitureMove = handlerFurnitureMove.getFurniture();
+    if ((inProgressHandler == null || inProgressHandler == handlerFurnitureMove) && furnitureMove != null) {
+            if (handlerFurnitureMove.isCollided()) {
+            g2.setColor(Color.RED);
+            } else {
+            g2.setColor(Color.GREEN);
+            }
+            furnitureMove.paint(g2);
+    } else if (hoverFurniture != null && designButtons.isSelectTool()) {
+            g2.setColor(Color.CYAN);
+            hoverFurniture.paint(g2);
+    }
 
-     	furnitureMove = handlerDoorWindowMove.getFurniture();
-     	if ((inProgressHandler == null || inProgressHandler == handlerDoorWindowMove) && furnitureMove != null) {
-        	if (coords.doorWindowInvalidPosition(furnitureMove)) {
-           	g2.setColor(Color.RED);
-        	} else {
-           	g2.setColor(Color.GREEN);
-        	}
-        	furnitureMove.paint(g2);
-     	}
+    furnitureMove = handlerDoorWindowMove.getFurniture();
+    if ((inProgressHandler == null || inProgressHandler == handlerDoorWindowMove) && furnitureMove != null) {
+            if (coords.doorWindowInvalidPosition(furnitureMove)) {
+            g2.setColor(Color.RED);
+            } else {
+            g2.setColor(Color.GREEN);
+            }
+            furnitureMove.paint(g2);
+    }
 
-     	Color fill = new Color(Color.BLUE.getRed(), Color.BLUE.getGreen(), Color.BLUE.getBlue(), 50);
-     	g2.setColor(fill);
-     	g2.fill(selectionRectangle);
-     	g2.setColor(Color.BLUE);
-     	g2.draw(selectionRectangle);
-      }
+    Color fill = new Color(Color.BLUE.getRed(), Color.BLUE.getGreen(), Color.BLUE.getBlue(), 50);
+    g2.setColor(fill);
+    g2.fill(selectionRectangle);
+    g2.setColor(Color.BLUE);
+    g2.draw(selectionRectangle);
    }
 
    private int fillRoom(ArrayList<Edge> edgeList, int index) {
@@ -395,13 +396,13 @@ class TwoDPanel extends JPanel implements ChangeListener {
   	//	tions should not invoke paint directly, but should instead use the
   	//	repaint method to schedule the component for redrawing."
 
-       
-	
-        Dimension size = this.getSize();
-        BufferedImage image = (BufferedImage) this.createImage(size.width, size.height);
-        Graphics g = image.getGraphics();
-        
         synchronized(gettingScreenshotLock) {
+       
+            Dimension size = this.getSize();
+            BufferedImage image = (BufferedImage) this.createImage(size.width, size.height);
+            Graphics g = image.getGraphics();
+
+            gettingScreenshot = true;
 
             File file = new File(getClass().getResource("img").getPath() + "/cs" + currname);
             file.delete();
@@ -451,9 +452,12 @@ class TwoDPanel extends JPanel implements ChangeListener {
                 ImageIO.write(image, "png", csFloorScreenShotLocation(currname));
             } catch (IOException IOE) {
             }
+
+            gettingScreenshot = false;
+
+            repaint();
+            designButtons.viewport3D.getapp().reloadfloor(currname);
        }
-       repaint();
-       designButtons.viewport3D.getapp().reloadfloor(currname);
    }
 
    private File fsFloorScreenShotLocation(String currnameNotGlobal) {
