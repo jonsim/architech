@@ -289,6 +289,12 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
 			}
 		} else description.setText("");
 	}
+	
+	public boolean isCeilingObject (int typeID) {
+		if (typeID == 15)
+			return true;
+		return false;
+	}
 
    public int isDoorWindow( int typeID ) {
       try {

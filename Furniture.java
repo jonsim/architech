@@ -14,10 +14,10 @@ public class Furniture {
    private float rotationCenterX, rotationCenterY;
    private double rotation; // theta - in radians
    private String objPath;
-   private boolean isDW; // is this a door/window
-   private boolean isD;  // is this a door
-   private boolean isW;  // is this a window
-   private boolean isP;
+   private boolean isD = false;  // is this a door
+   private boolean isW = false;  // is this a window
+   private boolean isP;   // is this a physics object (e.g. rugs/doors/windows/ceiling objects are not)
+   private boolean isCO = false; // is this an object that lives on the ceiling (for example ceiling cat)
    private int[] lightValues;  //this objects light value
 
    Furniture(FurnitureSQLData data, Point center, ObjectBrowser ob) {
@@ -33,34 +33,27 @@ public class Furniture {
       //System.out.println("objpath="+objPath);
       lightValues = ob.getLight(data.furnitureID);
       isP = ob.isPhysical(data.type);
+      isCO = ob.isCeilingObject(data.type);
       int ftype = ob.isDoorWindow( data.type );
       if ( ftype > -1)
       {
           if( this.height < 10 )
             this.height = 10;
 
-          isDW = true;
           if (ftype == 8)
           {
         	  isD = true;
-              isW = false;
               this.width += 10;
           }
           else if (ftype == 9)
           {
               isW = true;
-              isD = false;
               this.width += 30;
           }
       }
-      else
-      {
-          isDW = false;
-      }
 
-      if (isDW && !(isD || isW)) throw new IllegalArgumentException("Malformed furniture type doorwindow");
       if (isD && isW) throw new IllegalArgumentException("Malformed furniture is both a door and a window");
-      if (isDW && isP) throw new IllegalArgumentException("Malformed furniture is both a doorwindow and a physical object");
+      if ((isD || isW) && isP) throw new IllegalArgumentException("Malformed furniture is both a door/window and a physical object");
 
       setRotationCenter(center);
       recalcRectangle();
@@ -85,38 +78,31 @@ public class Furniture {
 
          lightValues = ob.getLight(data.furnitureID);
          isP = ob.isPhysical(data.type);
+         isCO = ob.isCeilingObject(data.type);
          int ftype = ob.isDoorWindow( data.type );
          if ( ftype > -1)
          {
              if( this.height < 10 )
                this.height = 10;
 
-             isDW = true;
              if (ftype == 8)
              {
-           	  isD = true;
-                 isW = false;
+            	 isD = true;
                  this.width += 10;
              }
              else if (ftype == 9)
              {
                  isW = true;
-                 isD = false;
                  this.width += 30;
              }
-         }
-         else
-         {
-             isDW = false;
          }
 
       } catch (NumberFormatException e) {
          throw new IllegalArgumentException("Malformed value in saved furniture object");
       }
 
-      if (isDW && !(isD || isW)) throw new IllegalArgumentException("Malformed furniture type doorwindow");
       if (isD && isW) throw new IllegalArgumentException("Malformed furniture is both a door and a window");
-      if (isDW && isP) throw new IllegalArgumentException("Malformed furniture is both a doorwindow and a physical object");
+      if ((isD || isW) && isP) throw new IllegalArgumentException("Malformed furniture is both a doorwindow and a physical object");
 
       recalcRectangle();
    }
@@ -150,10 +136,16 @@ public class Furniture {
       // float x, float y, float w, float h, float arcw, float arch
       rectangle.setRoundRect(x, y, width, height, 0.2 * width, 0.2 * height);
    }
+   
+   /** Checks if the current object is a ceiling object (e.g. ceiling cat) */
+   public boolean isCeilingObject ()
+   {
+	   return isCO;
+   }
 
    /** Checks if the current object is a door/window */
    public boolean isDoorWindow() {
-      return isDW;
+      return isD || isW;
    }
 
    /** Checks if the current object is a door */
