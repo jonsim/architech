@@ -34,13 +34,17 @@ public class FileManager {
       bw.newLine();
       saveFurniture(bw, furniture);
       bw.flush();
+      bw.close();
+      fileW.close();
 
-      System.out.println(saveAs.getAbsolutePath() + " sfdg " + saveAs.getName());
-      System.out.println(new File(saveAs.getParentFile(), saveAs.getName() + ".jar").getAbsoluteFile());
+      //System.out.println(saveAs.getAbsolutePath() + " sfdg " + saveAs.getName());
+      //System.out.println(new File(saveAs.getParentFile(), saveAs.getName() + ".jar").getAbsoluteFile());
    }
 
    /** Returns true if the rename was successful */
    private static boolean renameCoordsSaveFile(File saveFile, File renameTo) {
+      System.out.println("saveFile=" + saveFile.getAbsolutePath() + " renameTo=" + renameTo.getAbsolutePath());
+
       try {
          boolean result = saveFile.renameTo(renameTo);
          if (!result) throw new SecurityException("write failed");
@@ -50,7 +54,7 @@ public class FileManager {
          try {
             boolean deleteResult = renameTo.delete();
             if (!deleteResult) {
-               System.err.println("Failure to build save file (jar) e1");
+               System.err.println("Failure to build save file (jar) e1 " + e.getMessage());
                return false;
             }
             boolean retryresult = saveFile.renameTo(renameTo);
@@ -161,6 +165,8 @@ public class FileManager {
       Furniture[] furniture = loadFurniture(br, numFurniture, ob);
       if (furniture == null) throw new Exception("Unable to load all furniture");
 
+      br.close();
+      fileR.close();
 
       /* Loading might not reach this stage */
       return new Coords(file, vertices, edges, furniture, ob);
