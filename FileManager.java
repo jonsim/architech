@@ -22,7 +22,8 @@ public class FileManager {
 
 
 public class CreateJarFile {
-              public static int BUFFER_SIZE = 10240;
+
+              private int BUFFER_SIZE = 10240;
               protected void createJarArchive(File archiveFile, File[] tobeJared) {
                 try {
                   byte buffer[] = new byte[BUFFER_SIZE];
@@ -74,7 +75,7 @@ public class CreateJarFile {
       // copy save text file in
       // lock images directory
       // copy images in
-
+      // I need saveLocation, currname, the two images (if there are more throw error) 
 
 
 

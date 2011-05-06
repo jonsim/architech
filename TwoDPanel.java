@@ -443,7 +443,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
             tx.translate(-image.getWidth(null), 0);
             AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
             image = op.filter(image, null);
-I need saveLocation, currname, the two images (if there are more throw error) 
+
             try {
             ImageIO.write(floor, "png", new File(saveLocation + "fs" + nows + ".png"));
             ImageIO.write(image, "png", new File(saveLocation + "cs" + nows + ".png"));
