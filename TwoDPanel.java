@@ -16,6 +16,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.imageio.ImageIO;
@@ -922,7 +923,22 @@ class TwoDPanel extends JPanel implements ChangeListener {
   	} else {
      	zoomScale = scale;
   	}
-  	coords.changegw((int)(50*zoomScale));
+  	DecimalFormat twoDForm = new DecimalFormat("#.#");
+  	if((int)((zoomScale%0.2)*100)==19 ||(int)((zoomScale%0.2)*100)==0){
+  		Double val =0.0;
+  		if(zoomScale<1.0){
+  			val = Double.valueOf(twoDForm.format(1.0-zoomScale));
+  			coords.changegw(50/(int) (val*10.0));
+  			System.out.println(50/(int) (val*10.0));
+  		}
+  		if(zoomScale>1.0){
+  			val = Double.valueOf(twoDForm.format(zoomScale-1.0));
+  			coords.changegw(50*(int) (val*10.0));
+  		}
+  		if(zoomScale==1.0){
+  			coords.changegw((int)(50*1.0));	
+  		}
+  	}
   	zoomScale = 1.0;
   	repaint();
    }

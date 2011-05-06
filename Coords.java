@@ -167,7 +167,7 @@ public class Coords {
    private LinkedList<Edge> rememberedEdges = new LinkedList<Edge>();
    private Furniture invalidDW = null;
    private static ObjectBrowser objectBrowser;
-   private int gridWidth = 50; // makes grid lines at 0,30,60,...
+   private float gridWidth = 50; // makes grid lines at 0,30,60,...
   
    /** Creates a blank coordinate system */
    Coords(String associatedSaveName, ObjectBrowser ob) {
@@ -231,7 +231,10 @@ public class Coords {
    }
 
    public void changegw(int val){
-	   gridWidth = val;
+	   if(val==12) gridWidth=12.5f;
+	   else if(val==8) gridWidth =6.25f;
+	   else if(val==6) gridWidth =3.125f;
+	   else gridWidth = val;
    }
    
    /** Returns a string with the file name i.e. if the file is C:\hello.txt this
@@ -1273,12 +1276,12 @@ public class Coords {
    public void drawGrid(Graphics2D g2, int width, int height) {
       g2.setColor(Color.LIGHT_GRAY);
 
-      for (int i = (int) (gridWidth); i < width; i += gridWidth) {
-         g2.drawLine(i, 0, i, height);
+      for (float i = (gridWidth); i < width; i += gridWidth) {
+         g2.drawLine((int) i, 0, (int) i, height);
       }
 
-      for (int i = (int) (gridWidth); i < height; i += gridWidth) {
-         g2.drawLine(0, i, width, i);
+      for (float i = (int) (gridWidth); i < height; i += gridWidth) {
+         g2.drawLine(0, (int) i, width, (int) i);
       }
    }
    

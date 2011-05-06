@@ -371,8 +371,8 @@ public class DesignButtons implements ActionListener {
   	c = FrontEnd.buildGBC(6, 1, 0.5, 0.5, topCenterAnchor, right);
   	pane.add(rfloor, c);
  	 
-  	c = FrontEnd.buildGBC(7, 0, 0.5, 0.5, bottomCenterAnchor, right);
-  	pane.add(new JLabel("<html><font color='white'>Zoom"), c);
+  	c = FrontEnd.buildGBC(7, 0, 0.5, 0.5, bottomCenterAnchor, new Insets(0,0,0,30));
+  	pane.add(new JLabel("<html><font color='white'>Grid Zoom"), c);
   	c = FrontEnd.buildGBC(7, 1, 0.5, 0.5, topCenterAnchor, new Insets(0,0,0,30));
   	pane.add(zoomTool, c);
  	 
