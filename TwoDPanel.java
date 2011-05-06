@@ -441,7 +441,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
             String nows = df.format(now);
             this.paint(g);
             g.dispose();
-            BufferedImage floor = image;            
+            
+            BufferedImage floor = image;           
             ImageProducer ip = new FilteredImageSource(image.getSource(), ceilfilter);
             Image fim = Toolkit.getDefaultToolkit().createImage(ip);
             image = new BufferedImage(fim.getWidth(null), fim.getHeight(null), BufferedImage.TYPE_INT_ARGB);

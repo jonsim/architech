@@ -585,9 +585,13 @@ public class ArchApp extends Application
     	rootNode.attachChild(floor_plane.side[0]);
     	
 	    //add the floor (the box which users stand on, and is textured with the fill-colours)
-	    floor.side[0] = new Geometry("Floor", new Box(new Vector3f(500, -100, -1000), 500, 0.1f, 1000));
-	    floor.side[0].rotate(0f,(float) -Math.toRadians(90),0f);
-	    floor.side[0].setMaterial(grass);
+	    //floor.side[0] = new Geometry("Floor", new Box(new Vector3f(500, -100, -1000), 500, 0.1f, 1000));
+	    //floor.side[0].rotate(0f,(float) -Math.toRadians(90),0f);
+	    
+    	//add the floor (the box which users stand on, and is textured with the fill-colours)
+        floor.side[0] = new Geometry("Floor", new Box(new Vector3f(500, -100, -1000), 500, 0.1f, 1000));
+        floor.side[0].rotate(0f,(float) -Math.toRadians(90),0f);
+        floor.side[0].setMaterial(grass);
 	    if (shadowing)
 	    	floor.side[0].setShadowMode(ShadowMode.Receive);
 	    rootNode.attachChild(floor.side[0]);

@@ -282,41 +282,30 @@ public class TWApp extends Application implements ActionListener {
     }
     
     private int converttype(String type){
-    	if(type.equals("Chair")) {return 1;}
-    	if(type.equals("Armchair")) {return 2;}
-    	if(type.equals("Sofa (2 person)")) {return 3;}
-    	if(type.equals("Stool")) {return 4;}
-    	if(type.equals("Bench")) {return 5;}
-    	if(type.equals("Dining Table")) {return 6;}
-    	if(type.equals("Desk")) {return 7;}
-    	if(type.equals("Coffee Table")) {return 8;}
-    	if(type.equals("Bedside Table")) {return 9;}
-    	if(type.equals("Desk Lamp")) {return 10;}
-    	if(type.equals("Table Lamp")) {return 11;}
-    	if(type.equals("Floor Lamp")) {return 12;}
-    	if(type.equals("Wall Light")) {return 13;}
-    	if(type.equals("Ceiling Light")) {return 14;}
-    	if(type.equals("Cupboard")) {return 15;}
-    	if(type.equals("Drawers")) {return 16;}
-    	if(type.equals("Wardrobe")) {return 17;}
-    	if(type.equals( "Bookcase")) {return 18;}
-    	if(type.equals("Wall-mounted Cupboard")) {return 19;}
-    	if(type.equals("Kitchen Units")) {return 20;}
-    	if(type.equals("Single Bed")) {return 21;}
-    	if(type.equals("Bath (w/Shower)")) {return 22;}
-    	if(type.equals("Shower")) {return 23;}    	
-    	if(type.equals("Bathroom Sink")) {return 24;}
-    	if(type.equals("Toilet")) {return 25;}
-    	if(type.equals("Oven")) {return 26;}
-    	if(type.equals("Fridge")) {return 27;}
-    	if(type.equals("Freezer")) {return 28;}
-    	if(type.equals("Kitchen Sink")) {return 29;}
-    	if(type.equals("DishWasher")) {return 30;}
-    	if(type.equals("Rug")) {return 40;}
-    	if(type.equals("Double Bed")) {return 41;}
-    	if(type.equals("Sofa (3 person)")) {return 42;}
-    	if(type.equals("Large Plant")) {return 45;}
-    	if(type.equals("Pot Plant")) {return 46;}
+    	if(type.equals("Chairs")) {return 1;}
+    	if(type.equals("Sofas")) {return 2;}
+    	if(type.equals("Other Seating")) {return 3;}
+    	if(type.equals("Baths")) {return 4;}
+    	if(type.equals("Bathroom Sinks")) {return 5;}
+    	if(type.equals("Showers")) {return 6;}
+    	if(type.equals("Toilets")) {return 7;}
+    	if(type.equals("Rugs")) {return 8;}
+    	if(type.equals("Plants")) {return 9;}
+    	if(type.equals("Misc.")) {return 10;}
+    	if(type.equals("Appliances")) {return 12;}
+    	if(type.equals("Surfaces")) {return 13;}
+    	if(type.equals("Kitchen Storage")) {return 14;}
+    	if(type.equals("Ceiling Lights")) {return 15;}
+    	if(type.equals("Wall Lights")) {return 16;}
+    	if(type.equals("Lamps")) {return 17;}
+    	if(type.equals("Drawers")) {return 18;}
+    	if(type.equals("Cupboards")) {return 19;}
+    	if(type.equals("Other Storage")) {return 20;}
+    	if(type.equals("Desks")) {return 21;}
+    	if(type.equals("Dining")) {return 22;}
+    	if(type.equals("Other Tables")) {return 23;}	
+    	if(type.equals("Beds")) {return 24;}
+    	if(type.equals("Other Bedroom")) {return 25;}
     	return 0;
     }
     

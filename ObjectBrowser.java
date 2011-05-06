@@ -738,8 +738,10 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
 		} 
 		catch(Exception e) {e.printStackTrace(); }
 		NextID = nextcode+1;
-		//System.out.println(NextID);
-		SQLStatement("insert into ITEM values ("+NextID+",'"+object+"','"+desc+"',"+type+","+1+",'"+image+"','"+model+"'," + 1 +","+width+","+length+","+height+")", "update");
+		if(type==15||type==16||type==17)
+			SQLStatement("insert into ITEM values ("+NextID+",'"+object+"','"+desc+"',"+type+","+1+",'"+image+"','"+model+"'," + 1 +","+width+","+length+","+height+",'255,255,255,0')", "update");
+		else
+			SQLStatement("insert into ITEM values ("+NextID+",'"+object+"','"+desc+"',"+type+","+1+",'"+image+"','"+model+"'," + 1 +","+width+","+length+","+height+",'0,0,0,0')", "update");
 	}
 	
 	public void deleteObject() {
@@ -982,7 +984,7 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
 		splitBottom.add(holster,c);
 		holster = new JPanel(new FlowLayout(FlowLayout.CENTER));	
 		holster.setOpaque(false);
-		String[] types = {"Chair", "Armchair", "Sofa (2 person)", "Stool", "Bench", "Dining Table", "Desk", "Coffee Table", "Bedside Table", "Desk Lamp", "Table Lamp", "Floor Lamp", "Wall Light", "Ceiling Light", "Cupboard", "Drawers", "Wardrobe", "Bookcase", "Wall-mounted Cupboard", "Kitchen Units", "Single Bed", "Bath (w/Shower)", "Shower", "Bathroom Sink", "Toilet", "Oven", "Fridge", "Freezer", "Kitchen Sink", "DishWasher", "Rug", "Double Bed", "Sofa (3 person)", "Large Plant", "Pot Plant"};
+		String[] types = {"Chairs","Sofas","Other Seating","Baths","Bathroom Sinks","Showers","Toilets","Rugs","Plants","Misc.","Appliances","Surfaces","Kitchen Storage","Ceiling Lights","Wall Lights","Lamps","Drawers","Cupboards","Other Storage","Desks","Dining","Other Tables","Beds","Other Bedroom","Window Frames"};
 	    Arrays.sort(types);
 	    lab = new JLabel("<html><font size=4> Item Type:");
 	    typelist = new JComboBox(types);
@@ -993,7 +995,7 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
 	    holster.add(typelist);
 	    c = FrontEnd.buildGBC(0, 4, 0.5, 0.5, GridBagConstraints.NORTH, new Insets(0,0,0,0));
 		splitBottom.add(holster,c);
-		holster = new JPanel(new FlowLayout(FlowLayout.CENTER));	
+		holster = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		holster.setOpaque(false);
 		ImageIcon save = new ImageIcon(main.frontEnd.getImage(this, "img/designbuttons/save.png"));
 		JButton button = new JButton("<html><h3>Save",save);
