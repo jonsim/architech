@@ -54,6 +54,9 @@ class TwoDPanel extends JPanel implements ChangeListener {
    private String currname = null;
    private Rectangle selectionRectangle = new Rectangle();
    private Point rectStart = new Point();
+   private ImageFilter ceilfilter;
+   private AffineTransform tx;
+   private AffineTransformOp op;
 
    /** If file is null creates a blank coords with the tab name nameIfNullFile,
 	*  otherwise it tries to open the given file and load a coords from it, if
@@ -75,6 +78,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
   	setBackground(Color.WHITE);
   	setPreferredSize(new Dimension(2000, 1000));
   	setFocusable(true);
+  	setupfloors();
 
   	DropTarget dropTarget = new DropTarget(this,
           	TwoDDropListener.acceptableActions, new TwoDDropListener(this, objectBrowser), false);
@@ -388,6 +392,28 @@ class TwoDPanel extends JPanel implements ChangeListener {
   	polygonReverse.add(reverse);
   	return sortedList;
    }
+   
+   void setupfloors(){
+	   ceilfilter = new RGBImageFilter() {
+           public final int filterRGB(int x, int y, int rgb) {
+                   //invert the colours
+                   Color col = new Color(rgb, true);
+                   if (col.equals(new Color(255, 255, 255))) {
+                   col = new Color(0, 0, 0);
+                   } else {
+                   col = new Color(255, 255, 255);
+                   }
+                   int negative = col.getRGB();
+                   //use binary shifts to make black -> transparent
+                   int alpha = (negative << 8) & 0xFF000000;
+                   //colour the other bits cream
+                   if (alpha == Color.BLACK.getRGB()) {
+                   alpha = (new Color(208, 191, 184)).getRGB();
+                   }
+                   return alpha;
+           }
+           };
+   }
 
    public void getFloorScreenshot() {
   	//if (true) return; // stop the program completely crashing (for now) when a
@@ -415,47 +441,24 @@ class TwoDPanel extends JPanel implements ChangeListener {
             String nows = df.format(now);
             this.paint(g);
             g.dispose();
-            BufferedImage floor = image;
-            ImageFilter ceilfilter = new RGBImageFilter() {
-
-            public final int filterRGB(int x, int y, int rgb) {
-                    //invert the colours
-                    Color col = new Color(rgb, true);
-                    if (col.equals(new Color(255, 255, 255))) {
-                    col = new Color(0, 0, 0);
-                    } else {
-                    col = new Color(255, 255, 255);
-                    }
-                    int negative = col.getRGB();
-                    //use binary shifts to make black -> transparent
-                    int alpha = (negative << 8) & 0xFF000000;
-                    //colour the other bits cream
-                    if (alpha == Color.BLACK.getRGB()) {
-                    alpha = (new Color(208, 191, 184)).getRGB();
-                    }
-                    return alpha;
-            }
-            };
+            BufferedImage floor = image;            
             ImageProducer ip = new FilteredImageSource(image.getSource(), ceilfilter);
             Image fim = Toolkit.getDefaultToolkit().createImage(ip);
             image = new BufferedImage(fim.getWidth(null), fim.getHeight(null), BufferedImage.TYPE_INT_ARGB);
             Graphics bg = image.getGraphics();
             bg.drawImage(fim, 0, 0, null);
             bg.dispose();
-            AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
+            tx = AffineTransform.getScaleInstance(-1, 1);
             tx.translate(-image.getWidth(null), 0);
-            AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+            op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
             image = op.filter(image, null);
-
             currname = nows + ".png";
             try {
                 ImageIO.write(floor, "png", fsFloorScreenShotLocation(currname));
                 ImageIO.write(image, "png", csFloorScreenShotLocation(currname));
             } catch (IOException IOE) {
             }
-
             gettingScreenshot = false;
-
             repaint();
             designButtons.viewport3D.getapp().reloadfloor(currname);
        }
