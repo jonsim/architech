@@ -517,7 +517,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
   	int i = 0;
   	int j = 0;
   	Coords.Vertex v;
-	boolean hasChanged = false;
+        boolean hasChanged = false;
   	while (a < vertices.size()) {
      	v = vertices.get(a);
      	if (v != null) {
@@ -529,7 +529,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
                  	polygonEdges.remove(i);
                  	polygonFills.remove(i);
                  	polygonReverse.remove(i);
-					hasChanged = true;
+                        hasChanged = true;
                  	i--;
                  	break;
               	}
@@ -654,12 +654,13 @@ class TwoDPanel extends JPanel implements ChangeListener {
               	}
            	}
         	}
-        	if(fill) repaint();
         	inProgressHandler = null;
         	handlerEdgeCurve.stop(p);
 
-        	ArrayList<Coords.Vertex> vList = handlerEdgeCurve.getVertexList();
-        	//deleteFloorFill(vList);
+                if(fill) {
+                    repaint();
+                    getFloorScreenshot();
+                }
        	 
      	} else if (inProgressHandler == handlerEdgeDraw) {
         	inProgressHandler = null;
@@ -690,15 +691,16 @@ class TwoDPanel extends JPanel implements ChangeListener {
               	i++;
            	}
         	}
-        	if(fill) repaint();
        	 
         	inProgressHandler = null;
         	handlerVertexMove.stop(p, designButtons.isGridOn());
 
-        	ArrayList<Coords.Vertex> vList = handlerVertexMove.getVertexList();
-        	//deleteFloorFill(vList);
-
         	callVertexSelect = true;
+
+                if(fill) {
+                    repaint();
+                    getFloorScreenshot();
+                }
 
      	} else if (inProgressHandler == handlerFurnitureMove) {
         	inProgressHandler = null;
