@@ -55,7 +55,10 @@ public class HandlerEdgeCurve {
       isCollided = coords.detectVertexCollisions(edge.getV1())
                    || coords.detectVertexCollisions(edge.getV2());
 
-      if (isCollided) coords.setEdgeCtrl(edge, revert);
+      if (isCollided) {
+		coords.setEdgeCtrl(edge, revert);
+		coords.clearLineSplits();
+	  }
       else {
 		coords.setEdgeCtrl(edge, p);
                 coords.findEdgeSplits(edge, true);

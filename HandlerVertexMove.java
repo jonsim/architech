@@ -66,6 +66,7 @@ public class HandlerVertexMove {
          //reset to start
          coords.set(v, (float) revert.getX(), (float) revert.getY(), 0, false);
          isCollided = false;
+		 coords.clearLineSplits();
       }
 
       // Delete length 0 edges

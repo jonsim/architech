@@ -591,6 +591,11 @@ public class Coords {
       lineSplits.clear();
       splitEdges.clear();
    }
+   
+   public void clearLineSplits() {
+      lineSplits.clear();
+      splitEdges.clear();
+   }
 
    private boolean furnitureWallIntersect(Furniture f, Edge e) {
        double y1;

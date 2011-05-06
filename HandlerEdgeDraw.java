@@ -114,6 +114,7 @@ public class HandlerEdgeDraw {
          coords.delete(edge);
          isCollided = false;
          edge = null;
+		 coords.clearLineSplits();
          return;
       }
 
