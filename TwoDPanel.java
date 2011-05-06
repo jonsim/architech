@@ -48,7 +48,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
    private ArrayList<ArrayList<Boolean>> polygonReverse = new ArrayList<ArrayList<Boolean>>();
    private String saveLocation = getClass().getResource("img").getPath() + "/";
    private double fillFlatness = 0.001;
-   private boolean gettingScreenshot = false;
+   private final Object gettingScreenshotLock = new Object();
    private String currname = null;
    private Rectangle selectionRectangle = new Rectangle();
    private Point rectStart = new Point();
@@ -140,6 +140,8 @@ class TwoDPanel extends JPanel implements ChangeListener {
    /** Draws grid, objects and vertices, highlights currently aimed at vertex */
    @Override
    public void paintComponent(Graphics g) {
+      synchronized(gettingScreenshotLock) {
+
   	Graphics2D g2 = (Graphics2D) g;
   	super.paintComponent(g2); // clear screen
   	g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -158,8 +160,6 @@ class TwoDPanel extends JPanel implements ChangeListener {
      	g2.fill(polygons.get(i));
      	i++;
   	}
-
-  	if (!gettingScreenshot) {
 
      	if (designButtons.isGridOn()) {
         	coords.drawGrid(g2,
@@ -281,8 +281,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
      	g2.fill(selectionRectangle);
      	g2.setColor(Color.BLUE);
      	g2.draw(selectionRectangle);
-
-  	}
+      }
    }
 
    private int fillRoom(ArrayList<Edge> edgeList, int index) {
@@ -396,63 +395,65 @@ class TwoDPanel extends JPanel implements ChangeListener {
   	//	tions should not invoke paint directly, but should instead use the
   	//	repaint method to schedule the component for redrawing."
 
+       synchronized(gettingScreenshotLock) {
 	
-  	Dimension size = this.getSize();
-  	BufferedImage image = (BufferedImage) this.createImage(size.width, size.height);
-  	Graphics g = image.getGraphics();
-  	gettingScreenshot = true;
-  	
-  	File file = new File(getClass().getResource("img").getPath() + "/cs" + currname);
-  	file.delete();
-  	file = new File(getClass().getResource("img").getPath() + "/fs" + currname);
-  	file.delete();
-  	
-  	DateFormat df = new SimpleDateFormat("ddMM_hh_mm_ss");
-  	Date now = Calendar.getInstance().getTime();
-  	String nows = df.format(now);
-  	this.paint(g);
-  	g.dispose();
-  	BufferedImage floor = image; 	 
-  	ImageFilter ceilfilter = new RGBImageFilter() {
+            Dimension size = this.getSize();
+            BufferedImage image = (BufferedImage) this.createImage(size.width, size.height);
+            Graphics g = image.getGraphics();
+            //gettingScreenshot = true;
 
-     	public final int filterRGB(int x, int y, int rgb) {
-        	//invert the colours
-        	Color col = new Color(rgb, true);
-        	if (col.equals(new Color(255, 255, 255))) {
-           	col = new Color(0, 0, 0);
-        	} else {
-           	col = new Color(255, 255, 255);
-        	}
-        	int negative = col.getRGB();
-        	//use binary shifts to make black -> transparent
-        	int alpha = (negative << 8) & 0xFF000000;
-        	//colour the other bits cream
-        	if (alpha == Color.BLACK.getRGB()) {
-           	alpha = (new Color(208, 191, 184)).getRGB();
-        	}
-        	return alpha;
-     	}
-  	};
-  	ImageProducer ip = new FilteredImageSource(image.getSource(), ceilfilter);
-  	Image fim = Toolkit.getDefaultToolkit().createImage(ip);
-  	image = new BufferedImage(fim.getWidth(null), fim.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-  	Graphics bg = image.getGraphics();
-  	bg.drawImage(fim, 0, 0, null);
-  	bg.dispose();
-  	AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
-  	tx.translate(-image.getWidth(null), 0);
-  	AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-  	image = op.filter(image, null);
- 	 
-  	try {
-     	ImageIO.write(floor, "png", new File(saveLocation + "fs" + nows + ".png"));
-     	ImageIO.write(image, "png", new File(saveLocation + "cs" + nows + ".png"));
-  	} catch (IOException IOE) {
-  	} 	 
-  	gettingScreenshot = false;
-  	repaint();
-  	currname = nows + ".png";
-  	designButtons.viewport3D.getapp().reloadfloor(currname);  	
+            File file = new File(getClass().getResource("img").getPath() + "/cs" + currname);
+            file.delete();
+            file = new File(getClass().getResource("img").getPath() + "/fs" + currname);
+            file.delete();
+
+            DateFormat df = new SimpleDateFormat("ddMM_hh_mm_ss");
+            Date now = Calendar.getInstance().getTime();
+            String nows = df.format(now);
+            this.paint(g);
+            g.dispose();
+            BufferedImage floor = image;
+            ImageFilter ceilfilter = new RGBImageFilter() {
+
+            public final int filterRGB(int x, int y, int rgb) {
+                    //invert the colours
+                    Color col = new Color(rgb, true);
+                    if (col.equals(new Color(255, 255, 255))) {
+                    col = new Color(0, 0, 0);
+                    } else {
+                    col = new Color(255, 255, 255);
+                    }
+                    int negative = col.getRGB();
+                    //use binary shifts to make black -> transparent
+                    int alpha = (negative << 8) & 0xFF000000;
+                    //colour the other bits cream
+                    if (alpha == Color.BLACK.getRGB()) {
+                    alpha = (new Color(208, 191, 184)).getRGB();
+                    }
+                    return alpha;
+            }
+            };
+            ImageProducer ip = new FilteredImageSource(image.getSource(), ceilfilter);
+            Image fim = Toolkit.getDefaultToolkit().createImage(ip);
+            image = new BufferedImage(fim.getWidth(null), fim.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+            Graphics bg = image.getGraphics();
+            bg.drawImage(fim, 0, 0, null);
+            bg.dispose();
+            AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
+            tx.translate(-image.getWidth(null), 0);
+            AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+            image = op.filter(image, null);
+I need saveLocation, currname, the two images (if there are more throw error) 
+            try {
+            ImageIO.write(floor, "png", new File(saveLocation + "fs" + nows + ".png"));
+            ImageIO.write(image, "png", new File(saveLocation + "cs" + nows + ".png"));
+            } catch (IOException IOE) {
+            }
+            //gettingScreenshot = false;
+            repaint();
+            currname = nows + ".png";
+            designButtons.viewport3D.getapp().reloadfloor(currname);
+       }
    }
 
    private void selectDragBoxVertices() {

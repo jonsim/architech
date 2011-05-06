@@ -1,6 +1,9 @@
 import java.io.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 
-/** Sample File format:
+/** Save file is a jar, Coods save file format:
 "
    3 Vertices
    0,40.0,71.0,0.0                **vertex 0, x=40, y=71, z=0
@@ -16,17 +19,65 @@ import java.io.*;
 "
  */
 public class FileManager {
-	private ObjectBrowser ob;
-	
-	FileManager (ObjectBrowser ob)
-	{
-		this.ob = ob;
-	}
+
+
+public class CreateJarFile {
+              public static int BUFFER_SIZE = 10240;
+              protected void createJarArchive(File archiveFile, File[] tobeJared) {
+                try {
+                  byte buffer[] = new byte[BUFFER_SIZE];
+                  // Open archive file
+                  FileOutputStream stream = new FileOutputStream(archiveFile);
+                  JarOutputStream out = new JarOutputStream(stream, new Manifest());
+
+                  for (int i = 0; i < tobeJared.length; i++) {
+                    if (tobeJared[i] == null || !tobeJared[i].exists()
+                        || tobeJared[i].isDirectory())
+                      continue; // Just in case...
+                    System.out.println("Adding " + tobeJared[i].getName());
+
+                    // Add archive entry
+                    JarEntry jarAdd = new JarEntry(tobeJared[i].getName());
+                    jarAdd.setTime(tobeJared[i].lastModified());
+                    out.putNextEntry(jarAdd);
+
+                    // Write file to archive
+                    FileInputStream in = new FileInputStream(tobeJared[i]);
+                    while (true) {
+                      int nRead = in.read(buffer, 0, buffer.length);
+                      if (nRead <= 0)
+                        break;
+                      out.write(buffer, 0, nRead);
+                    }
+                    in.close();
+                  }
+
+                  out.close();
+                  stream.close();
+                  System.out.println("Adding completed OK");
+                } catch (Exception ex) {
+                  ex.printStackTrace();
+                  System.out.println("Error: " + ex.getMessage());
+                }
+              }
+            }
 
    /** Writes the given arrays to file in the expected format */
    public static void save(File saveAs, float[][] vertices, int[][] edges, Furniture[] furniture)
          throws IOException, IllegalArgumentException {
       if (saveAs == null) throw new IllegalArgumentException("SaveAs is null");
+
+
+
+      // write to save text file
+      // create jar
+      // copy save text file in
+      // lock images directory
+      // copy images in
+
+
+
+
       FileWriter fileW = new FileWriter(saveAs);
       BufferedWriter bw = new BufferedWriter(fileW);
 
