@@ -6,7 +6,7 @@ import java.awt.*;
 /** Starts the program running and catches "few!" uncaught exceptions gracefully */
 public class Main {
    public static final boolean disable3D = false;
-   public static final boolean splash_enabled = false;
+   public static final boolean splash_enabled = true;
 
    public FrontEnd frontEnd;
    public ObjectBrowser objectBrowser;
