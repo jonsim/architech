@@ -389,7 +389,7 @@ public class ArchApp extends Application
             inputManager.addMapping("PLAYER_CastRay", new KeyTrigger(KeyInput.KEY_SPACE));
             inputManager.addListener(actionListener, "PLAYER_CastRay");
         }
-        
+
         setupMaterials();
         simpleInitApp();
         
@@ -520,13 +520,28 @@ public class ArchApp extends Application
     {
 		if (tracing)
 			System.out.println("setupMaterials() called.");
-        grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-		grass.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
-        grass.setFloat("Shininess", 1000);
         
-        invis = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        invis.setTexture("ColorMap", assetManager.loadTexture("img/invis.png"));
-        invis.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+        
+        
+
+        String name = null;
+        if (main.frontEnd != null && (name = main.frontEnd.getCurrentTab().getpanel().getCurrname()) != null) {
+              grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+              grass.setTexture("DiffuseMap", assetManager.loadTexture("img/fs"+name));
+              grass.setFloat("Shininess", 1000);
+
+             invis = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+             invis.setTexture("ColorMap", assetManager.loadTexture("img/cs"+name));
+             invis.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+        } else {
+            grass = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+            grass.setTexture("DiffuseMap", assetManager.loadTexture("img/3DFloor.jpg"));
+            grass.setFloat("Shininess", 1000);
+
+            invis = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+            invis.setTexture("ColorMap", assetManager.loadTexture("img/invis.png"));
+            invis.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+        }
 
         wallmat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 		wallmat.setTexture("DiffuseMap", assetManager.loadTexture("img/wallpapers/default.jpg"));
@@ -542,12 +557,11 @@ public class ArchApp extends Application
 	    crossHair.setText("+");
     }
     
-    
-    
     /** Applies the texture (stored in /img/fs/%NAME% where %NAME% is the value of arg0) to the
      *  floor. */
     public void reloadfloor(String name)
     {
+       if (name == null) return;
 		if (tracing)
 			System.out.printf("reloadfloor(%s) called.\n", name);
 		synchronized(syncLockObject)

@@ -476,6 +476,9 @@ class TwoDPanel extends JPanel implements ChangeListener {
        }
    }
 
+   public String getCurrname() {
+      return currname;
+   }
    private File fsFloorScreenShotLocation(String currnameNotGlobal) {
       if (currnameNotGlobal == null) return null;
       return new File(saveLocation + "fs" + currnameNotGlobal);

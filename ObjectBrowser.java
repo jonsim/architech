@@ -887,8 +887,8 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
 			}
 		} else if(e.getKeyCode() == KeyEvent.VK_DELETE) {
 			deleteObject();
-		} else if(e.getKeyCode() == KeyEvent.VK_T) {
-            testHarness();
+		//} else if(e.getKeyCode() == KeyEvent.VK_T) {
+            //testHarness();
         }
     }
     public void keyReleased(KeyEvent e) {}
