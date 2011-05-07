@@ -1367,15 +1367,15 @@ public class Coords {
    /** save the stuff to the given file, if you save to a different file than the
     *  associated one, this coords instance has a new associated file set */
    private void save(File saveAs, boolean updateSaveRequired, boolean updateAssociatedSave, TwoDPanel panel) throws IOException {
-
+/*
       ArrayList<ArrayList<Edge>> ae = panel.getPolygonEdges();
       for (int i=0; i < ae.size(); i++) {
          ArrayList<Edge> e = ae.get(i);
          for (int k=0; k < e.size(); k++) {
-            System.out.println(i + " " + e);
+            System.out.println(i + " " + e.get(k));
          }
       }
-
+*/
       // make the list of vertices that will be saved
       Vertex[] vArray = vertices.toArray(new Vertex[0]);
       float[][] saveVerts = new float[vArray.length][3];
@@ -1401,15 +1401,18 @@ public class Coords {
       // make the list of Edge indices from twodpanel
       ArrayList<ArrayList<Edge>> a = panel.getPolygonEdges();
       int[][] tempPolygonEdges = new int[a.size()][];
+      
       for (int i=0; i < tempPolygonEdges.length; i++) {
          ArrayList<Edge> individualArrayList = a.get(i);
          tempPolygonEdges[i] = new int[individualArrayList.size()];
          for (int k=0; k < individualArrayList.size(); k++) {
             Edge toLookup = individualArrayList.get(k);
+            
             int index = edges.indexOf(toLookup);
             if (index < 0) {
                throw new IllegalArgumentException("polygonEdges in twoDPanel contains edges which are no longer in use in coords");
             }
+            tempPolygonEdges[i][k] = index;
          }
       }
 
