@@ -169,14 +169,16 @@ public class FileManager {
    }
 
    /** Returns a Coords or throws an exception if there is a problem reading */
-   public static Coords load(File file, ObjectBrowser ob, String[] imagename,
+   public static Coords load(File file, File dirForImages,
+         ObjectBrowser ob,
+         String[] imagename,
          ArrayList<Polygon> polygons,
          ArrayList<Color> polygonFills,
          ArrayList<ArrayList<Edge>> polygonEdges,
          ArrayList<ArrayList<Boolean>> polygonReverse)
          throws IOException, Exception, IllegalArgumentException {
       if (file == null) throw new IllegalArgumentException("file is null");
-
+System.out.println("load begin");
        JarFile jarFile = new JarFile(file);
 
        if (jarFile.size() != 4 && jarFile.size() != 2) {
@@ -184,7 +186,7 @@ public class FileManager {
        }
 
        JarEntry img1 = null, img2 = null, coords = null;
-
+System.out.println("get enumeration");
        Enumeration enums = jarFile.entries();
        while (enums.hasMoreElements()) {
           JarEntry entry = (JarEntry) enums.nextElement();
@@ -212,7 +214,7 @@ public class FileManager {
 
 
 
-
+System.out.println("load coords");
        // LOAD COORDS information
        InputStream in = jarFile.getInputStream(coords);
        InputStreamReader isr = new InputStreamReader(in);
@@ -296,7 +298,7 @@ public class FileManager {
        in.close();
 
 
-
+System.out.print("load images");
        // LOAD IMAGES
        int BUFFER_SIZE = 10240;
        byte buffer[] = new byte[BUFFER_SIZE];
@@ -305,7 +307,8 @@ public class FileManager {
           JarEntry[] images = {img1, img2};
 
           for (JarEntry e : images) {
-             FileOutputStream out = new FileOutputStream(new File(file.getParentFile(), e.getName()));
+             File writeto = new File(dirForImages, e.getName());
+             FileOutputStream out = new FileOutputStream(writeto);
              in = jarFile.getInputStream(e);
 
              while (true) {

@@ -561,6 +561,7 @@ public class ArchApp extends Application
      *  floor. */
     public void reloadfloor(String name)
     {
+       if (name == null) return;
 		if (tracing)
 			System.out.printf("reloadfloor(%s) called.\n", name);
 		synchronized(syncLockObject)
