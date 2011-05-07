@@ -90,7 +90,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
       preview = new TWPane(new Dimension(TwoDandThreeD.getSize().width-10,TwoDandThreeD.getSize().height));
 
       try {
-         addTab(new File("gammaroom.atech"));
+         addTab(new File("demodesign.atech"));
          stateChanged(new ChangeEvent(tabbedPane));
       } catch (Exception e) {
          // FAILED TO LOAD, NOTIFY USER

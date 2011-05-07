@@ -178,7 +178,7 @@ public class FileManager {
          ArrayList<ArrayList<Boolean>> polygonReverse)
          throws IOException, Exception, IllegalArgumentException {
       if (file == null) throw new IllegalArgumentException("file is null");
-System.out.println("load begin");
+
        JarFile jarFile = new JarFile(file);
 
        if (jarFile.size() != 4 && jarFile.size() != 2) {
@@ -186,7 +186,7 @@ System.out.println("load begin");
        }
 
        JarEntry img1 = null, img2 = null, coords = null;
-System.out.println("get enumeration");
+
        Enumeration enums = jarFile.entries();
        while (enums.hasMoreElements()) {
           JarEntry entry = (JarEntry) enums.nextElement();
@@ -214,7 +214,6 @@ System.out.println("get enumeration");
 
 
 
-System.out.println("load coords");
        // LOAD COORDS information
        InputStream in = jarFile.getInputStream(coords);
        InputStreamReader isr = new InputStreamReader(in);
@@ -298,7 +297,6 @@ System.out.println("load coords");
        in.close();
 
 
-System.out.print("load images");
        // LOAD IMAGES
        int BUFFER_SIZE = 10240;
        byte buffer[] = new byte[BUFFER_SIZE];
