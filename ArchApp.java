@@ -78,7 +78,7 @@ public class ArchApp extends Application
 	/** RGB colour (0-255) of the moon light. */
 	private static final short[]  NIGHT_BRIGHTNESS = {30, 30, 30};
 	/** Amount of ambient light in the scene (0 is none). */
-	private static final float    NIGHT_AMBIENCE = 0.8f;
+	private static final float    NIGHT_AMBIENCE = 0.6f;
 	/** Vector direction of the moon. */
 	private static final Vector3f NIGHT_ANGLE = new Vector3f(-0.2f, -0.8f, 0.6f);
 	/** 0 = no shadows, 1 = pitch black shadows. */
