@@ -918,6 +918,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
                     	polygons.remove(i);
                     	polygonFills.remove(i);
                     	polygonEdges.remove(i);
+                        polygonReverse.remove(i);
                     	breaker = true;
                     	break;
                  	}

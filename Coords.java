@@ -1367,6 +1367,15 @@ public class Coords {
    /** save the stuff to the given file, if you save to a different file than the
     *  associated one, this coords instance has a new associated file set */
    private void save(File saveAs, boolean updateSaveRequired, boolean updateAssociatedSave, TwoDPanel panel) throws IOException {
+
+      ArrayList<ArrayList<Edge>> ae = panel.getPolygonEdges();
+      for (int i=0; i < ae.size(); i++) {
+         ArrayList<Edge> e = ae.get(i);
+         for (int k=0; k < e.size(); k++) {
+            System.out.println(i + " " + e);
+         }
+      }
+
       // make the list of vertices that will be saved
       Vertex[] vArray = vertices.toArray(new Vertex[0]);
       float[][] saveVerts = new float[vArray.length][3];
