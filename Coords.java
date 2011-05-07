@@ -393,6 +393,9 @@ public class Coords {
             return true;
       }
 
+      if( !doorWindowOnWall(f, e) )
+         return true;
+
       return false;
    }
 
@@ -636,6 +639,28 @@ public class Coords {
                || intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX() + f.getWidth() / 2, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, f.getRotationCenterY() + f.getHeight() / 2)) {
            return true;
        }
+       return false;
+   }
+
+   private boolean doorWindowOnWall(Furniture f, Edge e) {
+       Point p1 = new Point();
+       Point p2 = new Point();
+       Point p3 = new Point();
+       Point p4 = new Point();
+       Point p5 = new Point();
+       Point p6 = new Point();
+
+       p1.setLocation( e.getV1().getX(), e.getV1().getY() );
+       p2.setLocation( e.getV2().getX(), e.getV2().getY() );
+       p3.setLocation( f.getTopLeft().getX(), f.getTopLeft().getY() );
+       p4.setLocation( f.getBottomLeft().getX(), f.getBottomLeft().getY() );
+       p5.setLocation( f.getTopRight().getX(), f.getTopRight().getY() );
+       p6.setLocation( f.getBottomRight().getX(), f.getBottomRight().getY() );
+       
+       if ( straightLineIntersect( p1, p2, p3, p4, false ) && straightLineIntersect( p1, p2, p5, p6, false ) ) {
+           return true;
+       }
+
        return false;
    }
 
