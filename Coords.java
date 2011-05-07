@@ -176,7 +176,9 @@ public class Coords {
    }
 
    /** Blindly makes vertices and edges, there might be orphaned/dup vertices */
-   Coords(File loadedFrom, float[][] vertices, int[][] edges, Furniture[] furniture, ObjectBrowser ob) throws IllegalArgumentException {
+   Coords(File loadedFrom, float[][] vertices, int[][] edges, Furniture[] furniture,
+         ObjectBrowser ob, int[][] polygonEdgesTemp, ArrayList<ArrayList<Edge>> polygonEdges)
+         throws IllegalArgumentException {
       if (loadedFrom == null || vertices == null || edges == null || furniture == null)
          throw new IllegalArgumentException("null argument");
       if (!loadedFrom.isFile()) {
@@ -221,6 +223,20 @@ public class Coords {
          //no point throwing events as noone can register as a listener, we're still in constructor!
       }
 
+      // build the list of edges for 2dpanel
+      for (int i=0; i < polygonEdgesTemp.length; i++) {
+         ArrayList<Edge> node = new ArrayList<Edge>();
+         polygonEdges.add(node);
+
+         int[] polygonEdgesIndividual = polygonEdgesTemp[i];
+         for (int k=0; k < polygonEdgesIndividual.length; k++) {
+            if (polygonEdgesIndividual[k] < 0 || polygonEdgesIndividual[k] >= this.edges.size()) {
+               throw new IllegalArgumentException("save file reference edges which don't exist!");
+            }
+            node.add(this.edges.get(polygonEdgesIndividual[k]));
+         }
+      }
+
       for (Furniture f : furniture) {
          // check for collisions
          if( f.isDoorWindow() )
@@ -234,9 +250,9 @@ public class Coords {
 	   if(val==12) gridWidth=12.5f;
 	   else if(val==8) gridWidth =6.25f;
 	   else if(val==6) gridWidth =3.125f;
-	   else if(val==300) gridWidth =400f;
-	   else if(val==400) gridWidth =800f;
-	   else if(val==500) gridWidth =1600f;
+         else if(val==300) gridWidth =400f;
+         else if(val==400) gridWidth =800f;
+         else if(val==500) gridWidth =1600f;
 	   else gridWidth = val;
    }
    
@@ -592,7 +608,7 @@ public class Coords {
       lineSplits.clear();
       splitEdges.clear();
    }
-   
+
    public void clearLineSplits() {
       lineSplits.clear();
       splitEdges.clear();
@@ -1373,6 +1389,21 @@ public class Coords {
          saveEdges[i][3] = eArray[i].getCtrlY();
       }
 
+      // make the list of Edge indices from twodpanel
+      ArrayList<ArrayList<Edge>> a = panel.getPolygonEdges();
+      int[][] tempPolygonEdges = new int[a.size()][];
+      for (int i=0; i < tempPolygonEdges.length; i++) {
+         ArrayList<Edge> individualArrayList = a.get(i);
+         tempPolygonEdges[i] = new int[individualArrayList.size()];
+         for (int k=0; k < individualArrayList.size(); k++) {
+            Edge toLookup = individualArrayList.get(k);
+            int index = edges.indexOf(toLookup);
+            if (index < 0) {
+               throw new IllegalArgumentException("polygonEdges in twoDPanel contains edges which are no longer in use in coords");
+            }
+         }
+      }
+
       // make the list of furniture items which will be saved
       LinkedList<Furniture> saveFurniture = new LinkedList<Furniture>();
 
@@ -1392,7 +1423,7 @@ public class Coords {
       }
       Furniture[] fArray = saveFurniture.toArray(new Furniture[0]);
 
-      FileManager.save(saveAs, saveVerts, saveEdges, fArray);
+      FileManager.save(saveAs, saveVerts, saveEdges, fArray, panel.getPolygons(), panel.getPolygonFills(), tempPolygonEdges, panel.getPolygonReverse());
       synchronized(panel.gettingScreenshotLock) {
          FileManager.buildJar(saveAs, panel.getFsFloorScreenShot(), panel.getCsFloorScreenShot());
       }

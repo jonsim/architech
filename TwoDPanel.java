@@ -84,7 +84,16 @@ class TwoDPanel extends JPanel implements ChangeListener {
           	TwoDDropListener.acceptableActions, new TwoDDropListener(this, objectBrowser), false);
   	dropTarget.setActive(true);
 
-  	coords = file == null ? new Coords(nameIfNullFile, objectBrowser) : FileManager.load(file, objectBrowser);
+      if (file == null) {
+         coords = new Coords(nameIfNullFile, objectBrowser);
+      } else {
+         String[] imagename = new String[1];
+         coords = FileManager.load(file, objectBrowser, imagename, polygons, polygonFills, polygonEdges, polygonReverse);
+
+         if (imagename[0] != null) {
+            currname = imagename[0];
+         }
+      }
   	coords.addCoordsChangeListener(new TwoDPanelCoordsChangeListener());
 
   	handlerEdgeCurve = new HandlerEdgeCurve(coords);
@@ -99,11 +108,13 @@ class TwoDPanel extends JPanel implements ChangeListener {
   	addMouseMotionListener(new TwoDPanelMouseMotionListener());
 
   	colourPalette = new ColourPalette();
-  	addMouseListener(new MouseAdapter() {
 
-     	@Override
-     	public void mouseReleased(MouseEvent Me) {
-     	}
+      this.repaint();
+
+  	addMouseListener(new MouseAdapter() {
+         @Override
+         public void mouseReleased(MouseEvent Me) {
+         }
   	});
    }
 
@@ -466,9 +477,11 @@ class TwoDPanel extends JPanel implements ChangeListener {
    }
 
    private File fsFloorScreenShotLocation(String currnameNotGlobal) {
+      if (currnameNotGlobal == null) return null;
       return new File(saveLocation + "fs" + currnameNotGlobal);
    }
    private File csFloorScreenShotLocation(String currnameNotGlobal) {
+      if (currnameNotGlobal == null) return null;
       return new File(saveLocation + "cs" + currnameNotGlobal);
    }
    public File getFsFloorScreenShot() {
@@ -476,6 +489,25 @@ class TwoDPanel extends JPanel implements ChangeListener {
    }
    public File getCsFloorScreenShot() {
       return csFloorScreenShotLocation(currname);
+   }
+   public void reload3DFloorCeilings() {
+      try {
+         designButtons.viewport3D.getapp().reloadfloor(currname);
+      } catch (Exception e) {
+         System.out.println("3Dexception reloading floor and ceiling " + e.getMessage());
+      }
+   }
+   public ArrayList<Polygon> getPolygons() {
+      return polygons;
+   }
+   public ArrayList<Color> getPolygonFills() {
+      return polygonFills;
+   }
+   public ArrayList<ArrayList<Edge>> getPolygonEdges() {
+      return polygonEdges;
+   }
+   public ArrayList<ArrayList<Boolean>> getPolygonReverse() {
+      return polygonReverse;
    }
 
    private void selectDragBoxVertices() {

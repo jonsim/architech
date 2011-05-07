@@ -460,7 +460,6 @@ public class FrontEnd implements WindowListener, ChangeListener {
          System.exit(0); // if JME thread is still running, this makes sure
          window.dispose();
          main.viewport3D.shutdown3D();
-         System.exit(0); // if JME thread is still running, this makes sure
       }
    }
    /** Invoked when the Window is set to be the active Window. */
