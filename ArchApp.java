@@ -394,7 +394,11 @@ public class ArchApp extends Application
         simpleInitApp();
         
         if (main.frontEnd != null)
+           try {
         	tabChangedIgnoreInitComplete(main.frontEnd.getCurrentCoords());
+           } catch (Exception e) {
+              System.out.println("Error: " + e.getMessage());
+           }
         isInitComplete = true;
     }
     

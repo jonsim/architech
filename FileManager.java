@@ -11,7 +11,7 @@ import java.awt.*;
    2,61.0,77.0,0.0
 
    2 Edges
-   1,0,43,24                      **edge uses vertex 1 and 0, ctrl point (43,24)
+   1,0,43,24,tex_path,stilltextpath   **edge uses vertex 1 and 0, ctrl point (43,24)
    2,1,21,21
 
    1 Furniture
@@ -38,7 +38,7 @@ import java.awt.*;
 public class FileManager {
 
    /** Writes the given arrays to file in the expected format */
-   public static void save(File saveAs, float[][] vertices, int[][] edges, Furniture[] furniture,
+   public static void save(File saveAs, float[][] vertices, int[][] edges, String[] edgetex, Furniture[] furniture,
          ArrayList<Polygon> polygons,
          ArrayList<Color> polygonFills,
          int[][] polygonEdges,
@@ -51,7 +51,7 @@ public class FileManager {
       BufferedWriter bw = new BufferedWriter(fileW);
       saveVertices(bw, vertices);
       bw.newLine();
-      saveEdges(bw, edges);
+      saveEdges(bw, edges, edgetex);
       bw.newLine();
       saveFurniture(bw, furniture);
       bw.newLine();
@@ -238,7 +238,8 @@ public class FileManager {
           throw new Exception("The number of edges is either invalid or not give"
              + "n in the file");
        }
-       int[][] edges = loadEdges(br, numEdges);
+       String[] edgetex = new String[numEdges];
+       int[][] edges = loadEdges(br, numEdges, edgetex);
        if (edges == null) throw new Exception("Unable to load all edges");
 
 
@@ -324,7 +325,7 @@ public class FileManager {
 
 
       /* Loading might not reach this stage */
-      return new Coords(file, vertices, edges, furniture, ob, polygonEdgesTemp, polygonEdges);
+      return new Coords(file, vertices, edges, edgetex, furniture, ob, polygonEdgesTemp, polygonEdges);
    }
 
 
@@ -352,8 +353,10 @@ public class FileManager {
    }
 
    /** Writes the given edges to the file */
-   private static void saveEdges(BufferedWriter bw, int[][] edges) throws IOException {
-      if (edges == null) throw new IllegalArgumentException("Edges is null");
+   private static void saveEdges(BufferedWriter bw, int[][] edges, String[] edgetex) throws IOException {
+      if (edges == null || edgetex == null) throw new IllegalArgumentException("Edges or edgetex is null");
+
+      if (edges.length != edgetex.length) throw new IllegalArgumentException("Edge and edgetex are different lengths");
 
       String line = edges.length + " Edges";
       bw.write(line, 0, line.length());
@@ -364,7 +367,7 @@ public class FileManager {
             throw new IllegalArgumentException("Edges array needs to be of size m by 2");
          }
 
-         line = edges[i][0] + "," + edges[i][1] + "," + edges[i][2] + "," + edges[i][3];
+         line = edges[i][0] + "," + edges[i][1] + "," + edges[i][2] + "," + edges[i][3] + "," + (edgetex[i] == null ? "" : edgetex[i]);
          bw.write(line, 0, line.length());
          bw.newLine();
       }
@@ -552,8 +555,10 @@ public class FileManager {
    }
 
    /** null if its unable to load all numEdges # edges */
-   private static int[][] loadEdges(BufferedReader br, int numEdges) throws IOException {
+   private static int[][] loadEdges(BufferedReader br, int numEdges, String[] edgetextofill) throws IOException {
       if (numEdges < 0) return null;
+
+      if (edgetextofill == null || edgetextofill.length != numEdges) throw new IllegalArgumentException("edgetextofill wrong size");
 
       String line;
       String[] split;
@@ -561,7 +566,7 @@ public class FileManager {
       int edgeLoadCount = 0;
 
       while (edgeLoadCount < numEdges && (line = br.readLine()) != null && (split = line.split(",")) != null) {
-         if (split.length == 4) {
+         if (split.length >= 4) {
             try {
                int v1 = Integer.parseInt(split[0]);
                int v2 = Integer.parseInt(split[1]);
@@ -572,6 +577,12 @@ public class FileManager {
                edges[edgeLoadCount][1] = v2;
                edges[edgeLoadCount][2] = ctrlX;
                edges[edgeLoadCount][3] = ctrlY;
+
+               edgetextofill[edgeLoadCount] = "";
+               for (int i=4; i < split.length; i++) {
+                  if (i != 4) edgetextofill[edgeLoadCount] += ","; // put the commas back which were split out
+                  edgetextofill[edgeLoadCount] += split[i];
+               }
 
                edgeLoadCount++;
 

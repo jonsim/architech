@@ -93,7 +93,8 @@ public class FrontEnd implements WindowListener, ChangeListener {
          addTab(new File("demodesign.atech"));
          stateChanged(new ChangeEvent(tabbedPane));
       } catch (Exception e) {
-         // FAILED TO LOAD, NOTIFY USER
+         // FAILED TO LOAD
+         System.out.println("failed to load file, e: " + e.getMessage());
          addTab("New File");
       }
       tabbedPane.addChangeListener(this);
@@ -353,6 +354,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
       try {
          addTab(toOpen);
       } catch (Exception e) {
+         System.out.println("failed to load file, e: " + e.getMessage());
          // FILE FAILED TO LOAD, NOTIFY USER
       }
    }
