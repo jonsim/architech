@@ -445,19 +445,19 @@ public class Coords {
                    i++;
                }
                if(skipTest == 0) {
-                   splitCurve(e1.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
+                   splitCurve(e1.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY(), e1.isStraight());
                    used.add(e1);
                    delete(e1);
-                   splitCurve(e2.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
+                   splitCurve(e2.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY(), e2.isStraight());
                    used.add(e2);
                    delete(e2);
                    break;
                } else if(skipTest == 1) {
-                   splitCurve(e2.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
+                   splitCurve(e2.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY(), e2.isStraight());
                    used.add(e2);
                    delete(e2);
                } else if(skipTest == 2) {
-                   splitCurve(e1.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
+                   splitCurve(e1.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY(), e1.isStraight());
                    used.add(e1);
                    delete(e1);
                    break;
@@ -469,7 +469,7 @@ public class Coords {
        }
    }
    
-   private void splitCurve(QuadCurve2D quad, double x, double y) {
+   private void splitCurve(QuadCurve2D quad, double x, double y, boolean wasStraight) {
        if (quad == null) return;
        double sx0 = quad.getX1();
        double sx1 = quad.getX2();
@@ -506,6 +506,10 @@ public class Coords {
        edge1.setCtrl(new Point((int)p0x, (int)p0y));
        edge2 = newEdge(v, new Vertex(sx1, sy1, 0), false);
        edge2.setCtrl(new Point((int)p1x, (int)p1y));
+       if(wasStraight) {
+           edge1.resetCtrlPositionToHalfway();
+           edge2.resetCtrlPositionToHalfway();
+       }
        rememberedEdges.add(edge1);
        rememberedEdges.add(edge2);
        return;
