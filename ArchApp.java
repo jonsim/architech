@@ -1647,7 +1647,7 @@ public class ArchApp extends Application
 		furn.spatial.setLocalRotation(c);
 		furn.spatial.rotate(0, -FastMath.HALF_PI, -FastMath.PI);
 		if (f.isCeilingObject())
-			furn.spatial.setLocalTranslation(center.x, -furn.getHeight(), center.y);
+			furn.spatial.setLocalTranslation(center.x, -(furn.getHeight() + 1), center.y);
 		else
 			furn.spatial.setLocalTranslation(center.x, -100f, center.y);
         
@@ -1794,7 +1794,7 @@ public class ArchApp extends Application
 				// recalculate the furniture's position and move it
 				Point center = f.getRotationCenter();
 				if (f.isCeilingObject())
-					furn.spatial.setLocalTranslation(center.x, -furn.getHeight(), center.y);
+					furn.spatial.setLocalTranslation(center.x, -(furn.getHeight() + 1), center.y);
 				else
 					furn.spatial.setLocalTranslation(center.x, -100f, center.y);
 				
