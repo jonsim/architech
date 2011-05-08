@@ -176,10 +176,10 @@ public class Coords {
    }
 
    /** Blindly makes vertices and edges, there might be orphaned/dup vertices */
-   Coords(File loadedFrom, float[][] vertices, int[][] edges, Furniture[] furniture,
+   Coords(File loadedFrom, float[][] vertices, int[][] edges, String[] edgetex, Furniture[] furniture,
          ObjectBrowser ob, int[][] polygonEdgesTemp, ArrayList<ArrayList<Edge>> polygonEdges)
          throws IllegalArgumentException {
-      if (loadedFrom == null || vertices == null || edges == null || furniture == null)
+      if (loadedFrom == null || vertices == null || edges == null || edgetex == null || furniture == null)
          throw new IllegalArgumentException("null argument");
       if (!loadedFrom.isFile()) {
          throw new IllegalArgumentException("File is a directory or it doesn't exist");
@@ -199,10 +199,12 @@ public class Coords {
          this.vertices.add(vertexA[i]);
       }
 
+      if (edges.length != edgetex.length) throw new IllegalArgumentException("invalid edgetex length");
       for (int i=0; i < edges.length; i++) {
          if (edges[i] == null || edges[i].length != 4) {
             throw new IllegalArgumentException("Edges array needs to be of size m by 2");
          }
+         if (edgetex[i] == null) throw new IllegalArgumentException("edgetex entry null");
 
          int v1Index = edges[i][0];
          int v2Index = edges[i][1];
@@ -216,6 +218,7 @@ public class Coords {
          Vertex v2 = vertexA[v2Index];
 
          Edge e = new Edge(v1, v2, ctrl);
+         e.settex(edgetex[i]);
          v1.setUse(e);
          v2.setUse(e);
          this.edges.add(e);
@@ -238,10 +241,11 @@ public class Coords {
       }
 
       for (Furniture f : furniture) {
-         // check for collisions
-         if( f.isDoorWindow() )
+         
+         if( f.isDoorWindow() ) {
             addDoorWindow(f);
-         else
+             System.out.println("adding doorwindow");
+         }  else
             this.furniture.add(f);
       }
    }
@@ -297,6 +301,7 @@ public class Coords {
       
       while( ite.hasNext() ) {
          Edge e = ite.next();
+         //if (furnitureWallIntersect(f, e)) System.out.println("e=" + e + " isStraight=" + e.isStraight() + " intersect=" + furnitureWallIntersect(f, e) + " f=" + f.getRotationCenterX() + "f=" + f.getRotationCenterY());
          if( e.isStraight() && furnitureWallIntersect(f, e) ) {
             f.setRotation( e.getRotation() );
             e.addDoorWindow(f);
@@ -1417,6 +1422,7 @@ public class Coords {
       // make the list of edges that will be saved
       Edge[] eArray = edges.toArray(new Edge[0]);
       int[][] saveEdges = new int[eArray.length][4];
+      String[] edgeTex = new String[eArray.length];
       for (int i=0; i < eArray.length; i++) {
          // find the index of the two endpoint vertices. If there is an error
          // finding v1 or v2, the save file will be corrupt, but it might be
@@ -1425,6 +1431,8 @@ public class Coords {
          saveEdges[i][1] = saveIndexIn(vArray, eArray[i].getV2());
          saveEdges[i][2] = eArray[i].getCtrlX();
          saveEdges[i][3] = eArray[i].getCtrlY();
+         
+         edgeTex[i] = eArray[i].tex();
       }
 
       // make the list of Edge indices from twodpanel
@@ -1464,7 +1472,7 @@ public class Coords {
       }
       Furniture[] fArray = saveFurniture.toArray(new Furniture[0]);
 
-      FileManager.save(saveAs, saveVerts, saveEdges, fArray, panel.getPolygons(), panel.getPolygonFills(), tempPolygonEdges, panel.getPolygonReverse());
+      FileManager.save(saveAs, saveVerts, saveEdges, edgeTex, fArray, panel.getPolygons(), panel.getPolygonFills(), tempPolygonEdges, panel.getPolygonReverse());
       synchronized(panel.gettingScreenshotLock) {
          FileManager.buildJar(saveAs, panel.getFsFloorScreenShot(), panel.getCsFloorScreenShot());
       }

@@ -52,8 +52,8 @@ public class Furniture {
           }
       }
 
-      if (isD && isW) throw new IllegalArgumentException("Malformed furniture is both a door and a window");
-      if ((isD || isW) && isP) throw new IllegalArgumentException("Malformed furniture is both a door/window and a physical object");
+      //if (isD && isW) throw new IllegalArgumentException("Malformed furniture is both a door and a window");
+      //if ((isD || isW) && isP) throw new IllegalArgumentException("Malformed furniture is both a door/window and a physical object");
 
       setRotationCenter(center);
       recalcRectangle();
@@ -101,8 +101,8 @@ public class Furniture {
          throw new IllegalArgumentException("Malformed value in saved furniture object");
       }
 
-      if (isD && isW) throw new IllegalArgumentException("Malformed furniture is both a door and a window");
-      if ((isD || isW) && isP) throw new IllegalArgumentException("Malformed furniture is both a doorwindow and a physical object");
+      //if (isD && isW) throw new IllegalArgumentException("Malformed furniture is both a door and a window");
+      //if ((isD || isW) && isP) throw new IllegalArgumentException("Malformed furniture is both a doorwindow and a physical object");
 
       recalcRectangle();
    }

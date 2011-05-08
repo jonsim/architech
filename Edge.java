@@ -190,7 +190,7 @@ public class Edge {
          yDiff++;
       else if ( ctrl.getY()-1 == ( ( v1.getY() + v2.getY() ) / 2 ) )
          yDiff++;
-
+//System.out.println("isStraight " + ( xDiff == 1 & yDiff == 1 ) + " v1=" + v1.getX()+","+v1.getY()+"," + "   v2=" + v2.getX()+","+v2.getY() + "   ctrl=" + ctrl);
       if( xDiff == 1 & yDiff == 1 )
          return true;
 
