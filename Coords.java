@@ -242,10 +242,9 @@ public class Coords {
 
       for (Furniture f : furniture) {
          
-         if( f.isDoorWindow() ) {
+         if( f.isDoorWindow() )
             addDoorWindow(f);
-             System.out.println("adding doorwindow");
-         }  else
+         else
             this.furniture.add(f);
       }
    }
