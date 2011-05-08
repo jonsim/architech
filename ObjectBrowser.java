@@ -467,6 +467,9 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
 			typeName = fields.get(index).toString();
 			index++;
 		}
+		if (fields.contains("... Wallpapers")==true){
+				fields.removeElement("... Wallpapers");
+		}
 		if(index > 0 && currentType == -1 && !typeName.equals(dashedSeparator)) {
       listTitle.setText(itemTitle);
 			library.addListSelectionListener(listSelectionListener);
@@ -540,7 +543,7 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
           description.setText("");
 					description.setCaretPosition(0);
 				} else {
-					String request = "select * from ITEM where Type='38' AND Name='"+object+"'";
+					String request = "select * from ITEM where Type='27' AND Name='"+object+"'";
 					statement = connection.prepareStatement(request);
 					rs = statement.executeQuery();
 					String image = rs.getString("Image");
@@ -611,6 +614,9 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
 			currentLibrary = 1;
 			fields.addElement(dashedSeparator);
 			fields.addElement(backButtonText);
+			if (fields.contains("... Wallpapers")==true){
+				fields.removeElement("... Wallpapers");
+			}
 			library.setSelectedIndex(-1);
 			splitTop.revalidate();
 		}
@@ -622,11 +628,10 @@ public class ObjectBrowser implements MouseListener, ActionListener, KeyListener
       description.setText("");
       picPan.remove(picLabel);
 			fields.clear();
-			fields.addElement(dashedSeparator);
-			SQLStatement("select * from ITEM where Type='38'"+" ORDER BY Name", "Name");
+			SQLStatement("select * from ITEM where Type='27'"+" ORDER BY Name", "Name");
 			prevCurrentLib = currentLibrary;
 			currentLibrary = 3;
-		    currentType = 38;
+		    currentType = 27;
 			library.setSelectedIndex(-1);
 			selectWallpaper();
 			splitTop.revalidate();

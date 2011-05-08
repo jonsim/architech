@@ -393,6 +393,9 @@ public class Coords {
             return true;
       }
 
+      if( !doorWindowOnWall(f, e) )
+         return true;
+
       return false;
    }
 
@@ -442,19 +445,19 @@ public class Coords {
                    i++;
                }
                if(skipTest == 0) {
-                   splitCurve(e1.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
+                   splitCurve(e1.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY(), e1.isStraight());
                    used.add(e1);
                    delete(e1);
-                   splitCurve(e2.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
+                   splitCurve(e2.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY(), e2.isStraight());
                    used.add(e2);
                    delete(e2);
                    break;
                } else if(skipTest == 1) {
-                   splitCurve(e2.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
+                   splitCurve(e2.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY(), e2.isStraight());
                    used.add(e2);
                    delete(e2);
                } else if(skipTest == 2) {
-                   splitCurve(e1.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY());
+                   splitCurve(e1.topDownViewCurve, lineSplits.get(0).getX(), lineSplits.get(0).getY(), e1.isStraight());
                    used.add(e1);
                    delete(e1);
                    break;
@@ -466,7 +469,7 @@ public class Coords {
        }
    }
    
-   private void splitCurve(QuadCurve2D quad, double x, double y) {
+   private void splitCurve(QuadCurve2D quad, double x, double y, boolean wasStraight) {
        if (quad == null) return;
        double sx0 = quad.getX1();
        double sx1 = quad.getX2();
@@ -503,6 +506,10 @@ public class Coords {
        edge1.setCtrl(new Point((int)p0x, (int)p0y));
        edge2 = newEdge(v, new Vertex(sx1, sy1, 0), false);
        edge2.setCtrl(new Point((int)p1x, (int)p1y));
+       if(wasStraight) {
+           edge1.resetCtrlPositionToHalfway();
+           edge2.resetCtrlPositionToHalfway();
+       }
        rememberedEdges.add(edge1);
        rememberedEdges.add(edge2);
        return;
@@ -636,6 +643,28 @@ public class Coords {
                || intersectsLine(eqn, x1, ctrlX, x2, f.getRotationCenterX() + f.getWidth() / 2, y1, ctrlY, y2, f.getRotationCenterY() - f.getHeight() / 2, f.getRotationCenterY() + f.getHeight() / 2)) {
            return true;
        }
+       return false;
+   }
+
+   private boolean doorWindowOnWall(Furniture f, Edge e) {
+       Point p1 = new Point();
+       Point p2 = new Point();
+       Point p3 = new Point();
+       Point p4 = new Point();
+       Point p5 = new Point();
+       Point p6 = new Point();
+
+       p1.setLocation( e.getV1().getX(), e.getV1().getY() );
+       p2.setLocation( e.getV2().getX(), e.getV2().getY() );
+       p3.setLocation( f.getTopLeft().getX(), f.getTopLeft().getY() );
+       p4.setLocation( f.getBottomLeft().getX(), f.getBottomLeft().getY() );
+       p5.setLocation( f.getTopRight().getX(), f.getTopRight().getY() );
+       p6.setLocation( f.getBottomRight().getX(), f.getBottomRight().getY() );
+       
+       if ( straightLineIntersect( p1, p2, p3, p4, false ) && straightLineIntersect( p1, p2, p5, p6, false ) ) {
+           return true;
+       }
+
        return false;
    }
 

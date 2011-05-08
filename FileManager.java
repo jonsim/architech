@@ -169,7 +169,9 @@ public class FileManager {
    }
 
    /** Returns a Coords or throws an exception if there is a problem reading */
-   public static Coords load(File file, ObjectBrowser ob, String[] imagename,
+   public static Coords load(File file, File dirForImages,
+         ObjectBrowser ob,
+         String[] imagename,
          ArrayList<Polygon> polygons,
          ArrayList<Color> polygonFills,
          ArrayList<ArrayList<Edge>> polygonEdges,
@@ -208,7 +210,6 @@ public class FileManager {
 
        if (coords == null) throw new IllegalArgumentException("Given file is not the correct jar save file (coords save missing)");
        if (!((img1 == null && img2 == null) || (img1 != null && img2 != null))) throw new IllegalArgumentException("Given file is not the correct jar save file (neither 0 or 2)");
-
 
 
 
@@ -296,7 +297,6 @@ public class FileManager {
        in.close();
 
 
-
        // LOAD IMAGES
        int BUFFER_SIZE = 10240;
        byte buffer[] = new byte[BUFFER_SIZE];
@@ -305,7 +305,8 @@ public class FileManager {
           JarEntry[] images = {img1, img2};
 
           for (JarEntry e : images) {
-             FileOutputStream out = new FileOutputStream(new File(file.getParentFile(), e.getName()));
+             File writeto = new File(dirForImages, e.getName());
+             FileOutputStream out = new FileOutputStream(writeto);
              in = jarFile.getInputStream(e);
 
              while (true) {

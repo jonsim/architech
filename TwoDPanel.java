@@ -88,7 +88,7 @@ class TwoDPanel extends JPanel implements ChangeListener {
          coords = new Coords(nameIfNullFile, objectBrowser);
       } else {
          String[] imagename = new String[1];
-         coords = FileManager.load(file, objectBrowser, imagename, polygons, polygonFills, polygonEdges, polygonReverse);
+         coords = FileManager.load(file, new File(saveLocation), objectBrowser, imagename, polygons, polygonFills, polygonEdges, polygonReverse);
 
          if (imagename[0] != null) {
             currname = imagename[0];
