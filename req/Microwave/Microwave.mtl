@@ -1,0 +1,22 @@
+# Exported from Wings 3D 1.4.1
+newmtl mat7
+Ns 100.0
+d 1.0
+illum 2
+Kd 1.0 1.0 1.0
+Ka 1.0 1.0 1.0
+Ks 1.0 1.0 1.0
+Ke 0.0 0.0 0.0
+map_Kd kitchen_unit_1_uv.jpg
+
+# Exported from Wings 3D 1.2
+newmtl mat8
+Ns 100.0
+d 1.0
+illum 2
+Kd 1.0 1.0 1.0
+Ka 1.0 1.0 1.0
+Ks 1.0 1.0 1.0
+Ke 0.0 0.0 0.0
+map_Kd micro.jpg
+
