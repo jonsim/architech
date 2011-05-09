@@ -177,22 +177,13 @@ public class Edge {
    public static boolean isStraight(Coords.Vertex v1, Coords.Vertex v2, Point.Float ctrl) {
       int xDiff = 0, yDiff = 0;
 
-      if ( ctrl.getX() == ( ( v1.getX() + v2.getX() ) / 2 ) )
-         xDiff++;
-      else if ( ctrl.getX()+1 == ( ( v1.getX() + v2.getX() ) / 2 ) )
-         xDiff++;
-      else if ( ctrl.getX()-1 == ( ( v1.getX() + v2.getX() ) / 2 ) )
-         xDiff++;
+      float averageX = ( v1.getX() + v2.getX() ) / 2;
+      float averageY = ( v1.getY() + v2.getY() ) / 2;
 
-      if ( ctrl.getY() == ( ( v1.getY() + v2.getY() ) / 2 ) )
-         yDiff++;
-      else if ( ctrl.getY()+1 == ( ( v1.getY() + v2.getY() ) / 2 ) )
-         yDiff++;
-      else if ( ctrl.getY()-1 == ( ( v1.getY() + v2.getY() ) / 2 ) )
-         yDiff++;
-//System.out.println("isStraight " + ( xDiff == 1 & yDiff == 1 ) + " v1=" + v1.getX()+","+v1.getY()+"," + "   v2=" + v2.getX()+","+v2.getY() + "   ctrl=" + ctrl);
-      if( xDiff == 1 & yDiff == 1 )
-         return true;
+      if ( ctrl.getX() <= averageX + 1 && ctrl.getX() >= averageX - 1 ) xDiff = 1;
+      if ( ctrl.getY() <= averageY + 1 && ctrl.getY() >= averageY - 1 ) yDiff = 1;
+
+      if( xDiff == 1 & yDiff == 1 ) return true;
 
       return false;
    }
