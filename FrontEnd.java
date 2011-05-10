@@ -156,7 +156,7 @@ public class FrontEnd implements WindowListener, ChangeListener {
 		  left.remove(topbuttons);
 		  left.revalidate();
 		  left.add(designButtons.getPane());
-		  //designButtons.getSlider().setMinimumSize( new Dimension(200, 50) );
+		  designButtons.getSlider().setMinimumSize( new Dimension(200, 50) );
    }
 
    /** Called whenever the current tab state is changed in tabbedPane */

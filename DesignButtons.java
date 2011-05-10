@@ -188,7 +188,7 @@ public class DesignButtons implements ActionListener {
    }
    
    private void initTwButtons() {
-      Insets margins = new Insets(0,0,0,0);
+    Insets margins = new Insets(-1,-1,-1,-1);
   	TwLeft = new JButton(new ImageIcon(FrontEnd.getImage(this, TWIMG_DIR + "left.png")));
   	TwLeft.addActionListener(this);
   	TwLeft.setActionCommand("!r");
